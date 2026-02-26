@@ -1,7 +1,4 @@
 variants:
-  v002:
-    created_at: '2026-02-26T17:44:30.600745+00:00'
-    params_path: executions/f01_explore/v002/params.yaml
   v003:
     created_at: '2026-02-26T17:44:30.731859+00:00'
     params_path: executions/f01_explore/v003/params.yaml
