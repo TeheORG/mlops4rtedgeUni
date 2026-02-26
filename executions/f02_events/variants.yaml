@@ -1,1 +1,4 @@
-variants: {}
+variants:
+  v202:
+    created_at: '2026-02-26T17:21:20.199277+00:00'
+    params_path: executions/f02_events/v202/params.yaml
