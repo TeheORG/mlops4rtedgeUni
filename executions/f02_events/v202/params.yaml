@@ -1,0 +1,11 @@
+phase: f02_events
+variant: v202
+parent: v100
+parameters:
+  Tu: 20
+  strategy: levels
+  bands:
+  - 40
+  - 60
+  - 80
+  nan_mode: discard
