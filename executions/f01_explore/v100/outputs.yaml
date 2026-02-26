@@ -1,0 +1,20 @@
+phase: f01_explore
+variant: v100
+artifacts:
+  dataset:
+    path: 01_explore_dataset.parquet
+    sha256: b2e5090852492ab67dff24db12d6c9ebbd1e56bfd81d30635931390f7ddf6d52
+  report:
+    path: 01_explore_report.html
+    sha256: ac3d0ad22c10958226bea5899cbe95c7f049a0a32477c0bd88454897fa6e586d
+exports:
+  Tu: 10
+  n_rows: 3887242
+  n_columns: 19
+metrics:
+  execution_time: 33.29433358402457
+  n_nan_detected: 42543
+  n_nan_replaced: 42542
+  nan_ratio: 0.0005760138584523152
+provenance:
+  generated_at: '2026-02-25T17:10:48.793061+00:00'
