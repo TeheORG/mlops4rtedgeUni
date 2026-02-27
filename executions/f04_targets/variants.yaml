@@ -1,1 +1,4 @@
-variants: {}
+variants:
+  v402:
+    created_at: '2026-02-27T11:07:16.307869+00:00'
+    params_path: executions/f04_targets/v402/params.yaml
