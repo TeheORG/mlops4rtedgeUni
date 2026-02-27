@@ -1,0 +1,19 @@
+phase: f05_modeling
+variant: v502
+parent: v401
+parameters:
+  parent_variant: v401
+  Tu: 10
+  OW: 600
+  LT: 100
+  PW: 100
+  prediction_name: Battery_Active_Power_any-to-80_100
+  model_family: lstm
+  batch_size: 128
+  epochs: 50
+  learning_rate: 0.0005
+  early_stopping_patience: 5
+  embedding_dim: 128
+  hidden_units: 128
+  dropout: 0.2
+  imbalance_strategy: none
