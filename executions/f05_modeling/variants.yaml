@@ -1,1 +1,7 @@
-variants: {}
+variants:
+  v520:
+    created_at: '2026-02-27T15:23:57.095236+00:00'
+    params_path: executions/f05_modeling/v520/params.yaml
+  v521:
+    created_at: '2026-02-27T15:23:58.308590+00:00'
+    params_path: executions/f05_modeling/v521/params.yaml

@@ -1,0 +1,57 @@
+phase: f05_modeling
+variant: v520
+parent: v401
+parameters:
+  parent_variant: v401
+  Tu: 10
+  OW: 600
+  LT: 100
+  PW: 100
+  prediction_name: Battery_Active_Power_any-to-80_100
+  model_family: dense_bow
+  automl:
+    enabled: false
+    max_trials: 1
+    seed: 42
+  search_space:
+    common:
+      batch_size:
+      - 128
+      - 256
+      learning_rate:
+      - 0.001
+      - 0.0005
+      n_layers:
+      - 1
+      - 2
+      units:
+      - 64
+      - 128
+      dropout:
+      - 0.0
+      - 0.2
+    dense_bow: {}
+    sequence_embedding:
+      embed_dim:
+      - 64
+      - 128
+    cnn1d:
+      embed_dim:
+      - 64
+      filters:
+      - 64
+      - 128
+      kernel_size:
+      - 3
+      - 5
+  training:
+    epochs: 20
+    max_samples: null
+  evaluation:
+    split:
+      train: 0.7
+      val: 0.15
+      test: 0.15
+  imbalance:
+    strategy: rare_events
+    max_majority_samples: 20000

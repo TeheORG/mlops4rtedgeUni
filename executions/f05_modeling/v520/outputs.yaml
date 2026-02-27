@@ -1,0 +1,64 @@
+phase: f05_modeling
+variant: v520
+artifacts:
+  model:
+    path: 05_modeling_model.h5
+    sha256: be1dabd7f98dfa3d281ab36ee8788b1fe40714fbe79b55b207a48f7da2600785
+  labeled_dataset:
+    path: 05_modeling_training_dataset.parquet
+    sha256: 32ed6d206b55fb559281670d626bce4053b8dc08cf8fea1f058887addfb15def
+  history:
+    path: 05_modeling_history.json
+    sha256: 8de283569c7ada50dd7a8a340fc77ee3d7122df1e10df17cc20ffff0bf761672
+  report:
+    path: 05_modeling_report.html
+    sha256: e38d66dce3228b58b3678d39079881614cc523d5ee33c668cf87d44719e41b04
+exports:
+  Tu: 10
+  OW: 600
+  LT: 100
+  PW: 100
+  prediction_name: Battery_Active_Power_any-to-80_100
+  model_family: dense_bow
+  decision_threshold: 0.16632726788520813
+  best_val_recall: 0.11624649859943978
+  test_precision: 0.7980769230769231
+  test_recall: 0.11624649859943978
+  test_f1: 0.20293398533007334
+metrics:
+  execution_time: 51.844656082976144
+  n_train: 17329
+  n_val: 3714
+  n_test: 3714
+  positive_ratio_train: 0.19210571873737664
+  tp: 83
+  tn: 2979
+  fp: 21
+  fn: 631
+provenance:
+  generated_at: '2026-02-27T16:51:43.508498+00:00'
+  parent_phase: f04_targets
+  parent_variant: v401
+mlflow_registration:
+  experiment_name: F05_Battery_Active_Power_any-to-80_100
+  run_name: Battery_Active_Power_any-to-80_100__v520
+  metrics:
+    val_recall: 0.11624649859943978
+    test_precision: 0.7980769230769231
+    test_recall: 0.11624649859943978
+    test_f1: 0.20293398533007334
+    test_tp: 83
+    test_tn: 2979
+    test_fp: 21
+    test_fn: 631
+  params:
+    batch_size: 128
+    learning_rate: 0.0005
+    n_layers: 2
+    units: 64
+    dropout: 0.0
+    model_family: dense_bow
+  artifacts:
+  - /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f05_modeling/v520/05_modeling_model.h5
+  - /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f05_modeling/v520/05_modeling_history.json
+  - /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f05_modeling/v520/05_modeling_trials_summary.json

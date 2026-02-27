@@ -1,0 +1,56 @@
+phase: f05_modeling
+variant: v521
+artifacts:
+  model:
+    path: 05_modeling_model.h5
+    sha256: d6278b430517f1c135b368acf1cf215c2d8de5dab4db0ec156fa02d10dd9c091
+  labeled_dataset:
+    path: 05_modeling_training_dataset.parquet
+    sha256: 8d878dbae8b53a815e9f014f5a39b2107f22e39f35be9bb5f3eee8b1b0827e82
+  history:
+    path: 05_modeling_history.json
+    sha256: db9e573e426cca8f8f2906e5e214147dd738b74f4a4ce0ae42a7904645d075f1
+  report:
+    path: 05_modeling_report.html
+    sha256: f93546497e236db9fdd97dc85955d709fd7d001cab72ada4e07ab1ffb29560e1
+exports:
+  Tu: 10
+  OW: 600
+  LT: 100
+  PW: 100
+  prediction_name: Battery_Active_Power_any-to-80_100
+  model_family: dense_bow
+  decision_threshold: 0.17834076285362244
+  best_val_recall: 0.0
+  test_precision: 0.0
+  test_recall: 0.0
+  test_f1: 0.0
+metrics:
+  execution_time: 2039.224166125001
+  n_train: 2722580
+  n_val: 583410
+  n_test: 583411
+  positive_ratio_train: 0.0012231045552380463
+provenance:
+  generated_at: '2026-02-27T17:05:14.817393+00:00'
+  parent_phase: f04_targets
+  parent_variant: v401
+mlflow_registration:
+  experiment_name: F05_Battery_Active_Power_any-to-80_100
+  run_name: Battery_Active_Power_any-to-80_100__v521
+  metrics:
+    val_recall: 0.0
+    test_precision: 0.0
+    test_recall: 0.0
+    test_f1: 0.0
+  params:
+    batch_size: 128
+    learning_rate: 0.0005
+    n_layers: 2
+    units: 64
+    dropout: 0.0
+    model_family: dense_bow
+  artifacts:
+  - /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f05_modeling/v521/05_modeling_model.h5
+  - /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f05_modeling/v521/05_modeling_history.json
+  - /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f05_modeling/v521/05_modeling_trials_summary.json
