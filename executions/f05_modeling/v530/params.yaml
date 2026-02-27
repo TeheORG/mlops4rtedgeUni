@@ -1,5 +1,5 @@
 phase: f05_modeling
-variant: v520
+variant: v530
 parent: v401
 parameters:
   parent_variant: v401
@@ -52,6 +52,5 @@ parameters:
       train: 0.7
       val: 0.15
       test: 0.15
-  imbalance:
-    strategy: rare_events
-    max_majority_samples: 20000
+  imbalance_strategy: rare_events
+  imbalance_max_majority_samples: 20000
