@@ -1,0 +1,20 @@
+phase: f06_quantization
+variant: v602
+parent: v503
+parameters:
+  parent_variant: v503
+  Tu: 10
+  OW: 600
+  LT: 100
+  PW: 100
+  prediction_name: Battery_Active_Power_any-to-80_100
+  quantization:
+    tflite_optimization: INT8_FULL
+    target_hw: esp32
+  thresholding:
+    strategy: fixed_threshold
+    maximize_metric: none
+    grid_points: 33
+  eedu:
+    version: 2.0
+    layout: compact
