@@ -1,0 +1,11 @@
+model_size_bytes: 48576
+operators:
+- CAST
+- CONV_2D
+- DEQUANTIZE
+- EXPAND_DIMS
+- FULLY_CONNECTED
+- GATHER
+- LOGISTIC
+- REDUCE_MAX
+- RESHAPE
