@@ -1,0 +1,14 @@
+phase: f07_modval
+variant: v702
+parent: v602
+parameters:
+  parent_variant: v602
+  time_scale_factor: 0.1
+  Tu: 10
+  OW: 600
+  LT: 100
+  PW: 100
+  prediction_name: Battery_Active_Power_any-to-80_100
+  decision_threshold: 0.1768421083688736
+  MTI: 1000
+  hardware_profile: esp32_default

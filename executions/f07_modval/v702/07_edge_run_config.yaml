@@ -1,0 +1,28 @@
+phase: f07_modval
+variant: v702
+time_scale_factor: 0.1
+geometry:
+  Tu_dataset: 10
+  Tu_edge_ms: 1000.0
+  OW: 600
+  LT: 100
+  PW: 100
+memory:
+  arena_per_model: 72864
+  arena_global: 84817
+prediction:
+  name: Battery_Active_Power_any-to-80_100
+  threshold: 0.1768421083688736
+operators:
+- CAST
+- CONV_2D
+- DEQUANTIZE
+- EXPAND_DIMS
+- FULLY_CONNECTED
+- GATHER
+- LOGISTIC
+- REDUCE_MAX
+- RESHAPE
+limits:
+  MTI_MS: 1000000
+  ITmax: 1000000
