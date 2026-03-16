@@ -1,0 +1,33 @@
+phase: f07_modval
+variant: v701
+parent:
+  phase: f06_quant
+  variant: v601
+generated_at: '2026-03-09T12:00:13.481781+00:00'
+git_commit: a07ef1010d6f0b36e9545c1a765c59085343c8c6
+geometry:
+  Tu: 10
+  OW: 600
+  LT: 100
+  PW: 100
+prediction:
+  name: Battery_Active_Power_any-to-80_100
+  threshold: 0.1768421083688736
+operators:
+- CAST
+- CONV_2D
+- DEQUANTIZE
+- EXPAND_DIMS
+- FULLY_CONNECTED
+- GATHER
+- LOGISTIC
+- REDUCE_MAX
+- RESHAPE
+limits:
+  MTI: 10
+  ITmax: 10
+drain:
+  windows: 700
+paths:
+  esp32_project: executions/f07_modval/v701/esp32_project
+  dataset: 07_input_dataset.csv

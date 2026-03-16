@@ -1,0 +1,59 @@
+phase: f07_modval
+variant: v701
+artifacts:
+  edge_run_config:
+    path: 07_edge_run_config.yaml
+    sha256: 1b863cfcc9e5ebca62d2132c90659a6705912a8435c2fd885fe5381914a408b0
+  input_dataset_csv:
+    path: 07_input_dataset.csv
+    sha256: 54efbdc3c3fb08e6296d0b933e463f853d21ae9f7a2ae790da8d17c794be8604
+  sdkconfig:
+    path: esp32_project/sdkconfig
+    sha256: f08fa1411f2d976ef83e400f4baaf7d81a000df0cebcea7942427c35ffe77095
+  esp_build_log:
+    path: 07_esp_build_log.txt
+    sha256: 3bef97b2526954a29e2eada7672203abb17158aafd18006b7a58fb10d59c71f3
+  esp_flash_log:
+    path: 07_esp_flash_log.txt
+    sha256: 791663486ab2a89e9583ba85d9cd5252f82dc7945fa4abe33a32d2ec190eb0a7
+  esp_monitor_log:
+    path: 07_esp_monitor_log.txt
+    sha256: e16c602d2e049c5c593ba3dc570322e835bece189a2c2c62cbc52cf1b147a1a3
+  esp_predictions:
+    path: 07_esp_predictions.csv
+    sha256: 01ba4719c80b6fe911b091a7c05124b64eeece964e09c058ef8f9805daca546b
+  esp_runtime_metrics_raw:
+    path: 07_runtime_metrics_raw.json
+    sha256: 1cbb7e423d6fbdd705f88fffb1c466b6118b5d9741d38131cfb3bb5ec51af4a6
+  report:
+    path: 07_modval_report.html
+    sha256: 0c3c439195292e6268e022a2fcd7007d272c6b39e9d77f156b88750f34603b78
+exports:
+  Tu: 10
+  OW: 600
+  LT: 100
+  PW: 100
+  prediction_name: Battery_Active_Power_any-to-80_100
+  itmax_ms: 100.0
+  ITmax: 10
+  MTI: 10
+  operators:
+  - CAST
+  - CONV_2D
+  - DEQUANTIZE
+  - EXPAND_DIMS
+  - FULLY_CONNECTED
+  - GATHER
+  - LOGISTIC
+  - REDUCE_MAX
+  - RESHAPE
+  decision_threshold: 0.1768421083688736
+  esp_run_completed: true
+metrics:
+  execution_time: 33.50881920899701
+  n_inferences: 0
+  esp_mean_latency_ms: 9.84968809073724
+  esp_max_latency_ms: 10.412
+  esp_jitter_ms: 0.08251190926276104
+  pc_esp_agreement: 0.0
+  esp_memory_peak_bytes: 0
