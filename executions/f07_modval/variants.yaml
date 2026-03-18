@@ -1,1 +1,7 @@
-variants: {}
+variants:
+  v701:
+    created_at: '2026-03-18T13:54:04.871867+00:00'
+    params_path: executions/f07_modval/v701/params.yaml
+  v702:
+    created_at: '2026-03-18T13:56:09.426475+00:00'
+    params_path: executions/f07_modval/v702/params.yaml
