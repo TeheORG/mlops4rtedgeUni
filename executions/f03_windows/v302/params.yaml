@@ -1,0 +1,11 @@
+phase: f03_windows
+variant: v302
+parent: v201
+parameters:
+  parent_variant: v201
+  Tu: 10
+  OW: 60
+  LT: 10
+  PW: 10
+  window_strategy: asynPW
+  nan_mode: discard
