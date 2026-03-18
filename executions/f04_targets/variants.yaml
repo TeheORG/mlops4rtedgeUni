@@ -1,1 +1,10 @@
-variants: {}
+variants:
+  v401:
+    created_at: '2026-03-18T10:43:09.439845+00:00'
+    params_path: executions/f04_targets/v401/params.yaml
+  v402:
+    created_at: '2026-03-18T10:43:11.255985+00:00'
+    params_path: executions/f04_targets/v402/params.yaml
+  v403:
+    created_at: '2026-03-18T10:43:13.066572+00:00'
+    params_path: executions/f04_targets/v403/params.yaml
