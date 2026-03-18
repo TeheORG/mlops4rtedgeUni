@@ -1,0 +1,55 @@
+phase: f06_quant
+variant: v603
+artifacts:
+  calibration_dataset:
+    path: 06_calibration_dataset.parquet
+    sha256: 3994173f4dac54b82f673e637535d92c50e5a5f2f0f0d366bc21563fca832c42
+  model_float:
+    path: 06_model_float.h5
+    sha256: b84d628ecd2e165d0e6bc6d026c291fd1cf47e9d699ee29d6dd66ecae40db2af
+  report:
+    path: 06_quant_report.html
+    sha256: 08b8721cea365da390873dc7442a9cbdd1feb9031090f4d9d66ecfa36ad5f044
+  model_tflite:
+    path: 06_model_tflite.tflite
+    sha256: 0d38e7ea852649643de1b7e59f1d3e9d127c84d76b76559c5f473803d07188e3
+  eedu_manifest:
+    path: eedu/eedu_manifest.yaml
+    sha256: 0e9fb6bf0edce8d9f53bac924056f181a31a6c0b372929822e61645eeea38659
+exports:
+  Tu: 10
+  OW: 6
+  LT: 1
+  PW: 1
+  prediction_name: GE_Active_Power_any-to-80_100
+  edge_capable: true
+  decision_threshold: 0.5811503529548645
+  model_size_bytes: 51904
+  arena_estimated_bytes: 77856
+  footprint_estimated_bytes: 129760
+  operators:
+  - CAST
+  - CONV_2D
+  - DEQUANTIZE
+  - EXPAND_DIMS
+  - FULLY_CONNECTED
+  - GATHER
+  - LOGISTIC
+  - REDUCE_MAX
+  - RESHAPE
+  input_dtype: int8
+  output_dtype: int8
+  input_shape:
+  - 1
+  - 5
+  output_shape:
+  - 1
+  - 1
+  input_bytes: 5
+  output_bytes: 1
+metrics:
+  execution_time: 2.049097625014838
+  tflm_compatible: true
+  operators_detected: 8
+  unsupported_operators: 0
+  single_input_output_int8: true
