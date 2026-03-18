@@ -1,0 +1,65 @@
+phase: f05_modeling
+variant: v502
+artifacts:
+  model:
+    path: 05_modeling_model.h5
+    sha256: d2d630d8063ee4b39b24ae87f6b2005d7911fcdd287659951ad28f0dd91ba52b
+  labeled_dataset:
+    path: 05_modeling_training_dataset.parquet
+    sha256: 8af2dff968f5fad1e47b0605f8f3b151cb7eed820231b4d04802f0ae86d4f825
+  history:
+    path: 05_modeling_history.json
+    sha256: 719b6048cf03723be447aa90cff162524a8e59e01d77bc1fac837e2d0e9befe0
+  report:
+    path: 05_modeling_report.html
+    sha256: a07336abd1a563a53db4bdcbfd7ad577eaf3a03b19b9b4cd3879dc4a1e1d7221
+exports:
+  Tu: 10
+  OW: 6
+  LT: 1
+  PW: 1
+  prediction_name: PVPCS_Active_Power_any-to-80_100
+  model_family: sequence_embedding
+  decision_threshold: 0.0
+  best_val_recall: 0.0
+  test_precision: 0.0
+  test_recall: 0.0
+  test_f1: 0.0
+metrics:
+  execution_time: 17.415669125010027
+  n_train: 18503
+  n_val: 3965
+  n_test: 3966
+  positive_ratio_train: 0.24341998594822462
+  tp: 0
+  tn: 3001
+  fp: 0
+  fn: 965
+provenance:
+  generated_at: '2026-03-18T10:44:20.910478+00:00'
+  parent_phase: f04_targets
+  parent_variant: v402
+mlflow_registration:
+  experiment_name: F05_PVPCS_Active_Power_any-to-80_100
+  run_name: PVPCS_Active_Power_any-to-80_100__v502
+  metrics:
+    val_recall: 0.0
+    test_precision: 0.0
+    test_recall: 0.0
+    test_f1: 0.0
+    test_tp: 0
+    test_tn: 3001
+    test_fp: 0
+    test_fn: 965
+  params:
+    batch_size: 128
+    learning_rate: 0.0005
+    n_layers: 2
+    units: 64
+    dropout: 0.0
+    embed_dim: 128
+    model_family: sequence_embedding
+  artifacts:
+  - /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f05_modeling/v502/05_modeling_model.h5
+  - /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f05_modeling/v502/05_modeling_history.json
+  - /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f05_modeling/v502/05_modeling_trials_summary.json
