@@ -1,0 +1,11 @@
+artifacts:
+- executions/f07_modval/v701/metrics_models.csv
+- executions/f07_modval/v701/metrics_raw.json
+exports:
+  edge_capable: true
+  incompatibility_reason: null
+generated_at: '2026-03-18T14:49:05.666821'
+parent:
+  phase: f06_quant
+  variant: v601
+phase: f07_modval
