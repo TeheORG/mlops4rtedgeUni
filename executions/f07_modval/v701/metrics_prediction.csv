@@ -1,2 +1,0 @@
-model_name,n_pred_results,n_offload_results,n_urgent_results,N_total,accuracy,precision,recall,f1,TP,FP,FN,TN,false_negative_rate,skipped_predictions
-Battery_Active_Power_Set_Response_any-to-80_100-dense_bow-v501,2208,0,0,2207,0.9981875849569551,,0.0,,0,0,4,2203,1.0,1

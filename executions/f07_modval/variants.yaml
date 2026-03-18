@@ -1,7 +1,4 @@
 variants:
-  v701:
-    created_at: '2026-03-18T18:18:12.267040+00:00'
-    params_path: executions/f07_modval/v701/params.yaml
   v702:
     created_at: '2026-03-18T18:24:01.775928+00:00'
     params_path: executions/f07_modval/v702/params.yaml
