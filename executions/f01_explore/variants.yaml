@@ -1,1 +1,4 @@
-variants: {}
+variants:
+  v101:
+    created_at: '2026-03-18T10:42:05.761352+00:00'
+    params_path: executions/f01_explore/v101/params.yaml
