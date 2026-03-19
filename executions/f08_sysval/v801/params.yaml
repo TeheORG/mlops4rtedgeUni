@@ -1,0 +1,12 @@
+phase: f08_sysval
+variant: v801
+parent: null
+parameters:
+  parents:
+  - v700
+  - v701
+  - v703
+  selection_mode: manual
+  time_scale_factor: 0.01
+  MTI_MS: 100
+  platform: esp32
