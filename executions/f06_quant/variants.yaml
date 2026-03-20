@@ -1,1 +1,10 @@
-variants: {}
+variants:
+  v601:
+    created_at: '2026-03-20T10:32:59.453163+00:00'
+    params_path: executions/f06_quant/v601/params.yaml
+  v602:
+    created_at: '2026-03-20T10:33:05.895950+00:00'
+    params_path: executions/f06_quant/v602/params.yaml
+  v603:
+    created_at: '2026-03-20T10:33:11.700438+00:00'
+    params_path: executions/f06_quant/v603/params.yaml
