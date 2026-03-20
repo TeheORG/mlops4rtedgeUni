@@ -1,9 +1,0 @@
-generated_at: '2026-03-20T12:07:24.543626'
-phase: f07_modval
-parent:
-  phase: f06_quant
-  variant: v602
-artifacts: []
-exports:
-  edge_capable: false
-  incompatibility_reason: NOT_EQUAL, SUM
