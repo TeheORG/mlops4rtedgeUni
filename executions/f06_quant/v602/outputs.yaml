@@ -1,0 +1,30 @@
+phase: f06_quant
+variant: v602
+artifacts:
+  calibration_dataset:
+    path: 06_calibration_dataset.parquet
+    sha256: 8af2dff968f5fad1e47b0605f8f3b151cb7eed820231b4d04802f0ae86d4f825
+  model_float:
+    path: 06_model_float.h5
+    sha256: 806d931eb6c09f285285e55c10f68fe0fb912fbd02f16476a833e11f90c0ff98
+  report:
+    path: 06_quant_report.html
+    sha256: a061c612fc010e6a441c4f3f50c49ba1ee950dd2f52ff71b8ffc0d46a9c4a703
+exports:
+  Tu: 10
+  OW: 6
+  LT: 1
+  PW: 1
+  event_type_count: 221
+  prediction_name: PVPCS_Active_Power_any-to-80_100
+  runtime_model_name: PVPCS_Active_Power_any-to-80_100-sequence_embedding-v502
+  model_family: sequence_embedding
+  edge_capable: false
+  incompatibility_reason: NOT_EQUAL, SUM
+metrics:
+  execution_time: 0.9945602090156171
+  tflm_compatible: false
+  operators_detected: 9
+  unsupported_operators: 2
+  single_input_output_int8: false
+  single_input_output_integer: false
