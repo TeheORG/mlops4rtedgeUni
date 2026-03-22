@@ -1,0 +1,44 @@
+phase: f08_sysval
+models:
+- id: 0
+  runtime_model_name: Battery_Active_Power_any-to-80_100-dense_bow-v500
+  model_id: Battery_Active_Power_any-to-80_100-dense_bow-v500__esp32
+  parent_variant: v700
+  prediction_name: Battery_Active_Power_any-to-80_100
+  threshold: 0.10773329436779022
+  exec_time_ms: 11.0
+  itmax_ms: 5.845
+  management_overhead_ms: 5.0
+  mti_ms: 100
+  arena_required: 20400
+  model_size_bytes: 13600
+  input_bytes: 94
+  output_bytes: 1
+  model_tflite: /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f06_quant/v600/06_model_tflite.tflite
+  evaluation_dataset_csv: /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f07_modval/v700/07_evaluation_dataset.csv
+  operators:
+  - FULLY_CONNECTED
+  - LOGISTIC
+  - QUANTIZE
+  quality_score: 0.008908685968819599
+- id: 1
+  runtime_model_name: Battery_Active_Power_Set_Response_any-to-80_100-dense_bow-v501
+  model_id: Battery_Active_Power_Set_Response_any-to-80_100-dense_bow-v501__esp32
+  parent_variant: v701
+  prediction_name: Battery_Active_Power_Set_Response_any-to-80_100
+  threshold: 0.3504415452480316
+  exec_time_ms: 11.0
+  itmax_ms: 5.834
+  management_overhead_ms: 5.0
+  mti_ms: 100
+  arena_required: 20112
+  model_size_bytes: 13408
+  input_bytes: 91
+  output_bytes: 1
+  model_tflite: /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f06_quant/v601/06_model_tflite.tflite
+  evaluation_dataset_csv: /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f07_modval/v701/07_evaluation_dataset.csv
+  operators:
+  - FULLY_CONNECTED
+  - LOGISTIC
+  - QUANTIZE
+  quality_score: 1.0
