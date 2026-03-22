@@ -1,3 +1,0 @@
-model_id,model_name,n_attempts,n_ok,n_fail,n_offload,n_wd_late,ok_rate,offload_rate,wd_late_rate,fail_rate
-0,Battery_Active_Power_any-to-80_100-dense_bow-v500,228,228,0.0,0,0,1.0,0.0,0.0,0.0
-1,GE_Active_Power_any-to-80_100-cnn1d-v503,228,228,0.0,0,0,1.0,0.0,0.0,0.0
