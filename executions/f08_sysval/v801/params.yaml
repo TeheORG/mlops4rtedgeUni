@@ -1,0 +1,15 @@
+phase: f08_sysval
+variant: v801
+parent: null
+parameters:
+  parents:
+  - v700
+  - v701
+  - v703
+  selection_mode: auto_ilp
+  objective: max_global_recall
+  solver_time_limit_sec: 30
+  time_scale_factor: 0.01
+  MTI_MS: 100
+  max_rows: 2000
+  platform: esp32

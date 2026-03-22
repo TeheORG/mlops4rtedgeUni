@@ -1,0 +1,53 @@
+phase: f08_sysval
+variant: v801
+platform: esp32
+selection_mode: auto_ilp
+execution:
+  project_dir: esp32_project
+  runner_dir: null
+time_scale_factor: 0.01
+geometry:
+  Tu_dataset: 10
+  Tu_edge_ms: 100.0
+  OW: 6
+  LT: 1
+  PW: 1
+events:
+  event_type_count: 221
+drain:
+  tu_ms: 100.0
+  recommended_drain_seconds: 5.0
+memory:
+  arena_per_model_max: 75900
+  arena_global: 88309
+  model_memory_payload_bytes: 89500
+  model_memory_required_bytes: 122268
+  memory_guard_bytes: 32768
+  plate_available_heap_bytes: 316056
+  fit_margin_bytes: 193788
+  fits: true
+models:
+- id: 0
+  name: Battery_Active_Power_any-to-80_100-dense_bow-v500
+  threshold: 0.10773329436779022
+  itmax: 11
+  mti_ms: 100
+  arena_required: 20400
+  model_size_bytes: 13600
+  input_bytes: 94
+  output_bytes: 1
+  model_id: Battery_Active_Power_any-to-80_100-dense_bow-v500__esp32
+  parent_variant: v700
+  prediction_name: Battery_Active_Power_any-to-80_100
+  exec_time_ms: 11.0
+operators:
+- FULLY_CONNECTED
+- LOGISTIC
+- QUANTIZE
+limits:
+  MTI_MS: 100
+  ITmax: 11
+dataset:
+  source_unique_windows_csv: /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f08_sysval/v801/08_unique_windows.csv
+  max_rows: 2000
+  unique_windows_count: 280
