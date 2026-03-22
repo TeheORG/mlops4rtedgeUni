@@ -1,0 +1,111 @@
+generated_at: '2026-03-22T13:05:39.810486'
+phase: f08_sysval
+parent:
+  phase: f07_modval
+  variants: &id001 []
+artifacts:
+- executions/f08_sysval/v803/08_selected_configuration.yaml
+- executions/f08_sysval/v803/08_selection_report.yaml
+- executions/f08_sysval/v803/08_candidate_summary.csv
+- executions/f08_sysval/v803/08_unique_windows.csv
+- executions/f08_sysval/v803/08_system_profile.yaml
+- executions/f08_sysval/v803/08_edge_run_config.yaml
+- executions/f08_sysval/v803/08_input_dataset.csv
+- executions/f08_sysval/v803/08_model_execution_plan.yaml
+- executions/f08_sysval/v803/08_edge_predictions.csv
+- executions/f08_sysval/v803/08_edge_runtime_metrics_raw.json
+- executions/f08_sysval/v803/metrics_models.csv
+- executions/f08_sysval/v803/metrics_memory.csv
+- executions/f08_sysval/v803/metrics_system_timing.csv
+- executions/f08_sysval/v803/metrics_outcomes.csv
+- executions/f08_sysval/v803/metrics_system_summary.yaml
+- executions/f08_sysval/v803/08_report.html
+- executions/f08_sysval/v803/08_esp_build_log.txt
+- executions/f08_sysval/v803/08_esp_flash_log.txt
+- executions/f08_sysval/v803/08_esp_monitor_log.txt
+exports:
+  selection_mode: auto_ilp
+  objective: max_tp
+  solver_status: NoFeasibleCandidatesAfterFilters
+  solver_iterations: null
+  solver_objective_value: null
+  solver_lambda_last: null
+  solver_gap_last: null
+  parent_variants: *id001
+  requested_parent_variants:
+  - v700
+  - v701
+  - v703
+  selected_variants: []
+  excluded_parents:
+  - parent_variant: v700
+    runtime_model_name: Battery_Active_Power_any-to-80_100-dense_bow-v500
+    reason: precision<0.01
+  - parent_variant: v701
+    runtime_model_name: Battery_Active_Power_Set_Response_any-to-80_100-dense_bow-v501
+    reason: precision<0.01
+  - parent_variant: v703
+    runtime_model_name: GE_Active_Power_any-to-80_100-cnn1d-v503
+    reason: recall<0.05
+  platform: esp32
+  Tu: 10
+  OW: 6
+  LT: 1
+  PW: 1
+  event_type_count: 221
+  model_ids: []
+  runtime_model_names: []
+  MTI_MS: 100
+  total_models_requested: 3
+  total_models_declared: 3
+  total_models_selected: 0
+  total_model_size_bytes: 0
+  required_arena_bytes: 0
+  operators_union:
+  - CAST
+  - CONV_2D
+  - DEQUANTIZE
+  - EXPAND_DIMS
+  - FULLY_CONNECTED
+  - GATHER
+  - LOGISTIC
+  - QUANTIZE
+  - REDUCE_MAX
+  - RESHAPE
+  compatible_input_signature: true
+  configuration_edge_capable: false
+  selection_completed: true
+  phase_status: skipped_inviable
+  phase_status_reason: no_feasible_candidates_after_filters
+  esp_run_completed: false
+  edge_run_completed: false
+  selection_global_precision: null
+  selection_global_recall: null
+  selection_sum_effective_time_ms: 0.0
+  selection_max_exec_time_ms: 0.0
+  max_exec_time_ms: 0.0
+  system_viable: false
+  unique_windows_count: 0
+  duplicate_windows_removed: 0
+  exec_time_policy: effective_time_ms = ceil(itmax_ms + 5.0)
+metrics:
+  execution_time: null
+  n_inferences: null
+  unique_windows_count: 0
+  evaluated_rows_total: 0
+  models_evaluated: 0
+  throughput_inf_per_sec: null
+  edge_mean_latency_ms: null
+  edge_max_latency_ms: null
+  edge_jitter_ms: null
+  esp_mean_latency_ms: null
+  esp_max_latency_ms: null
+  esp_jitter_ms: null
+  ok_rate: null
+  offload_rate: null
+  watchdog_rate: null
+  system_quality_score: null
+  mean_model_quality_score: null
+  edge_memory_peak_bytes: null
+  esp_memory_peak_bytes: null
+  pc_esp_agreement: null
