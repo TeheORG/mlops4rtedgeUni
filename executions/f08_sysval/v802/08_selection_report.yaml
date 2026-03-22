@@ -1,0 +1,36 @@
+selection_mode: auto_ilp
+objective: max_tp
+solver_status: Optimal
+objective_value: 4.0
+iterations: 1
+lambda_last: null
+gap_last: null
+candidates_considered: 3
+candidates_feasible_after_filters: 2
+selected_count: 2
+selected_variants:
+- v700
+- v703
+excluded_parents:
+- parent_variant: v701
+  runtime_model_name: Battery_Active_Power_Set_Response_any-to-80_100-dense_bow-v501
+  reason: positive_support<=0
+memory:
+  effective_memory_budget_bytes: 316056
+  arena_global_bytes: 75900
+  memory_guard_bytes: 32768
+  models_memory_budget_bytes: 207388
+  selected_total_model_size_bytes: 64200
+  selected_model_memory_required_bytes: 172868
+  fit_margin_bytes: 143188
+timing:
+  MTI_MS: 100.0
+  selected_sum_effective_time_ms: 33.0
+  selected_max_exec_time_ms: 22.0
+quality_aggregates:
+  total_tp: 4
+  total_tn: 198
+  total_fp: 446
+  total_fn: 76
+  global_precision: 0.008888888888888889
+  global_recall: 0.05

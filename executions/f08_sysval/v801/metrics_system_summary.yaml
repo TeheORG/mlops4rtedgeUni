@@ -1,0 +1,12 @@
+n_tu: 236.0
+sys_cycle_worst_ms: 0.869
+sys_cycle_process_max_ms: 0.869
+sys_cycle_mean_ms: 0.733478813559322
+sys_cycle_median_ms: 0.742
+sys_cycle_max_ms: 0.869
+sys_cycle_std_ms: 0.018200262391919835
+mean_model_quality_score: 0.0014360938247965534
+system_quality_score: 0.0014360938247965534
+ok_rate: 0.9957627118644068
+offload_rate: 0.0
+watchdog_rate: 0.0
