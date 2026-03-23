@@ -1,0 +1,29 @@
+phase: f04_targets
+variant: v400
+artifacts:
+  dataset:
+    path: 04_targets.parquet
+    sha256: 7992efb2e4ab58147ccf4e5b4a373b1b5346cb5beae3d81cc72765dd9b334548
+  report:
+    path: 04_targets_report.html
+    sha256: 73457b1a460763db3402b0d8ff94b010d04d2dd7172a59f8875fb7f706bd74c1
+exports:
+  Tu: 10
+  OW: 6
+  LT: 1
+  PW: 1
+  prediction_name: Battery_Active_Power_any-to-80_100
+  target_operator: OR
+  target_event_types:
+  - Battery_Active_Power_0_40-to-80_100
+  - Battery_Active_Power_40_60-to-80_100
+  - Battery_Active_Power_60_80-to-80_100
+  event_type_count: 221
+  n_windows: 875456
+  n_windows_pos: 145
+  n_windows_neg: 875311
+metrics:
+  execution_time: 0.8984348749509081
+  positive_ratio: 0.00016562796988083925
+provenance:
+  generated_at: '2026-03-23T18:05:11.620332+00:00'
