@@ -1,0 +1,68 @@
+phase: f05_modeling
+variant: v503
+artifacts:
+  model:
+    path: 05_modeling_model.h5
+    sha256: 5621267322832206766571d8b5c0a62fa77c1566a6f61e5fc37e654602eae82c
+  labeled_dataset:
+    path: 05_modeling_training_dataset.parquet
+    sha256: 3994173f4dac54b82f673e637535d92c50e5a5f2f0f0d366bc21563fca832c42
+  history:
+    path: 05_modeling_history.json
+    sha256: 66aa390b2750d3f03645873a802ed32ec9ec1d5aa27dcc64be8b9f3c297742e8
+  report:
+    path: 05_modeling_report.html
+    sha256: b1110830dcb281ca0cd2add355f16290d292429cfd649cf67163e104440d5eeb
+exports:
+  Tu: 10
+  OW: 6
+  LT: 1
+  PW: 1
+  event_type_count: 221
+  prediction_name: GE_Active_Power_any-to-80_100
+  model_family: cnn1d
+  decision_threshold: 0.7402740716934204
+  best_val_recall: 0.9237199582027168
+  test_precision: 0.8938321536905965
+  test_recall: 0.9237199582027168
+  test_f1: 0.9085303186022611
+metrics:
+  execution_time: 28.725226290989667
+  n_train: 18465
+  n_val: 3958
+  n_test: 3957
+  positive_ratio_train: 0.24186298402382886
+  tp: 884
+  tn: 2895
+  fp: 105
+  fn: 73
+provenance:
+  generated_at: '2026-03-23T19:22:05.143431+00:00'
+  parent_phase: f04_targets
+  parent_variant: v403
+mlflow_registration:
+  experiment_name: F05_GE_Active_Power_any-to-80_100
+  run_name: GE_Active_Power_any-to-80_100__v503
+  metrics:
+    val_recall: 0.9237199582027168
+    test_precision: 0.8938321536905965
+    test_recall: 0.9237199582027168
+    test_f1: 0.9085303186022611
+    test_tp: 884
+    test_tn: 2895
+    test_fp: 105
+    test_fn: 73
+  params:
+    batch_size: 128
+    learning_rate: 0.0005
+    n_layers: 2
+    units: 64
+    dropout: 0.0
+    embed_dim: 64
+    filters: 128
+    kernel_size: 3
+    model_family: cnn1d
+  artifacts:
+  - /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f05_modeling/v503/05_modeling_model.h5
+  - /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f05_modeling/v503/05_modeling_history.json
+  - /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f05_modeling/v503/05_modeling_trials_summary.json

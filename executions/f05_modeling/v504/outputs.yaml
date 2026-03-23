@@ -1,0 +1,68 @@
+phase: f05_modeling
+variant: v504
+artifacts:
+  model:
+    path: 05_modeling_model.h5
+    sha256: 20a8f6ef1860d8565e9d2a2d56bc6c6c83037f4e78d58320a4e0acb10693aec9
+  labeled_dataset:
+    path: 05_modeling_training_dataset.parquet
+    sha256: a4a5a3667dfcd438e2ca1860525ab75fa4ac4e6fcfc4f0e5966e5b0a8c9316a1
+  history:
+    path: 05_modeling_history.json
+    sha256: c319d20ddae795ad00997389d531566b3277a50c8b553b5489b83bbb86dbcadf
+  report:
+    path: 05_modeling_report.html
+    sha256: 6a262aef64116142f878373902a31caeb10f2ba68e3c295e3c4c88213ca2caa6
+exports:
+  Tu: 10
+  OW: 6
+  LT: 1
+  PW: 1
+  event_type_count: 221
+  prediction_name: GE_Body_Active_Power_any-to-80_100
+  model_family: cnn1d
+  decision_threshold: 0.6803618669509888
+  best_val_recall: 0.6190476190476191
+  test_precision: 0.7547169811320755
+  test_recall: 0.47619047619047616
+  test_f1: 0.583941605839416
+metrics:
+  execution_time: 20.953059833031148
+  n_train: 14392
+  n_val: 3085
+  n_test: 3085
+  positive_ratio_train: 0.027376320177876598
+  tp: 40
+  tn: 2988
+  fp: 13
+  fn: 44
+provenance:
+  generated_at: '2026-03-23T19:22:31.107197+00:00'
+  parent_phase: f04_targets
+  parent_variant: v404
+mlflow_registration:
+  experiment_name: F05_GE_Body_Active_Power_any-to-80_100
+  run_name: GE_Body_Active_Power_any-to-80_100__v504
+  metrics:
+    val_recall: 0.6190476190476191
+    test_precision: 0.7547169811320755
+    test_recall: 0.47619047619047616
+    test_f1: 0.583941605839416
+    test_tp: 40
+    test_tn: 2988
+    test_fp: 13
+    test_fn: 44
+  params:
+    batch_size: 256
+    learning_rate: 0.0005
+    n_layers: 2
+    units: 64
+    dropout: 0.2
+    embed_dim: 64
+    filters: 64
+    kernel_size: 5
+    model_family: cnn1d
+  artifacts:
+  - /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f05_modeling/v504/05_modeling_model.h5
+  - /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f05_modeling/v504/05_modeling_history.json
+  - /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f05_modeling/v504/05_modeling_trials_summary.json

@@ -1,0 +1,16 @@
+{
+  "trial_id": 0,
+  "hyperparameters": {
+    "batch_size": 128,
+    "learning_rate": 0.0005,
+    "n_layers": 2,
+    "units": 64,
+    "dropout": 0.0,
+    "embed_dim": 64,
+    "filters": 128,
+    "kernel_size": 3
+  },
+  "val_recall": 0.5658031088082901,
+  "epochs": 20,
+  "batch_size": 128
+}

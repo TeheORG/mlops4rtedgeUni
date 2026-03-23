@@ -1,0 +1,68 @@
+phase: f05_modeling
+variant: v502
+artifacts:
+  model:
+    path: 05_modeling_model.h5
+    sha256: 86ec1d4d15c839d11ed90517cac8e84b740a7734680139a0679e2327eee379bb
+  labeled_dataset:
+    path: 05_modeling_training_dataset.parquet
+    sha256: 8af2dff968f5fad1e47b0605f8f3b151cb7eed820231b4d04802f0ae86d4f825
+  history:
+    path: 05_modeling_history.json
+    sha256: a3962285bcc3228cd0c8571fbbd4676f3b1bab43591e95efdf07e24df825a9c4
+  report:
+    path: 05_modeling_report.html
+    sha256: 0dc2eaf04d5aefe7c059998d33864bb38d63c8bad635269465dca8f8bc8e6400
+exports:
+  Tu: 10
+  OW: 6
+  LT: 1
+  PW: 1
+  event_type_count: 221
+  prediction_name: PVPCS_Active_Power_any-to-80_100
+  model_family: cnn1d
+  decision_threshold: 0.4044400155544281
+  best_val_recall: 0.6145077720207254
+  test_precision: 0.7403726708074534
+  test_recall: 0.6176165803108808
+  test_f1: 0.6734463276836158
+metrics:
+  execution_time: 31.274163750000298
+  n_train: 18503
+  n_val: 3965
+  n_test: 3966
+  positive_ratio_train: 0.24341998594822462
+  tp: 596
+  tn: 2792
+  fp: 209
+  fn: 369
+provenance:
+  generated_at: '2026-03-23T19:21:30.728858+00:00'
+  parent_phase: f04_targets
+  parent_variant: v402
+mlflow_registration:
+  experiment_name: F05_PVPCS_Active_Power_any-to-80_100
+  run_name: PVPCS_Active_Power_any-to-80_100__v502
+  metrics:
+    val_recall: 0.6145077720207254
+    test_precision: 0.7403726708074534
+    test_recall: 0.6176165803108808
+    test_f1: 0.6734463276836158
+    test_tp: 596
+    test_tn: 2792
+    test_fp: 209
+    test_fn: 369
+  params:
+    batch_size: 256
+    learning_rate: 0.0005
+    n_layers: 2
+    units: 64
+    dropout: 0.2
+    embed_dim: 64
+    filters: 64
+    kernel_size: 5
+    model_family: cnn1d
+  artifacts:
+  - /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f05_modeling/v502/05_modeling_model.h5
+  - /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f05_modeling/v502/05_modeling_history.json
+  - /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f05_modeling/v502/05_modeling_trials_summary.json

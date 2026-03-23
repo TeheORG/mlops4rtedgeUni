@@ -1,0 +1,47 @@
+
+    <html>
+    <body>
+      <h1>F05 Modeling — v501</h1>
+      <p><b>Parent F04:</b> v401</p>
+      <p><b>Prediction:</b> Battery_Active_Power_Set_Response_any-to-80_100</p>
+      <p><b>Model family:</b> cnn1d</p>
+      <h2>Geometry</h2>
+      <ul>
+        <li>Tu = 10</li>
+        <li>OW = 6</li>
+        <li>LT = 1</li>
+        <li>PW = 1</li>
+      </ul>
+      <h2>AutoML</h2>
+      <pre>{
+  "batch_size": 128,
+  "learning_rate": 0.0005,
+  "n_layers": 2,
+  "units": 64,
+  "dropout": 0.0,
+  "embed_dim": 64,
+  "filters": 128,
+  "kernel_size": 3
+}</pre>
+      <h2>Validation</h2>
+      <p>best_val_recall = 0.0714</p>
+      <h2>Test @0.5</h2>
+      <ul>
+        <li>precision = 0.2727</li>
+        <li>recall = 0.2143</li>
+        <li>f1 = 0.2400</li>
+                <li>tp = 3</li>
+                <li>tn = 2993</li>
+                <li>fp = 8</li>
+                <li>fn = 11</li>
+      </ul>
+      <h2>Thresholds</h2>
+      <ul>
+        <li>best_f1_threshold = 0.6614</li>
+        <li>best_recall_threshold = 0.0001</li>
+      </ul>
+      <h2>Execution</h2>
+      <p>execution_time = 21.0 s</p>
+    </body>
+    </html>
+    
