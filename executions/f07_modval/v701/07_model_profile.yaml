@@ -1,0 +1,55 @@
+phase: f07_modval
+variant: v701
+parent:
+  phase: f06_quant
+  variant: v601
+model:
+  model_id: Battery_Active_Power_Set_Response_any-to-80_100-cnn1d-v501__esp32
+  runtime_model_name: Battery_Active_Power_Set_Response_any-to-80_100-cnn1d-v501
+  prediction_name: Battery_Active_Power_Set_Response_any-to-80_100
+  platform: esp32
+compatibility:
+  edge_capable: true
+  incompatibility_reason: null
+input_signature:
+  Tu: 10
+  OW: 6
+  LT: 1
+  PW: 1
+  event_type_count: 221
+  input_dtype: uint8
+  output_dtype: int8
+  input_shape:
+  - 1
+  - 4
+  output_shape:
+  - 1
+  - 1
+  input_bytes: 4
+  output_bytes: 1
+build:
+  operators:
+  - CAST
+  - CONV_2D
+  - DEQUANTIZE
+  - EXPAND_DIMS
+  - FULLY_CONNECTED
+  - GATHER
+  - LOGISTIC
+  - REDUCE_MAX
+  - RESHAPE
+  decision_threshold: 0.590630054473877
+  arena_bytes: 90816
+  arena_global_bytes: 105462
+  model_size_bytes: 60544
+limits:
+  MTI_MS: 100
+  ITmax: 100
+  itmax_ms: 100.0
+run:
+  edge_run_completed: false
+artifacts:
+  edge_run_config: /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f07_modval/v701/07_edge_run_config.yaml
+  input_dataset_csv: /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f07_modval/v701/07_input_dataset.csv
+  evaluation_dataset_csv: /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f07_modval/v701/07_evaluation_dataset.csv
+  model_tflite: /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f06_quant/v601/06_model_tflite.tflite
