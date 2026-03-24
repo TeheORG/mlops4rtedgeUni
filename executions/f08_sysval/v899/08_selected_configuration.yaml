@@ -1,0 +1,88 @@
+phase: f08_sysval
+variant: v899
+selection_mode: manual
+selection_completed: true
+configuration_edge_capable: false
+compatible_input_signature: false
+system_viable: false
+exec_time_policy: effective_time_ms = ceil(itmax_ms + 5.0)
+parent:
+  phase: f07_modval
+  variants: []
+requested_parent_variants:
+- v700
+- v999
+selected_variants: []
+non_edge_parent_variants: []
+excluded_parents:
+- parent_variant: v700
+  stage: load_outputs
+  reason: '[F08] outputs.yaml no encontrado: /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f07_modval/v700/outputs.yaml'
+- parent_variant: v999
+  stage: load_outputs
+  reason: '[F08] outputs.yaml no encontrado: /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f07_modval/v999/outputs.yaml'
+platform: esp32
+time_scale_factor: 0.01
+system_limits:
+  MTI_MS: 100
+  memory_budget_bytes: null
+  max_models: null
+  min_quality_score: null
+  min_precision: null
+  min_recall: null
+  objective: max_global_recall
+common_input_signature:
+  Tu: null
+  OW: null
+  LT: null
+  PW: null
+  event_type_count: null
+  input_dtype: null
+  output_dtype: null
+  input_shape: null
+  output_shape: null
+  input_bytes: null
+  output_bytes: null
+aggregates:
+  total_models_requested: 2
+  total_models_declared: 0
+  total_models_selected: 0
+  required_arena_bytes: 0
+  total_model_size_bytes: 0
+  model_memory_payload_bytes: 0
+  model_memory_required_bytes: 0
+  operators_union: []
+  unique_windows_count: 0
+  duplicate_windows_removed: 0
+  max_exec_time_ms: 0.0
+  sum_effective_time_ms: 0.0
+  total_tp: 0
+  total_tn: 0
+  total_fp: 0
+  total_fn: 0
+  global_precision: null
+  global_recall: null
+memory_check:
+  source: f07.metrics_memory.heap_total_ref
+  plate_available_heap_bytes: null
+  effective_memory_budget_bytes: null
+  memory_guard_bytes: 32768
+  arena_global_bytes: 0
+  models_memory_budget_bytes: null
+  model_memory_payload_bytes: 0
+  model_memory_required_bytes: 0
+  fit_margin_bytes: null
+  fits: false
+selection_report:
+  solver_status: NoCandidates
+  objective: max_global_recall
+  reason: no_edge_capable_parents
+selection_reason: no_edge_capable_parents
+datasets:
+  base_evaluation_dataset_csv: null
+  source_evaluation_datasets_csv: []
+  unique_windows_csv: /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f08_sysval/v899/08_unique_windows.csv
+  max_rows: null
+  full_rows_count: 0
+  unique_windows_count: 0
+models: []
