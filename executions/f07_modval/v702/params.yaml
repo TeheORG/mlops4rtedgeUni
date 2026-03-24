@@ -1,0 +1,15 @@
+phase: f07_modval
+variant: v702
+parent: v602
+parameters:
+  parent_variant: v602
+  time_scale_factor: 0.01
+  Tu: 10
+  OW: 6
+  LT: 1
+  PW: 1
+  prediction_name: PVPCS_Active_Power_any-to-80_100
+  decision_threshold: 0.3607945740222931
+  event_type_count: 221
+  MTI_MS: 100
+  platform: esp32

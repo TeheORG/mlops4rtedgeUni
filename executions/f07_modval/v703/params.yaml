@@ -1,0 +1,15 @@
+phase: f07_modval
+variant: v703
+parent: v603
+parameters:
+  parent_variant: v603
+  time_scale_factor: 0.01
+  Tu: 10
+  OW: 6
+  LT: 1
+  PW: 1
+  prediction_name: GE_Active_Power_any-to-80_100
+  decision_threshold: 0.6718475818634033
+  event_type_count: 221
+  MTI_MS: 100
+  platform: esp32
