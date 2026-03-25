@@ -12,6 +12,7 @@ import sys
 import shutil
 import os
 import shlex
+import platform
 from pathlib import Path
 
 import serial
@@ -324,13 +325,45 @@ def ensure_docker_image_exists(image_name: str):
     if probe.returncode == 0:
         return
 
+    machine = (platform.machine() or "").lower()
+    if machine in ("x86_64", "amd64"):
+        docker_platform = "linux/amd64"
+    elif machine in ("aarch64", "arm64"):
+        docker_platform = "linux/arm64"
+    elif machine in ("armv7l", "armv6l"):
+        docker_platform = "linux/arm/v7"
+    else:
+        docker_platform = "linux/amd64"
+
+    build_script = PROJECT_ROOT / "edge" / "esp32" / "docker" / "build_image.sh"
+    build_cmd = ["bash", str(build_script), "--platform", docker_platform]
+
+    print(
+        "[F07] No existe imagen Docker local. "
+        f"Intentando crear {image_name} con plataforma detectada: {docker_platform}"
+    )
+    build = subprocess.run(
+        build_cmd,
+        cwd=str(PROJECT_ROOT),
+        check=False,
+    )
+
+    if build.returncode == 0:
+        recheck = subprocess.run(
+            ["docker", "image", "inspect", image_name],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            check=False,
+        )
+        if recheck.returncode == 0:
+            return
+
     raise RuntimeError(
         "[F07] No existe la imagen Docker requerida: "
         f"{image_name}.\n"
-        "[F07] Crea la imagen antes de ejecutar f072_flashrun:\n"
-        "  - Git Bash: bash edge/esp32/docker/build_image.sh\n"
-        "  - PowerShell: docker build --platform linux/amd64 "
-        "-t mlops4ofp-idf:6.0 -f edge/esp32/docker/Dockerfile edge/esp32/docker"
+        "[F07] Se intentó crear automáticamente y falló.\n"
+        "[F07] Ejecuta manualmente:\n"
+        f"  - bash edge/esp32/docker/build_image.sh --platform {docker_platform}"
     )
 
 
