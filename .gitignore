@@ -1,0 +1,46 @@
+# Environment
+.venv/
+.env
+env/
+venv/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.Python
+build/
+dist/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# System
+.DS_Store
+.AppleDouble
+.LSOverride
+Thumbs.db
+
+# Execution directories and results
+executions/
+executions2/
+executions3/
+
+# DVC local config
+.dvc/config.local
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Development
+.python-version
+.mlops4ofp/
+
+# Large data files (users will provide their own)
+data/*.csv
+data/*.parquet
+data/*.pkl
