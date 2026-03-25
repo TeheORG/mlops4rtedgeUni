@@ -312,6 +312,28 @@ def resolve_docker_cpus() -> str | None:
     return os.environ.get("F07_DOCKER_CPUS")
 
 
+def ensure_docker_image_exists(image_name: str):
+    """Valida que la imagen Docker requerida existe localmente."""
+    probe = subprocess.run(
+        ["docker", "image", "inspect", image_name],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        check=False,
+    )
+
+    if probe.returncode == 0:
+        return
+
+    raise RuntimeError(
+        "[F07] No existe la imagen Docker requerida: "
+        f"{image_name}.\n"
+        "[F07] Crea la imagen antes de ejecutar f072_flashrun:\n"
+        "  - Git Bash: bash edge/esp32/docker/build_image.sh\n"
+        "  - PowerShell: docker build --platform linux/amd64 "
+        "-t mlops4ofp-idf:6.0 -f edge/esp32/docker/Dockerfile edge/esp32/docker"
+    )
+
+
 def sanitize_sdkconfig_for_docker(esp_project_dir: Path):
     """Regenera sdkconfig desde defaults para evitar incompatibilidades en Docker."""
     sdkconfig_path = esp_project_dir / "sdkconfig"
@@ -354,7 +376,18 @@ def auto_detect_port():
         desc = (p.description or "").lower()
         manu = (p.manufacturer or "").lower()
 
-        hints = ("usb", "uart", "cp210", "ch340", "wch", "silicon")
+        hints = (
+            "usb",
+            "uart",
+            "cp210",
+            "ch340",
+            "wch",
+            "silicon",
+            "ftdi",
+            "ttyusb",
+            "ttyacm",
+            "cu.",
+        )
         by_text = any(h in dev or h in desc or h in manu for h in hints)
         by_ids = (p.vid is not None) or (p.pid is not None)
         return by_text or by_ids
@@ -369,6 +402,24 @@ def auto_detect_port():
         return usb_ports[0]
 
     return "MULTIPLE"
+
+
+def describe_serial_ports() -> str:
+    ports = list_ports.comports()
+    if not ports:
+        return "(sin puertos detectados)"
+
+    lines: list[str] = []
+    for p in ports:
+        description = p.description or "n/a"
+        manufacturer = p.manufacturer or "n/a"
+        hwid = p.hwid or "n/a"
+        lines.append(
+            f"- {p.device} | desc={description} | manufacturer={manufacturer} | hwid={hwid}"
+        )
+
+    return "\n".join(lines)
+
 
 
 # ============================================================
@@ -752,18 +803,26 @@ def main():
         # ---- Puerto serie: solo necesario si habrá flash/run ----
         port = args.port
         if not args.build_only:
+            env_port = os.environ.get("F07_PORT")
+            if not port and env_port:
+                port = env_port.strip()
+                if port:
+                    print(f"[F07] Puerto tomado de F07_PORT: {port}")
+
             if not port:
                 detected = auto_detect_port()
 
                 if detected is None:
                     raise RuntimeError(
                         "[F07] No se detecta ningún puerto serie. "
-                        "Conecta la ESP32 o usa --port."
+                        "Conecta la ESP32 o usa --port/F07_PORT.\n"
+                        f"[F07] Puertos visibles:\n{describe_serial_ports()}"
                     )
 
                 if detected == "MULTIPLE":
                     raise RuntimeError(
-                        "[F07] Múltiples puertos detectados. Especifica --port."
+                        "[F07] Múltiples puertos detectados. Especifica --port o F07_PORT.\n"
+                        f"[F07] Puertos visibles:\n{describe_serial_ports()}"
                     )
 
                 port = detected
@@ -805,6 +864,7 @@ def main():
 
         sync_generated_sources_for_build(esp_project_dir)
         sanitize_sdkconfig_for_docker(esp_project_dir)
+        ensure_docker_image_exists(IDF_DOCKER_IMAGE)
         docker_memory_limit = resolve_docker_memory_limit()
         docker_memory_swap = resolve_docker_memory_swap()
         docker_cpus = resolve_docker_cpus()

@@ -44,3 +44,8 @@ executions3/
 data/*.csv
 data/*.parquet
 data/*.pkl
+
+
+
+
+run*.csv
