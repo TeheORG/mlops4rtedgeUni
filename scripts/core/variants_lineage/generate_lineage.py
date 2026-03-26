@@ -192,10 +192,48 @@ def build_html_dashboard():
                 document.getElementById('config-panel').classList.remove('open');
             }}
 
-            // Función para resaltar líneas conectadas al nodo
-            function highlightLines(nodeId) {{
+            // Función auxiliar para encontrar todos los ancestros (padres, abuelos, etc.)
+            function findAllAncestors(nodeId, visitedNodes) {{
+                if (!visitedNodes) visitedNodes = new Set();
+                if (visitedNodes.has(nodeId)) return [];
+                visitedNodes.add(nodeId);
+                
+                let ancestors = [];
                 lines.forEach(function(l) {{
-                    if (l.source === nodeId || l.target === nodeId) {{
+                    if (l.target === nodeId && !visitedNodes.has(l.source)) {{
+                        ancestors.push(l.source);
+                        ancestors = ancestors.concat(findAllAncestors(l.source, visitedNodes));
+                    }}
+                }});
+                return ancestors;
+            }}
+
+            // Función auxiliar para encontrar todos los descendientes (hijos, nietos, etc.)
+            function findAllDescendants(nodeId, visitedNodes) {{
+                if (!visitedNodes) visitedNodes = new Set();
+                if (visitedNodes.has(nodeId)) return [];
+                visitedNodes.add(nodeId);
+                
+                let descendants = [];
+                lines.forEach(function(l) {{
+                    if (l.source === nodeId && !visitedNodes.has(l.target)) {{
+                        descendants.push(l.target);
+                        descendants = descendants.concat(findAllDescendants(l.target, visitedNodes));
+                    }}
+                }});
+                return descendants;
+            }}
+
+            // Función para resaltar líneas conectadas al nodo y su genealogía completa
+            function highlightLines(nodeId) {{
+                // Encontrar todos los ancestros y descendientes
+                let ancestors = findAllAncestors(nodeId);
+                let descendants = findAllDescendants(nodeId);
+                let connectedNodes = new Set([nodeId, ...ancestors, ...descendants]);
+                
+                lines.forEach(function(l) {{
+                    // Resaltar si la línea conecta nodos en la genealogía
+                    if (connectedNodes.has(l.source) && connectedNodes.has(l.target)) {{
                         l.obj.color = '#ff5722'; // Naranja para resaltar
                         l.obj.size = 4;          // Más gruesa
                     }} else {{

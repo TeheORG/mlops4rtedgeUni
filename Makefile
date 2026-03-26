@@ -111,6 +111,8 @@ variant-generic: check-variant-format
 		--variant $(VARIANT) \
 		--set-args "$(strip $(EXTRA_FLAGS))"
 	@echo "==> Variant created: $(PHASE):$(VARIANT)"
+	@echo "==> Regenerando dashboard de linaje"
+	@$(MAKE) generate_lineage || true
 
 script-run-generic: check-variant-format
 	@echo "==> Running script PHASE $(PHASE) for variant $(VARIANT)"
@@ -197,6 +199,9 @@ remove-generic: check-variant-format
 	@$(DVC) push -r storage || echo "[WARN] dvc push failed"
 
 	@echo "[OK] Variant $(PHASE):$(VARIANT) completely removed."
+
+	@echo "==> Regenerando dashboard de linaje"
+	@$(MAKE) generate_lineage || true
 
 check-results-generic: check-variant-format
 	@test -n "$(PHASE)" || (echo "[ERROR] PHASE not defined"; exit 1)
