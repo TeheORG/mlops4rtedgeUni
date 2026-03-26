@@ -1451,3 +1451,9 @@ help: help-setup help1 help2 help3 help4 help5 help6 help7 help8
 	publish1 publish2 publish3 publish4 publish5 publish6 publish7 publish8 \
 	remove1 remove2 remove3 remove4 remove5 remove6 remove7 remove8 \
 	help1 help2 help3 help4 help5 help6 help7 help8
+
+############################################
+# Utils
+############################################
+generate_lineage: 
+	${PYTHON} scripts/core/variants_lineage/generate_lineage.py 

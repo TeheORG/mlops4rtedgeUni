@@ -413,7 +413,18 @@ def auto_detect_port():
         desc = (p.description or "").lower()
         manu = (p.manufacturer or "").lower()
 
-        hints = ("usb", "uart", "cp210", "ch340", "wch", "silicon")
+        hints = (
+            "usb",
+            "uart",
+            "cp210",
+            "ch340",
+            "wch",
+            "silicon",
+            "ftdi",
+            "ttyusb",
+            "ttyacm",
+            "cu.",
+        )
         by_text = any(h in dev or h in desc or h in manu for h in hints)
         by_ids = (p.vid is not None) or (p.pid is not None)
         return by_text or by_ids
@@ -428,6 +439,24 @@ def auto_detect_port():
         return usb_ports[0]
 
     return "MULTIPLE"
+
+
+def describe_serial_ports() -> str:
+    ports = list_ports.comports()
+    if not ports:
+        return "(sin puertos detectados)"
+
+    lines: list[str] = []
+    for p in ports:
+        description = p.description or "n/a"
+        manufacturer = p.manufacturer or "n/a"
+        hwid = p.hwid or "n/a"
+        lines.append(
+            f"- {p.device} | desc={description} | manufacturer={manufacturer} | hwid={hwid}"
+        )
+
+    return "\n".join(lines)
+
 
 
 # ============================================================
