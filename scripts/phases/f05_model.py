@@ -22,7 +22,7 @@ import json
 import time
 from datetime import datetime, timezone
 import shutil
-import platform
+import random
 
 import numpy as np
 import pandas as pd
@@ -57,17 +57,32 @@ FAST_MAX_MAJORITY_SAMPLES = 20_000
 
 
 def build_adam_optimizer(learning_rate: float):
-    is_macos_arm = (
-        platform.system() == "Darwin"
-        and platform.machine().lower() in {"arm64", "aarch64"}
-    )
-
-    if is_macos_arm:
-        legacy_optimizers = getattr(tf.keras.optimizers, "legacy", None)
-        if legacy_optimizers is not None and hasattr(legacy_optimizers, "Adam"):
-            return legacy_optimizers.Adam(learning_rate=learning_rate)
-
+    # Ruta única para todos los OS: evita divergencias por elegir optimizadores distintos.
     return tf.keras.optimizers.Adam(learning_rate=learning_rate)
+
+
+def configure_reproducibility(seed: int, strict_cross_os: bool = False):
+    """Configura semillas globales y, opcionalmente, modo determinista estricto.
+
+    strict_cross_os=True intenta minimizar diferencias entre SOs:
+      - activa operaciones deterministas de TensorFlow cuando están disponibles,
+      - fija paralelismo a 1 hilo intra/inter-op para reducir no determinismo.
+    """
+    random.seed(seed)
+    np.random.seed(seed)
+    tf.keras.utils.set_random_seed(seed)
+
+    if strict_cross_os:
+        try:
+            tf.config.experimental.enable_op_determinism()
+        except Exception as exc:
+            print(f"[WARN] No se pudo activar enable_op_determinism(): {exc}")
+
+        try:
+            tf.config.threading.set_intra_op_parallelism_threads(1)
+            tf.config.threading.set_inter_op_parallelism_threads(1)
+        except Exception as exc:
+            print(f"[WARN] No se pudo fijar threading determinista: {exc}")
 
 
 # ============================================================
@@ -314,7 +329,11 @@ def build_cnn1d_model(aux: dict, hp: dict) -> tf.keras.Model:
     return model
 
 
-def build_model(model_family: str, hp: dict, aux: dict) -> tf.keras.Model:
+def build_model(
+    model_family: str,
+    hp: dict,
+    aux: dict,
+) -> tf.keras.Model:
     if model_family == "dense_bow":
         model = build_dense_bow_model(aux, hp)
     elif model_family == "sequence_embedding":
@@ -755,6 +774,10 @@ def main():
 
     if imbalance_max_majority is None and isinstance(imbalance_cfg, dict):
         imbalance_max_majority = imbalance_cfg.get("max_majority_samples")
+
+    automl_seed = int(automl_cfg.get("seed", 42))
+    configure_reproducibility(automl_seed, strict_cross_os=True)
+    print(f"[INFO] reproducibility seed={automl_seed}, strict_cross_os=True")
 
     # ---------------------------------------------
     # 2. Cargar dataset etiquetado

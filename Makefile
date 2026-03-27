@@ -585,6 +585,16 @@ PHASE5 = f05_modeling
 SCRIPT5_MODULE = scripts.phases.f05_model
 VARIANTS_DIR5 = executions/$(PHASE5)
 
+# Docker único para F05/F06 (reproducible entre OS)
+F56_DOCKER_IMAGE ?= mlops4ofp-f56:py311-tf215
+F56_DOCKERFILE ?= scripts/docker/Dockerfile.f56
+F56_DOCKER_PLATFORM ?= linux/amd64
+
+ensure-f56-docker-image:
+	@docker image inspect $(F56_DOCKER_IMAGE) >/dev/null 2>&1 || \
+	(	echo "[INFO] Building Docker image $(F56_DOCKER_IMAGE) for F05/F06"; \
+		docker build --platform $(F56_DOCKER_PLATFORM) -f $(F56_DOCKERFILE) -t $(F56_DOCKER_IMAGE) . )
+
 ############################################
 # Usage:
 #
@@ -648,8 +658,13 @@ variant5: check-variant-format
 		VARIANT=$(VARIANT) \
 		EXTRA_FLAGS="$(EXTRA_FLAGS)"
 
-script5:
-	$(MAKE) script-run-generic PHASE=$(PHASE5) SCRIPT_MODULE=$(SCRIPT5_MODULE) VARIANT=$(VARIANT)
+script5: check-variant-format ensure-f56-docker-image
+	@echo "==> Running F05 in Docker ($(F56_DOCKER_IMAGE)) for $(VARIANT)"
+	@docker run --rm --platform $(F56_DOCKER_PLATFORM) \
+		-v "$(PWD):/workspace" \
+		-w /workspace \
+		$(F56_DOCKER_IMAGE) \
+		bash -lc "python -m $(SCRIPT5_MODULE) --variant $(VARIANT)"
 
 check5: check-variant-format
 	$(MAKE) check-results-generic \
@@ -808,8 +823,13 @@ variant6: check-variant-format
 		EXTRA_FLAGS="$(EXTRA_FLAGS)"
 		
 
-script6:
-	$(MAKE) script-run-generic PHASE=$(PHASE6) SCRIPT_MODULE=$(SCRIPT6_MODULE) VARIANT=$(VARIANT)
+script6: check-variant-format ensure-f56-docker-image
+	@echo "==> Running F06 in Docker ($(F56_DOCKER_IMAGE)) for $(VARIANT)"
+	@docker run --rm --platform $(F56_DOCKER_PLATFORM) \
+		-v "$(PWD):/workspace" \
+		-w /workspace \
+		$(F56_DOCKER_IMAGE) \
+		bash -lc "python -m $(SCRIPT6_MODULE) --variant $(VARIANT)"
 
 ############################################
 # FASE 06 — CHECK
