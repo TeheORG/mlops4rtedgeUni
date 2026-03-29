@@ -78,6 +78,16 @@ ifeq ($(OS),Windows_NT)
 PYTHON := .venv/Scripts/python.exe
 DVC := .venv/Scripts/dvc.exe
 JUPYTER := .venv/Scripts/jupyter.exe
+
+# Docker on Git Bash can rewrite container paths like /workspace into
+# C:/Program Files/Git/workspace. Use //-prefixed container paths to avoid
+# MSYS path conversion and keep a valid container workdir.
+DOCKER_HOST_PWD := $(shell pwd -W 2>/dev/null)
+ifeq ($(strip $(DOCKER_HOST_PWD)),)
+DOCKER_HOST_PWD := $(PWD)
+endif
+DOCKER_WORKSPACE_PATH := //workspace
+DOCKER_PROJECT_PATH := //project
 else
 ifneq ("$(wildcard .venv/bin/python3)","")
 PYTHON := .venv/bin/python3
@@ -88,6 +98,10 @@ PYTHON := python3
 DVC := dvc
 JUPYTER := jupyter
 endif
+
+DOCKER_HOST_PWD := $(PWD)
+DOCKER_WORKSPACE_PATH := /workspace
+DOCKER_PROJECT_PATH := /project
 endif
 
 $(info [INFO] Using Python interpreter in venv: $(PYTHON))
@@ -661,8 +675,8 @@ variant5: check-variant-format
 script5: check-variant-format ensure-f56-docker-image
 	@echo "==> Running F05 in Docker ($(F56_DOCKER_IMAGE)) for $(VARIANT)"
 	@docker run --rm --platform $(F56_DOCKER_PLATFORM) \
-		-v "$(PWD):/workspace" \
-		-w /workspace \
+		-v "$(DOCKER_HOST_PWD):$(DOCKER_WORKSPACE_PATH)" \
+		-w $(DOCKER_WORKSPACE_PATH) \
 		$(F56_DOCKER_IMAGE) \
 		bash -lc "python -m $(SCRIPT5_MODULE) --variant $(VARIANT)"
 
@@ -826,8 +840,8 @@ variant6: check-variant-format
 script6: check-variant-format ensure-f56-docker-image
 	@echo "==> Running F06 in Docker ($(F56_DOCKER_IMAGE)) for $(VARIANT)"
 	@docker run --rm --platform $(F56_DOCKER_PLATFORM) \
-		-v "$(PWD):/workspace" \
-		-w /workspace \
+		-v "$(DOCKER_HOST_PWD):$(DOCKER_WORKSPACE_PATH)" \
+		-w $(DOCKER_WORKSPACE_PATH) \
 		$(F56_DOCKER_IMAGE) \
 		bash -lc "python -m $(SCRIPT6_MODULE) --variant $(VARIANT)"
 
@@ -1319,8 +1333,8 @@ script8-build-only:
 	@echo "[F08] sync build_generated -> build/build_generated"
 	@echo "[F08] Build-only en Docker para $(VARIANT)"
 	@docker run --rm -i \
-		-v "$(PWD)/executions/$(PHASE8)/$(VARIANT)/esp32_project:/project" \
-		-w /project \
+		-v "$(DOCKER_HOST_PWD)/executions/$(PHASE8)/$(VARIANT)/esp32_project:$(DOCKER_PROJECT_PATH)" \
+		-w $(DOCKER_PROJECT_PATH) \
 		--entrypoint /bin/bash \
 		mlops4ofp-idf:6.0 \
 		-lc "source /opt/esp/idf/export.sh >/dev/null 2>&1 && idf.py build"
