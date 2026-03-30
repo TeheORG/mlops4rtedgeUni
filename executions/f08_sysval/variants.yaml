@@ -1,7 +1,4 @@
 variants:
-  v801:
-    created_at: '2026-03-29T15:36:20.157164+00:00'
-    params_path: executions/f08_sysval/v801/params.yaml
   v802:
     created_at: '2026-03-29T15:42:16.472371+00:00'
     params_path: executions/f08_sysval/v802/params.yaml
