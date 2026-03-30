@@ -1,5 +1,5 @@
 phase: f06_quant
-variant: v698
+variant: v699
 parent: v500
 parameters:
   parent_variant: v500

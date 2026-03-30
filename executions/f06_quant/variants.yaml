@@ -53,6 +53,6 @@ variants:
   v618:
     created_at: '2026-03-28T04:10:18.812759+00:00'
     params_path: executions/f06_quant/v618/params.yaml
-  v698:
-    created_at: '2026-03-30T01:37:51.174538+00:00'
-    params_path: executions/f06_quant/v698/params.yaml
+  v699:
+    created_at: '2026-03-30T02:01:04.479275+00:00'
+    params_path: executions/f06_quant/v699/params.yaml
