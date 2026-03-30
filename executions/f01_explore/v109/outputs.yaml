@@ -30,9 +30,9 @@ exports:
   - Inlet_Temperature_of_Chilled_Water
   - Outlet_Temperature
 metrics:
-  execution_time: 31.578377790981904
+  execution_time: 33.78711299994029
   n_nan_detected: 42543
   n_nan_replaced: 42542
   nan_ratio: 0.0005760138584523152
 provenance:
-  generated_at: '2026-03-30T16:50:10.470541+00:00'
+  generated_at: '2026-03-30T17:01:37.939687+00:00'
