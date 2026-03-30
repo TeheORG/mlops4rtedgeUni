@@ -1,5 +1,5 @@
 phase: f03_windows
-variant: v301
+variant: v309
 artifacts:
   dataset:
     path: 03_windows.parquet
@@ -9,22 +9,22 @@ artifacts:
     sha256: 7188c122ba5c6193bd6f89bded08c5756c55cc72595d4087100fd1db755920c4
   report:
     path: 03_windows_report.html
-    sha256: c7d913e18b9743852c77b7d7625e09e8a23751fbb3337e207beba09be9c06c4c
+    sha256: 79a5763c450b3d638022e3acf09da0004ab078ade4796014a5164f13cd48e80e
 exports:
   Tu: 10
   OW: 6
   LT: 1
   PW: 1
   event_type_count: 221
-  window_strategy: asynOW
+  window_strategy: synchro
   nan_mode: discard
   n_windows: 875456
   n_windows_pos: 875456
   n_windows_neg: 0
 metrics:
-  execution_time: 8.336155249970034
+  execution_time: 8.659527458017692
   n_events_in: 3887242
   n_windows_out: 875456
   positive_ratio: 0.0
 provenance:
-  generated_at: '2026-03-27T11:16:13.051620+00:00'
+  generated_at: '2026-03-30T07:35:59.093690+00:00'
