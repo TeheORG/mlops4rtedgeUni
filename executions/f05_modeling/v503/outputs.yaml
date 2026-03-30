@@ -1,0 +1,69 @@
+phase: f05_modeling
+variant: v503
+artifacts:
+  model:
+    path: 05_modeling_model.h5
+    sha256: 82f0e1813d24b66083ea1bc2f8f4109126d7053c512299d0bf6ae798ec430300
+  labeled_dataset:
+    path: 05_modeling_training_dataset.parquet
+    sha256: 4fd7063b2ca70611b36c958024be7f5e7cf7e4d6e8f15b13f7e88287a5672eac
+  history:
+    path: 05_modeling_history.json
+    sha256: 05309aaeefdb8ca06a2d8576908b15aba928d9354fa7ab2c233e70d09ab6fa2e
+  report:
+    path: 05_modeling_report.html
+    sha256: 3e6d44c8a04fd09fb9f5c5d312db118090f137571f87c48854ad859cb3691ebc
+exports:
+  Tu: 10
+  OW: 6
+  LT: 1
+  PW: 1
+  event_type_count: 221
+  prediction_name: GE_Active_Power_any-to-80_100
+  model_family: cnn1d
+  trainable: true
+  decision_threshold: 0.6958069205284119
+  best_val_recall: 0.9216300940438872
+  test_precision: 0.8956433637284701
+  test_recall: 0.9237199582027168
+  test_f1: 0.9094650205761317
+metrics:
+  execution_time: 258.82435486899976
+  n_train: 18465
+  n_val: 3958
+  n_test: 3957
+  positive_ratio_train: 0.24186298402382886
+  tp: 884
+  tn: 2897
+  fp: 103
+  fn: 73
+provenance:
+  generated_at: '2026-03-27T11:31:05.576652+00:00'
+  parent_phase: f04_targets
+  parent_variant: v403
+mlflow_registration:
+  experiment_name: F05_GE_Active_Power_any-to-80_100
+  run_name: GE_Active_Power_any-to-80_100__v503
+  metrics:
+    val_recall: 0.9216300940438872
+    test_precision: 0.8956433637284701
+    test_recall: 0.9237199582027168
+    test_f1: 0.9094650205761317
+    test_tp: 884
+    test_tn: 2897
+    test_fp: 103
+    test_fn: 73
+  params:
+    batch_size: 128
+    learning_rate: 0.0005
+    n_layers: 2
+    units: 64
+    dropout: 0.0
+    embed_dim: 64
+    filters: 128
+    kernel_size: 3
+    model_family: cnn1d
+  artifacts:
+  - /workspace/executions/f05_modeling/v503/05_modeling_model.h5
+  - /workspace/executions/f05_modeling/v503/05_modeling_history.json
+  - /workspace/executions/f05_modeling/v503/05_modeling_trials_summary.json

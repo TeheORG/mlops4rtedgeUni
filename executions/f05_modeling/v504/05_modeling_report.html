@@ -1,0 +1,47 @@
+
+    <html>
+    <body>
+      <h1>F05 Modeling — v504</h1>
+      <p><b>Parent F04:</b> v404</p>
+      <p><b>Prediction:</b> GE_Body_Active_Power_any-to-80_100</p>
+      <p><b>Model family:</b> cnn1d</p>
+      <h2>Geometry</h2>
+      <ul>
+        <li>Tu = 10</li>
+        <li>OW = 6</li>
+        <li>LT = 1</li>
+        <li>PW = 1</li>
+      </ul>
+      <h2>AutoML</h2>
+      <pre>{
+  "batch_size": 128,
+  "learning_rate": 0.0005,
+  "n_layers": 2,
+  "units": 64,
+  "dropout": 0.0,
+  "embed_dim": 64,
+  "filters": 128,
+  "kernel_size": 3
+}</pre>
+      <h2>Validation</h2>
+      <p>best_val_recall = 0.6071</p>
+      <h2>Test @0.5</h2>
+      <ul>
+        <li>precision = 0.7692</li>
+        <li>recall = 0.4762</li>
+        <li>f1 = 0.5882</li>
+                <li>tp = 40</li>
+                <li>tn = 2989</li>
+                <li>fp = 12</li>
+                <li>fn = 44</li>
+      </ul>
+      <h2>Thresholds</h2>
+      <ul>
+        <li>best_f1_threshold = 0.6170</li>
+        <li>best_recall_threshold = 0.0567</li>
+      </ul>
+      <h2>Execution</h2>
+      <p>execution_time = 188.6 s</p>
+    </body>
+    </html>
+    

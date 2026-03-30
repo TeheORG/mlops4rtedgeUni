@@ -1,0 +1,37 @@
+phase: f05_modeling
+variant: v515
+artifacts:
+  labeled_dataset:
+    path: 05_modeling_training_dataset.parquet
+    sha256: a02447ecf916feadfabbfaf5fc551c065c1257963ca515e5f4b9af3c3647aa09
+  report:
+    path: 05_modeling_report.html
+    sha256: 918a1ba31c47b63a3118d857e9fd6f72f1a4f066ee460128ff53d3bde61a2a37
+exports:
+  Tu: 10
+  OW: 6
+  LT: 1
+  PW: 1
+  event_type_count: 221
+  prediction_name: GE_Body_Active_Power_Set_Response_any-to-80_100
+  model_family: cnn1d
+  trainable: false
+  incompatibility_reason: La clase menos poblada tiene 1 muestra(s); train_test_split
+    estratificado requiere al menos 2
+metrics:
+  execution_time: 0.7248962919984479
+  n_train: 0
+  n_val: 0
+  n_test: 0
+  positive_ratio_train: 0.0
+  tp: 0
+  tn: 0
+  fp: 0
+  fn: 0
+  n_samples_total: 20001
+  positive_samples: 1
+  negative_samples: 20000
+provenance:
+  generated_at: '2026-03-28T04:02:57.836180+00:00'
+  parent_phase: f04_targets
+  parent_variant: v415

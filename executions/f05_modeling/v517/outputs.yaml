@@ -1,0 +1,69 @@
+phase: f05_modeling
+variant: v517
+artifacts:
+  model:
+    path: 05_modeling_model.h5
+    sha256: 0a8f6bdfc201f9d3971de00a958738d63727a4a62e0f8e98637d62eb94bb35dc
+  labeled_dataset:
+    path: 05_modeling_training_dataset.parquet
+    sha256: e09e20551e92e357ab3010c063acc86e53af9d6de9f02c4b66bd259fb8423eb8
+  history:
+    path: 05_modeling_history.json
+    sha256: 2d09c5483155267048b12518d253cecbe6d13255d37865da29c0286ef0248c6d
+  report:
+    path: 05_modeling_report.html
+    sha256: 1b28598d510c299bad749fb69da2e8a5758599d9440f26afc70755f02d15d6e2
+exports:
+  Tu: 10
+  OW: 6
+  LT: 1
+  PW: 1
+  event_type_count: 221
+  prediction_name: FC_Active_Power_any-to-80_100
+  model_family: cnn1d
+  trainable: true
+  decision_threshold: 0.6342201828956604
+  best_val_recall: 0.16666666666666666
+  test_precision: 0.6153846153846154
+  test_recall: 0.3333333333333333
+  test_f1: 0.43243243243243246
+metrics:
+  execution_time: 165.02039895000053
+  n_train: 14112
+  n_val: 3025
+  n_test: 3025
+  positive_ratio_train: 0.008078231292517007
+  tp: 8
+  tn: 2996
+  fp: 5
+  fn: 16
+provenance:
+  generated_at: '2026-03-28T04:08:40.508691+00:00'
+  parent_phase: f04_targets
+  parent_variant: v417
+mlflow_registration:
+  experiment_name: F05_FC_Active_Power_any-to-80_100
+  run_name: FC_Active_Power_any-to-80_100__v517
+  metrics:
+    val_recall: 0.16666666666666666
+    test_precision: 0.6153846153846154
+    test_recall: 0.3333333333333333
+    test_f1: 0.43243243243243246
+    test_tp: 8
+    test_tn: 2996
+    test_fp: 5
+    test_fn: 16
+  params:
+    batch_size: 128
+    learning_rate: 0.0005
+    n_layers: 2
+    units: 64
+    dropout: 0.0
+    embed_dim: 64
+    filters: 128
+    kernel_size: 3
+    model_family: cnn1d
+  artifacts:
+  - /workspace/executions/f05_modeling/v517/05_modeling_model.h5
+  - /workspace/executions/f05_modeling/v517/05_modeling_history.json
+  - /workspace/executions/f05_modeling/v517/05_modeling_trials_summary.json

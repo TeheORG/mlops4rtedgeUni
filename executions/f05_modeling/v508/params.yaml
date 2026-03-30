@@ -1,0 +1,57 @@
+phase: f05_modeling
+variant: v508
+parent: v408
+parameters:
+  parent_variant: v408
+  Tu: 10
+  OW: 6
+  LT: 1
+  PW: 1
+  prediction_name: MG-LV-MSB_AC_Voltage_any-to-80_100
+  event_type_count: 221
+  model_family: cnn1d
+  automl:
+    enabled: true
+    max_trials: 5
+    seed: 42
+  search_space:
+    common:
+      batch_size:
+      - 128
+      - 256
+      learning_rate:
+      - 0.001
+      - 0.0005
+      n_layers:
+      - 1
+      - 2
+      units:
+      - 64
+      - 128
+      dropout:
+      - 0.0
+      - 0.2
+    dense_bow: {}
+    sequence_embedding:
+      embed_dim:
+      - 64
+      - 128
+    cnn1d:
+      embed_dim:
+      - 64
+      filters:
+      - 64
+      - 128
+      kernel_size:
+      - 3
+      - 5
+  training:
+    epochs: 20
+    max_samples: null
+  evaluation:
+    split:
+      train: 0.7
+      val: 0.15
+      test: 0.15
+  imbalance_strategy: rare_events
+  imbalance_max_majority_samples: 20000
