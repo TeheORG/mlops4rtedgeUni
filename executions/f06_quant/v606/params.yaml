@@ -1,5 +1,5 @@
 phase: f06_quant
-variant: v605
+variant: v606
 parent: v505
 parameters:
   parent_variant: v505
@@ -29,4 +29,5 @@ parameters:
   eedu:
     version: '1.0'
     layout: default
-parent_hashes: {}
+parent_hashes:
+  v505: 3e73a4e59f01492dcf0700217b6801114b854e9c587a49dc821d9d67f07c6592
