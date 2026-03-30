@@ -1,8 +1,0 @@
-phase: f01_explore
-variant: v109
-parent: null
-parameters:
-  raw_path: data/raw.csv
-  cleaning: basic
-  nan_values:
-  - -999999
