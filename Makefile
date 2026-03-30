@@ -136,7 +136,7 @@ script-run-generic: check-variant-format
 		$(PYTHON) $(SCRIPT) --variant $(VARIANT); \
 	fi
 
-publish-generic: check-variant-format
+register-generic: check-variant-format
 	@echo "==> Validating variant $(PHASE):$(VARIANT)"
 	$(PYTHON) -m scripts.core.traceability validate-variant --phase $(PHASE) --variant $(VARIANT)
 
@@ -145,14 +145,14 @@ publish-generic: check-variant-format
 	  $(DVC) add $(VARIANTS_DIR)/$(VARIANT)/*.$$ext 2>/dev/null || true; \
 	done
 
-	@echo "==> Adding to Git only the published variant files and DVC metadata"
+	@echo "==> Adding to Git only the registered variant files and DVC metadata"
 	@git add $(VARIANTS_DIR)/$(VARIANT) 2>/dev/null || true
 	@git add $(VARIANTS_DIR)/$(VARIANT)/*.dvc 2>/dev/null || true
 	@git add $(VARIANTS_DIR)/variants.yaml 2>/dev/null || true
 	@git add dvc.yaml dvc.lock 2>/dev/null || true
 
 	@if [ -d ".git" ]; then \
-		git commit -m "publish variant: $(PHASE) $(VARIANT)" || true; \
+		git commit -m "register variant: $(PHASE) $(VARIANT)" || true; \
 	else \
 		echo "[INFO] No Git repo detected: skipping commit"; \
 	fi
@@ -161,15 +161,15 @@ publish-generic: check-variant-format
 		echo "[ERROR] Remote DVC 'storage' not configured. Run 'make setup' or contact the admin"; exit 1; \
 	fi
 
-	# Determine publish mode from setup.yaml and push to Git accordingly
+	# Determine register mode from setup.yaml and push to Git accordingly
 	@MODE=$$($(PYTHON) -c "import yaml, pathlib; cfg = yaml.safe_load(pathlib.Path('.mlops4ofp/setup.yaml').read_text()); print(cfg.get('git', {}).get('mode', 'none'))"); \
 	if [ "$$MODE" = "custom" ]; then \
-		echo "[INFO] Remote 'publish' detected: pushing to publish"; \
-		git push publish HEAD:main || echo "[WARN] git push publish failed"; \
+		echo "[INFO] Remote 'register' detected: pushing to register"; \
+		git push register HEAD:main || echo "[WARN] git push register failed"; \
 	elif [ "$$MODE" = "none" ]; then \
 		echo "[INFO] Setup in git.mode=none: local commit only"; \
 	else \
-		echo "[ERROR] Remote 'publish' not configured and setup not in 'none' mode."; exit 1; \
+		echo "[ERROR] Remote 'register' not configured and setup not in 'none' mode."; exit 1; \
 	fi
 
 	@echo "==> Push DVC"
@@ -202,7 +202,7 @@ remove-generic: check-variant-format
 
 	@MODE=$$($(PYTHON) -c "import yaml, pathlib; cfg = yaml.safe_load(pathlib.Path('.mlops4ofp/setup.yaml').read_text()); print(cfg.get('git', {}).get('mode', 'none'))"); \
 	if [ "$$MODE" = "custom" ]; then \
-		git push publish HEAD:main || echo "[WARN] git push publish failed"; \
+		git push register HEAD:main || echo "[WARN] git push register failed"; \
 	elif [ "$$MODE" = "none" ]; then \
 		echo "[INFO] Setup in git.mode=none: local commit only"; \
 	else \
@@ -293,10 +293,10 @@ check1: check-variant-format
 		01_explore_report.html \
 		outputs.yaml"
 
-publish1: check-variant-format
-	@test -n "$(VARIANT)" || (echo "[ERROR] Usage: make publish1 VARIANT=v00X"; exit 1)
+register1: check-variant-format
+	@test -n "$(VARIANT)" || (echo "[ERROR] Usage: make register1 VARIANT=v00X"; exit 1)
 
-	$(MAKE) publish-generic PHASE=$(PHASE1) VARIANTS_DIR=$(VARIANTS_DIR1) \
+	$(MAKE) register-generic PHASE=$(PHASE1) VARIANTS_DIR=$(VARIANTS_DIR1) \
 		PUBLISH_EXTS="parquet json html" VARIANT=$(VARIANT)
 
 remove1: check-variant-format
@@ -323,8 +323,8 @@ help1:
 	@echo " Checking:"
 	@echo "   make check1 VARIANT=v001"
 	@echo ""
-	@echo " Publish:"
-	@echo "   make publish1 VARIANT=v001"
+	@echo " Register:"
+	@echo "   make register1 VARIANT=v001"
 	@echo ""
 	@echo " Remove: (only if no children variants)"
 	@echo "   make remove1 VARIANT=v001"
@@ -349,6 +349,18 @@ variant2: check-variant-format
 	@test -n "$(STRATEGY)" || (echo "[ERROR] You must specify STRATEGY=levels|transitions|both"; exit 1)
 	@test -n "$(BANDS)"    || (echo "[ERROR] You must specify BANDS=[...percentages...]"; exit 1)
 	@test -n "$(NAN_MODE)" || (echo "[ERROR] You must specify NAN_MODE=keep|discard"; exit 1)
+
+	# Comprobación de que el parent está registrado y limpio en DVC/Git (acepta outputs.yaml.dvc o outputs.yaml)
+	@PARENT_DVC=executions/f01_explore/$(PARENT)/outputs.yaml.dvc; \
+	PARENT_YAML=executions/f01_explore/$(PARENT)/outputs.yaml; \
+	if test -f "$$PARENT_DVC"; then \
+	  git log --oneline -- "$$PARENT_DVC" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) .dvc not committed in git"; exit 1); \
+	  dvc status "$$PARENT_DVC" | grep 'is changed' && (echo "[ERROR] Parent $(PARENT) .dvc changed after register"; exit 1) || true; \
+	elif test -f "$$PARENT_YAML"; then \
+	  git log --oneline -- "$$PARENT_YAML" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) outputs.yaml not committed in git"; exit 1); \
+	else \
+	  echo "[ERROR] Parent $(PARENT) has neither outputs.yaml.dvc nor outputs.yaml"; exit 1; \
+	fi
 
 	@$(eval EXTRA_FLAGS := )
 	@$(eval EXTRA_FLAGS += PARENT=$(PARENT))
@@ -375,10 +387,45 @@ check2: check-variant-format
 		02_events_report.html \
 		outputs.yaml"
 		
-publish2: check-variant-format
-	@test -n "$(VARIANT)" || (echo "[ERROR] Usage: make publish2 VARIANT=v2XX"; exit 1)
+register2: check-variant-format
+					 # Informe de cambios en parent y código relevante
+			@( \
+				set -e; \
+				PARENT_DVC=executions/f01_explore/$(PARENT)/outputs.yaml.dvc; \
+				PARENT_YAML=executions/f01_explore/$(PARENT)/outputs.yaml; \
+				if test -f "$$PARENT_DVC"; then \
+					git log --oneline -- "$$PARENT_DVC" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) .dvc not committed in git"; exit 1); \
+					if dvc status "$$PARENT_DVC" | grep 'is changed' > /dev/null; then \
+						echo "[ERROR] Parent $(PARENT) has changed after registration. See diff below:"; \
+						dvc diff -t --show-json "$$PARENT_DVC" || dvc diff "$$PARENT_DVC"; \
+						exit 1; \
+					fi; \
+				elif test -f "$$PARENT_YAML"; then \
+					git log --oneline -- "$$PARENT_YAML" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) outputs.yaml not committed in git"; exit 1); \
+					if git status --porcelain "$$PARENT_YAML" | grep .; then \
+						echo "[ERROR] Parent $(PARENT) outputs.yaml has changed after registration. See diff below:"; \
+						git diff "$$PARENT_YAML"; \
+						exit 1; \
+					fi; \
+				else \
+					echo "[ERROR] Parent $(PARENT) missing outputs.yaml(.dvc)"; exit 1; \
+				fi; \
+				if git status --porcelain scripts/ edge/esp32 scripts/traceability_schema.yaml | grep .; then \
+					echo "[ERROR] Uncommitted changes in scripts/ or edge/esp32. See details below:"; \
+					git status --porcelain scripts/ edge/esp32 scripts/traceability_schema.yaml; \
+					echo "[INFO] Code diff:"; \
+					git diff scripts/ edge/esp32 scripts/traceability_schema.yaml; \
+					exit 1; \
+				fi \
+			) 2>&1
+		# Comprobación de que el parent está registrado y limpio en DVC/Git antes de registrar
+		@PARENT_PATH=executions/f01_explore/$(PARENT)/outputs.yaml.dvc; \
+		@test -f "$$PARENT_PATH" || (echo "[ERROR] Parent $(PARENT) not registered in DVC (outputs.yaml.dvc missing)"; exit 1); \
+		git log --oneline -- "$$PARENT_PATH" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) not committed in git"; exit 1); \
+		dvc status "$$PARENT_PATH" | grep 'is changed' && (echo "[ERROR] Parent $(PARENT) has changed after registration. Please register again."; exit 1) || true
+	@test -n "$(VARIANT)" || (echo "[ERROR] Usage: make register2 VARIANT=v2XX"; exit 1)
 
-	$(MAKE) publish-generic PHASE=$(PHASE2) VARIANTS_DIR=$(VARIANTS_DIR2) \
+	$(MAKE) register-generic PHASE=$(PHASE2) VARIANTS_DIR=$(VARIANTS_DIR2) \
 		PUBLISH_EXTS="parquet json html yaml" VARIANT=$(VARIANT)
 
 remove2: check-variant-format
@@ -404,8 +451,8 @@ help2:
 	@echo " Checking:"
 	@echo "   make check2 VARIANT=v201"
 	@echo ""
-	@echo " Publish:"
-	@echo "   make publish2 VARIANT=v201"
+	@echo " Register:"
+	@echo "   make register2 VARIANT=v201"
 	@echo ""
 	@echo " Remove: (only if no children variants)"
 	@echo "   make remove2 VARIANT=v201"
@@ -427,6 +474,11 @@ VARIANTS_DIR3 = executions/$(PHASE3)
 ############################################
 
 variant3: check-variant-format
+		# Comprobación de que el parent está registrado y limpio en DVC/Git
+		@PARENT_PATH=executions/f02_events/$(PARENT)/outputs.yaml.dvc; \
+		test -f "$$PARENT_PATH" || (echo "[ERROR] Parent $(PARENT) no está registrado en DVC (outputs.yaml.dvc no existe)"; exit 1); \
+		git log --oneline -- "$$PARENT_PATH" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) no está comiteado en git"; exit 1); \
+		dvc status "$$PARENT_PATH" | grep 'is changed' && (echo "[ERROR] Parent $(PARENT) ha cambiado tras el registro. Haz register de nuevo."; exit 1) || true
 	@test -n "$(PARENT)"   || (echo "[ERROR] You must specify PARENT=v2XX (parent F02 variant)"; exit 1)
 	@test -n "$(OW)"       || (echo "[ERROR] You must specify OW=<int>"; exit 1)
 	@test -n "$(LT)"       || (echo "[ERROR] You must specify LT=<int>"; exit 1)
@@ -462,10 +514,45 @@ check3: check-variant-format
 		03_windows_report.html \
 		outputs.yaml"
 
-publish3: check-variant-format
-	@test -n "$(VARIANT)" || (echo "[ERROR] Usage: make publish3 VARIANT=v3XX"; exit 1)
+register3: check-variant-format
+					 # Informe de cambios en parent y código relevante
+			@( \
+				set -e; \
+				PARENT_DVC=executions/f02_events/$(PARENT)/outputs.yaml.dvc; \
+				PARENT_YAML=executions/f02_events/$(PARENT)/outputs.yaml; \
+				if test -f "$$PARENT_DVC"; then \
+					git log --oneline -- "$$PARENT_DVC" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) .dvc not committed in git"; exit 1); \
+					if dvc status "$$PARENT_DVC" | grep 'is changed' > /dev/null; then \
+						echo "[ERROR] Parent $(PARENT) has changed after registration. See diff below:"; \
+						dvc diff -t --show-json "$$PARENT_DVC" || dvc diff "$$PARENT_DVC"; \
+						exit 1; \
+					fi; \
+				elif test -f "$$PARENT_YAML"; then \
+					git log --oneline -- "$$PARENT_YAML" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) outputs.yaml not committed in git"; exit 1); \
+					if git status --porcelain "$$PARENT_YAML" | grep .; then \
+						echo "[ERROR] Parent $(PARENT) outputs.yaml has changed after registration. See diff below:"; \
+						git diff "$$PARENT_YAML"; \
+						exit 1; \
+					fi; \
+				else \
+					echo "[ERROR] Parent $(PARENT) missing outputs.yaml(.dvc)"; exit 1; \
+				fi; \
+				if git status --porcelain scripts/ edge/esp32 scripts/traceability_schema.yaml | grep .; then \
+					echo "[ERROR] Uncommitted changes in scripts/ or edge/esp32. See details below:"; \
+					git status --porcelain scripts/ edge/esp32 scripts/traceability_schema.yaml; \
+					echo "[INFO] Code diff:"; \
+					git diff scripts/ edge/esp32 scripts/traceability_schema.yaml; \
+					exit 1; \
+				fi \
+			) 2>&1
+		# Comprobación de que el parent está registrado y limpio en DVC/Git antes de registrar
+		@PARENT_PATH=executions/f02_events/$(PARENT)/outputs.yaml.dvc; \
+		@test -f "$$PARENT_PATH" || (echo "[ERROR] Parent $(PARENT) not registered in DVC (outputs.yaml.dvc missing)"; exit 1); \
+		git log --oneline -- "$$PARENT_PATH" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) not committed in git"; exit 1); \
+		dvc status "$$PARENT_PATH" | grep 'is changed' && (echo "[ERROR] Parent $(PARENT) has changed after registration. Please register again."; exit 1) || true
+	@test -n "$(VARIANT)" || (echo "[ERROR] Usage: make register3 VARIANT=v3XX"; exit 1)
 
-	$(MAKE) publish-generic \
+	$(MAKE) register-generic \
 		PHASE=$(PHASE3) \
 		VARIANTS_DIR=$(VARIANTS_DIR3) \
 		PUBLISH_EXTS="parquet json html yaml" \
@@ -495,8 +582,8 @@ help3:
 	@echo " Checking:"
 	@echo "   make check3 VARIANT=v301"
 	@echo ""
-	@echo " Publish:"
-	@echo "   make publish3 VARIANT=v301"
+	@echo " Register:"
+	@echo "   make register3 VARIANT=v301"
 	@echo ""
 	@echo " Remove: (only if no children variants)"
 	@echo "   make remove3 VARIANT=v301"
@@ -517,6 +604,11 @@ VARIANTS_DIR4 = executions/$(PHASE4)
 ############################################
 
 variant4: check-variant-format
+		# Comprobación de que el parent está registrado y limpio en DVC/Git
+		@PARENT_PATH=executions/f03_windows/$(PARENT)/outputs.yaml.dvc; \
+		test -f "$$PARENT_PATH" || (echo "[ERROR] Parent $(PARENT) no está registrado en DVC (outputs.yaml.dvc no existe)"; exit 1); \
+		git log --oneline -- "$$PARENT_PATH" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) no está comiteado en git"; exit 1); \
+		dvc status "$$PARENT_PATH" | grep 'is changed' && (echo "[ERROR] Parent $(PARENT) ha cambiado tras el registro. Haz register de nuevo."; exit 1) || true
 	@test -n "$(PARENT)"   || (echo "[ERROR] You must specify PARENT=v3XX (parent F03 variant)"; exit 1)
 	@test -n "$(NAME)"     || (echo "[ERROR] You must specify NAME=<prediction_name>"; exit 1)
 	@test -n "$(OPERATOR)" || (echo "[ERROR] You must specify OPERATOR=OR"; exit 1)
@@ -548,10 +640,45 @@ check4: check-variant-format
 		outputs.yaml"
 
 
-publish4: check-variant-format
-	@test -n "$(VARIANT)" || (echo "[ERROR] Usage: make publish4 VARIANT=v4XX"; exit 1)
+register4: check-variant-format
+					 # Informe de cambios en parent y código relevante
+			@( \
+				set -e; \
+				PARENT_DVC=executions/f03_windows/$(PARENT)/outputs.yaml.dvc; \
+				PARENT_YAML=executions/f03_windows/$(PARENT)/outputs.yaml; \
+				if test -f "$$PARENT_DVC"; then \
+					git log --oneline -- "$$PARENT_DVC" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) .dvc not committed in git"; exit 1); \
+					if dvc status "$$PARENT_DVC" | grep 'is changed' > /dev/null; then \
+						echo "[ERROR] Parent $(PARENT) has changed after registration. See diff below:"; \
+						dvc diff -t --show-json "$$PARENT_DVC" || dvc diff "$$PARENT_DVC"; \
+						exit 1; \
+					fi; \
+				elif test -f "$$PARENT_YAML"; then \
+					git log --oneline -- "$$PARENT_YAML" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) outputs.yaml not committed in git"; exit 1); \
+					if git status --porcelain "$$PARENT_YAML" | grep .; then \
+						echo "[ERROR] Parent $(PARENT) outputs.yaml has changed after registration. See diff below:"; \
+						git diff "$$PARENT_YAML"; \
+						exit 1; \
+					fi; \
+				else \
+					echo "[ERROR] Parent $(PARENT) missing outputs.yaml(.dvc)"; exit 1; \
+				fi; \
+				if git status --porcelain scripts/ edge/esp32 scripts/traceability_schema.yaml | grep .; then \
+					echo "[ERROR] Uncommitted changes in scripts/ or edge/esp32. See details below:"; \
+					git status --porcelain scripts/ edge/esp32 scripts/traceability_schema.yaml; \
+					echo "[INFO] Code diff:"; \
+					git diff scripts/ edge/esp32 scripts/traceability_schema.yaml; \
+					exit 1; \
+				fi \
+			) 2>&1
+		# Comprobación de que el parent está registrado y limpio en DVC/Git antes de registrar
+		@PARENT_PATH=executions/f03_windows/$(PARENT)/outputs.yaml.dvc; \
+		@test -f "$$PARENT_PATH" || (echo "[ERROR] Parent $(PARENT) not registered in DVC (outputs.yaml.dvc missing)"; exit 1); \
+		git log --oneline -- "$$PARENT_PATH" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) not committed in git"; exit 1); \
+		dvc status "$$PARENT_PATH" | grep 'is changed' && (echo "[ERROR] Parent $(PARENT) has changed after registration. Please register again."; exit 1) || true
+	@test -n "$(VARIANT)" || (echo "[ERROR] Usage: make register4 VARIANT=v4XX"; exit 1)
 
-	$(MAKE) publish-generic \
+	$(MAKE) register-generic \
 		PHASE=$(PHASE4) \
 		VARIANTS_DIR=$(VARIANTS_DIR4) \
 		PUBLISH_EXTS="parquet html yaml" \
@@ -583,14 +710,14 @@ help4:
 	@echo " Checking:"
 	@echo "   make check4 VARIANT=v401"
 	@echo ""
-	@echo " Publish:"
-	@echo "   make publish4 VARIANT=v401"
+	@echo " Register:"
+	@echo "   make register4 VARIANT=v401"
 	@echo ""
 	@echo " Remove:"
 	@echo "   make remove4 VARIANT=v401"
 	@echo ""
 	@echo "==============================================="
-	
+
 ############################################
 # FASE 05 — MODELING
 ############################################
@@ -626,6 +753,11 @@ ensure-f56-docker-image:
 ############################################
 
 variant5: check-variant-format
+		# Comprobación de que el parent está registrado y limpio en DVC/Git
+		@PARENT_PATH=executions/f04_targets/$(PARENT)/outputs.yaml.dvc; \
+		test -f "$$PARENT_PATH" || (echo "[ERROR] Parent $(PARENT) no está registrado en DVC (outputs.yaml.dvc no existe)"; exit 1); \
+		git log --oneline -- "$$PARENT_PATH" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) no está comiteado en git"; exit 1); \
+		dvc status "$$PARENT_PATH" | grep 'is changed' && (echo "[ERROR] Parent $(PARENT) ha cambiado tras el registro. Haz register de nuevo."; exit 1) || true
 	@test -n "$(PARENT)" || (echo "[ERROR] You must specify PARENT=v4XX (parent F04 variant)"; exit 1)
 	@test -n "$(MODEL_FAMILY)" || (echo "[ERROR] You must specify MODEL_FAMILY"; exit 1)
 
@@ -694,24 +826,56 @@ check5: check-variant-format
 # PUBLICAR + REGISTRO MLFLOW
 ############################################
 
-publish5: check-variant-format
-	@test -n "$(VARIANT)" || (echo "[ERROR] Usage: make publish5 VARIANT=v5XX"; exit 1)
+register5: check-variant-format
+					 # Informe de cambios en parent y código relevante
+					PARENT_DVC=executions/f04_targets/$(PARENT)/outputs.yaml.dvc; \
+					PARENT_YAML=executions/f04_targets/$(PARENT)/outputs.yaml; \
+					       if test -f "$$PARENT_DVC"; then \
+						       git log --oneline -- "$$PARENT_DVC" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) .dvc is not committed in git"; exit 1); \
+						       if dvc status "$$PARENT_DVC" | grep 'is changed' > /dev/null; then \
+							       echo "[ERROR] Parent $(PARENT) has changed after registration. Changes:"; \
+							       dvc diff -t --show-json "$$PARENT_DVC" || dvc diff "$$PARENT_DVC"; \
+							       exit 1; \
+						       fi; \
+					       elif test -f "$$PARENT_YAML"; then \
+						       git log --oneline -- "$$PARENT_YAML" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) outputs.yaml is not committed in git"; exit 1); \
+						       if git status --porcelain "$$PARENT_YAML" | grep .; then \
+							       echo "[ERROR] Parent $(PARENT) outputs.yaml has changed after registration. Diff:"; \
+							       git diff "$$PARENT_YAML"; \
+							       exit 1; \
+						       fi; \
+					       else \
+						       echo "[ERROR] Parent $(PARENT) has neither outputs.yaml.dvc nor outputs.yaml"; exit 1; \
+					       fi; \
+					       if git status --porcelain scripts/ edge/esp32 scripts/traceability_schema.yaml | grep .; then \
+						       echo "[ERROR] There are uncommitted changes in scripts/ or edge/esp32. Details:"; \
+						       git status --porcelain scripts/ edge/esp32 scripts/traceability_schema.yaml; \
+						       echo "[INFO] Code diff:"; \
+						       git diff scripts/ edge/esp32 scripts/traceability_schema.yaml; \
+						       exit 1; \
+					       fi
+		# Comprobación de que el parent está registrado y limpio en DVC/Git antes de registrar
+		@PARENT_PATH=executions/f04_targets/$(PARENT)/outputs.yaml.dvc; \
+		test -f "$$PARENT_PATH" || (echo "[ERROR] Parent $(PARENT) is not registered in DVC (outputs.yaml.dvc does not exist)"; exit 1); \
+		git log --oneline -- "$$PARENT_PATH" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) is not committed in git"; exit 1); \
+		dvc status "$$PARENT_PATH" | grep 'is changed' && (echo "[ERROR] Parent $(PARENT) has changed after registration. Please register again."; exit 1) || true
+		@test -n "$(VARIANT)" || (echo "[ERROR] Usage: make register5 VARIANT=v5XX"; exit 1)
 
-	@echo "==> Checking MLflow setup (from .mlops4ofp/setup.yaml)"
-	@MLFLOW_ENABLED=$$($(PYTHON) -c 'import pathlib,yaml; p=pathlib.Path(".mlops4ofp/setup.yaml"); cfg=(yaml.safe_load(p.read_text()) if p.exists() else {}); print("1" if isinstance(cfg,dict) and cfg.get("mlflow",{}).get("enabled",False) else "0")'); \
-	if [ "$$MLFLOW_ENABLED" = "1" ]; then \
-		echo "==> MLflow enabled: registering run for $(PHASE5):$(VARIANT)"; \
-		VAR_DIR="$(VARIANTS_DIR5)/$(VARIANT)"; \
-		OUTS="$$VAR_DIR/outputs.yaml"; \
-		if [ ! -f "$$OUTS" ]; then \
-			echo "[ERROR] outputs.yaml not found in $$VAR_DIR"; exit 1; \
-		fi; \
-		VARIANT="$(VARIANT)" PHASE5="$(PHASE5)" $(PYTHON) -c 'import os,subprocess,yaml,json,pathlib,sys; variant=os.environ.get("VARIANT"); phase=os.environ.get("PHASE5","f05_modeling"); outs_path=pathlib.Path(f"executions/{phase}/{variant}/outputs.yaml"); data=(yaml.safe_load(outs_path.read_text()) if outs_path.exists() else None); \nif data is None: print(f"[ERROR] outputs.yaml not found at {outs_path}") or sys.exit(1); reg=(data.get("mlflow_registration") if isinstance(data,dict) else None); \nif not reg: print("[WARN] No '"'"'mlflow_registration'"'"' block in outputs.yaml — skipping MLflow registration") or sys.exit(0); experiment_name=(reg.get("experiment_name") or f"F05_{variant}"); metrics=reg.get("metrics",{}); params=reg.get("params",{}); artifacts=reg.get("artifacts",[]); subprocess.run(["mlflow","experiments","create","--experiment-name",experiment_name], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL); exps=json.loads(subprocess.check_output(["mlflow","experiments","list","--format","json"])); exp_id=next((e.get("experiment_id") for e in exps if e.get("name")==experiment_name), None); \nif not exp_id: print("[ERROR] Could not obtain experiment_id for", experiment_name) or sys.exit(1); run=json.loads(subprocess.check_output(["mlflow","runs","create","--experiment-id",exp_id,"--format","json"])); run_id=run["info"]["run_id"]; [subprocess.run(["mlflow","runs","log-param","--run-id",run_id,"--key",str(k),"--value",str(v)]) for k,v in params.items()]; [subprocess.run(["mlflow","runs","log-metric","--run-id",run_id,"--key",str(k),"--value",str(v)]) for k,v in metrics.items()]; [subprocess.run(["mlflow","runs","log-artifact","--run-id",run_id,"--local-path",a]) for a in artifacts if os.path.exists(a)]; data["mlflow"]={"run_id":run_id,"experiment_id":exp_id,"experiment_name":experiment_name}; outs_path.write_text(yaml.safe_dump(data, sort_keys=False)); print(f"[OK] MLflow run created: {run_id} (experiment: {experiment_name})")'; \
-	else \
-		echo "[INFO] MLflow disabled in setup — skipping MLflow registration"; \
-	fi
+	       @echo "==> Checking MLflow setup (from .mlops4ofp/setup.yaml)"
+	       @MLFLOW_ENABLED=$$($(PYTHON) -c 'import pathlib,yaml; p=pathlib.Path(".mlops4ofp/setup.yaml"); cfg=(yaml.safe_load(p.read_text()) if p.exists() else {}); print("1" if isinstance(cfg,dict) and cfg.get("mlflow",{}).get("enabled",False) else "0")'); \
+	       if [ "$$MLFLOW_ENABLED" = "1" ]; then \
+		       echo "==> MLflow enabled: registering run for $(PHASE5):$(VARIANT)"; \
+		       VAR_DIR="$(VARIANTS_DIR5)/$(VARIANT)"; \
+		       OUTS="$$VAR_DIR/outputs.yaml"; \
+		       if [ ! -f "$$OUTS" ]; then \
+			       echo "[ERROR] outputs.yaml not found in $$VAR_DIR"; exit 1; \
+		       fi; \
+		       VARIANT="$(VARIANT)" PHASE5="$(PHASE5)" $(PYTHON) -c 'import os,subprocess,yaml,json,pathlib,sys; variant=os.environ.get("VARIANT"); phase=os.environ.get("PHASE5","f05_modeling"); outs_path=pathlib.Path(f"executions/{phase}/{variant}/outputs.yaml"); data=(yaml.safe_load(outs_path.read_text()) if outs_path.exists() else None); \nif data is None: print(f"[ERROR] outputs.yaml not found at {outs_path}") or sys.exit(1); reg=(data.get("mlflow_registration") if isinstance(data,dict) else None); \nif not reg: print("[WARN] No 'mlflow_registration' block in outputs.yaml — skipping MLflow registration") or sys.exit(0); experiment_name=(reg.get("experiment_name") or f"F05_{variant}"); metrics=reg.get("metrics",{}); params=reg.get("params",{}); artifacts=reg.get("artifacts",[]); subprocess.run(["mlflow","experiments","create","--experiment-name",experiment_name], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL); exps=json.loads(subprocess.check_output(["mlflow","experiments","list","--format","json"])); exp_id=next((e.get("experiment_id") for e in exps if e.get("name")==experiment_name), None); \nif not exp_id: print(f"[ERROR] Could not obtain experiment_id for {experiment_name}") or sys.exit(1); run=json.loads(subprocess.check_output(["mlflow","runs","create","--experiment-id",exp_id,"--format","json"])); run_id=run["info"]["run_id"]; [subprocess.run(["mlflow","runs","log-param","--run-id",run_id,"--key",str(k),"--value",str(v)]) for k,v in params.items()]; [subprocess.run(["mlflow","runs","log-metric","--run-id",run_id,"--key",str(k),"--value",str(v)]) for k,v in metrics.items()]; [subprocess.run(["mlflow","runs","log-artifact","--run-id",run_id,"--local-path",a]) for a in artifacts if os.path.exists(a)]; data["mlflow"]={"run_id":run_id,"experiment_id":exp_id,"experiment_name":experiment_name}; outs_path.write_text(yaml.safe_dump(data, sort_keys=False)); print(f"[OK] MLflow run created: {run_id} (experiment: {experiment_name})")'; \
+	       else \
+		       echo "[INFO] MLflow disabled in setup — skipping MLflow registration"; \
+	       fi
 
-	$(MAKE) publish-generic \
+	$(MAKE) register-generic \
 		PHASE=$(PHASE5) \
 		VARIANTS_DIR=$(VARIANTS_DIR5) \
 		PUBLISH_EXTS="h5 html json yaml parquet" \
@@ -760,8 +924,8 @@ help5:
 	@echo " Checking:"
 	@echo "   make check5 VARIANT=v501"
 	@echo ""
-	@echo " Publish:"
-	@echo "   make publish5 VARIANT=v501"
+	@echo " Register:"
+	@echo "   make register5 VARIANT=v501"
 	@echo ""
 	@echo " Remove:"
 	@echo "   make remove5 VARIANT=v501"
@@ -792,6 +956,11 @@ VARIANTS_DIR6  = executions/$(PHASE6)
 ############################################
 
 variant6: check-variant-format
+		# Comprobación de que el parent está registrado y limpio en DVC/Git
+		@PARENT_PATH=executions/f05_modeling/$(PARENT)/outputs.yaml.dvc; \
+		test -f "$$PARENT_PATH" || (echo "[ERROR] Parent $(PARENT) no está registrado en DVC (outputs.yaml.dvc no existe)"; exit 1); \
+		git log --oneline -- "$$PARENT_PATH" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) no está comiteado en git"; exit 1); \
+		dvc status "$$PARENT_PATH" | grep 'is changed' && (echo "[ERROR] Parent $(PARENT) ha cambiado tras el registro. Haz register de nuevo."; exit 1) || true
 	@test -n "$(PARENT)" || (echo "[ERROR] You must specify PARENT=v5XX (parent F05 variant)"; exit 1)
 
 	@$(eval EXTRA_FLAGS := )
@@ -889,10 +1058,42 @@ check6: check-variant-format
 # FASE 06 — PUBLISH
 ############################################
 
-publish6: check-variant-format
-	@test -n "$(VARIANT)" || (echo "[ERROR] Usage: make publish6 VARIANT=v6XX"; exit 1)
+register6: check-variant-format
+					 # Informe de cambios en parent y código relevante
+					PARENT_DVC=executions/f05_modeling/$(PARENT)/outputs.yaml.dvc; \
+					PARENT_YAML=executions/f05_modeling/$(PARENT)/outputs.yaml; \
+					       if test -f "$$PARENT_DVC"; then \
+						       git log --oneline -- "$$PARENT_DVC" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) .dvc not committed in git"; exit 1); \
+						       if dvc status "$$PARENT_DVC" | grep 'is changed' > /dev/null; then \
+							       echo "[ERROR] Parent $(PARENT) has changed after registration."; \
+							       dvc diff -t --show-json "$$PARENT_DVC" || dvc diff "$$PARENT_DVC"; \
+							       exit 1; \
+						       fi; \
+					       elif test -f "$$PARENT_YAML"; then \
+						       git log --oneline -- "$$PARENT_YAML" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) outputs.yaml not committed in git"; exit 1); \
+						       if git status --porcelain "$$PARENT_YAML" | grep .; then \
+							       echo "[ERROR] Parent $(PARENT) outputs.yaml has changed after registration."; \
+							       git diff "$$PARENT_YAML"; \
+							       exit 1; \
+						       fi; \
+					       else \
+						       echo "[ERROR] Parent $(PARENT) missing outputs.yaml(.dvc)"; exit 1; \
+					       fi; \
+					       if git status --porcelain scripts/ edge/esp32 scripts/traceability_schema.yaml | grep .; then \
+						       echo "[ERROR] Uncommitted changes in scripts/ or edge/esp32."; \
+						       git status --porcelain scripts/ edge/esp32 scripts/traceability_schema.yaml; \
+						       echo "[INFO] Code diff:"; \
+						       git diff scripts/ edge/esp32 scripts/traceability_schema.yaml; \
+						       exit 1; \
+					       fi
+		# Comprobación de que el parent está registrado y limpio en DVC/Git antes de registrar
+		@PARENT_PATH=executions/f05_modeling/$(PARENT)/outputs.yaml.dvc; \
+		test -f "$$PARENT_PATH" || (echo "[ERROR] Parent $(PARENT) not registered in DVC (outputs.yaml.dvc missing)"; exit 1); \
+		git log --oneline -- "$$PARENT_PATH" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) not committed in git"; exit 1); \
+		dvc status "$$PARENT_PATH" | grep 'is changed' && (echo "[ERROR] Parent $(PARENT) has changed after registration. Please register again."; exit 1) || true
+	@test -n "$(VARIANT)" || (echo "[ERROR] Usage: make register6 VARIANT=v6XX"; exit 1)
 
-	@echo "==> Publishing F06 variant $(VARIANT)"
+	@echo "==> Registering F06 variant $(VARIANT)"
 
 	@VAR_DIR="$(VARIANTS_DIR6)/$(VARIANT)"; \
 	if [ ! -d "$$VAR_DIR" ]; then \
@@ -903,22 +1104,22 @@ publish6: check-variant-format
 	fi; \
 	EDGE_CAPABLE=$$($(PYTHON) -c "import os,yaml; d=yaml.safe_load(open(os.path.join('$$VAR_DIR','outputs.yaml'))); print('1' if d.get('exports',{}).get('edge_capable') else '0')"); \
 	if [ "$$EDGE_CAPABLE" = "1" ]; then \
-		echo "[INFO] edge_capable = true — publishing full EEDU"; \
-		$(MAKE) publish-generic \
+		echo "[INFO] edge_capable = true — registering full EEDU"; \
+		$(MAKE) register-generic \
 			PHASE=$(PHASE6) \
 			VARIANTS_DIR=$(VARIANTS_DIR6) \
 			PUBLISH_EXTS="h5 html yaml parquet tflite cc" \
 			VARIANT=$(VARIANT); \
 	else \
-		echo "[INFO] edge_capable = false — publishing non-edge artifacts only"; \
-		$(MAKE) publish-generic \
+		echo "[INFO] edge_capable = false — registering non-edge artifacts only"; \
+		$(MAKE) register-generic \
 			PHASE=$(PHASE6) \
 			VARIANTS_DIR=$(VARIANTS_DIR6) \
 			PUBLISH_EXTS="h5 html yaml parquet" \
 			VARIANT=$(VARIANT); \
 	fi
 
-	@echo "[SUCCESS] Publish6 completed for $(VARIANT)"
+	@echo "[SUCCESS] Register6 completed for $(VARIANT)"
 	
 ############################################
 # ELIMINAR VARIANTES
@@ -957,8 +1158,8 @@ help6:
 	@echo " Checking:"
 	@echo "   make check6 VARIANT=v601"
 	@echo ""
-	@echo " Publish:"
-	@echo "   make publish6 VARIANT=v601"
+	@echo " Register:"
+	@echo "   make register6 VARIANT=v601"
 	@echo ""
 	@echo " Remove:"
 	@echo "   make remove6 VARIANT=v601"
@@ -992,6 +1193,11 @@ VARIANTS_DIR7 = executions/$(PHASE7)
 ############################################
 
 variant7: check-variant-format
+		# Comprobación de que el parent está registrado y limpio en DVC/Git
+		@PARENT_PATH=executions/f06_quant/$(PARENT)/outputs.yaml.dvc; \
+		test -f "$$PARENT_PATH" || (echo "[ERROR] Parent $(PARENT) no está registrado en DVC (outputs.yaml.dvc no existe)"; exit 1); \
+		git log --oneline -- "$$PARENT_PATH" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) no está comiteado en git"; exit 1); \
+		dvc status "$$PARENT_PATH" | grep 'is changed' && (echo "[ERROR] Parent $(PARENT) ha cambiado tras el registro. Haz register de nuevo."; exit 1) || true
 	@test -n "$(PARENT)" || (echo "[ERROR] You must specify PARENT=v6XX (parent F06 variant)"; exit 1)
 	@test -n "$(PLATFORM)" || (echo "[ERROR] You must specify PLATFORM (e.g. PLATFORM=esp32)"; exit 1)
 	@test -n "$(MTI_MS)" || (echo "[ERROR] You must specify MTI_MS in milliseconds (e.g. MTI_MS=100000)"; exit 1)
@@ -1117,10 +1323,42 @@ check7: check-variant-format
 # FASE 07 — PUBLISH
 ############################################
 
-publish7: check-variant-format
-	@test -n "$(VARIANT)" || (echo "[ERROR] Usage: make publish7 VARIANT=v7XX"; exit 1)
+register7: check-variant-format
+					 # Informe de cambios en parent y código relevante
+					PARENT_DVC=executions/f06_quant/$(PARENT)/outputs.yaml.dvc; \
+					PARENT_YAML=executions/f06_quant/$(PARENT)/outputs.yaml; \
+					       if test -f "$$PARENT_DVC"; then \
+						       git log --oneline -- "$$PARENT_DVC" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) .dvc not committed in git"; exit 1); \
+						       if dvc status "$$PARENT_DVC" | grep 'is changed' > /dev/null; then \
+							       echo "[ERROR] Parent $(PARENT) has changed after registration."; \
+							       dvc diff -t --show-json "$$PARENT_DVC" || dvc diff "$$PARENT_DVC"; \
+							       exit 1; \
+						       fi; \
+					       elif test -f "$$PARENT_YAML"; then \
+						       git log --oneline -- "$$PARENT_YAML" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) outputs.yaml not committed in git"; exit 1); \
+						       if git status --porcelain "$$PARENT_YAML" | grep .; then \
+							       echo "[ERROR] Parent $(PARENT) outputs.yaml has changed after registration."; \
+							       git diff "$$PARENT_YAML"; \
+							       exit 1; \
+						       fi; \
+					       else \
+						       echo "[ERROR] Parent $(PARENT) missing outputs.yaml(.dvc)"; exit 1; \
+					       fi; \
+					       if git status --porcelain scripts/ edge/esp32 scripts/traceability_schema.yaml | grep .; then \
+						       echo "[ERROR] Uncommitted changes in scripts/ or edge/esp32."; \
+						       git status --porcelain scripts/ edge/esp32 scripts/traceability_schema.yaml; \
+						       echo "[INFO] Code diff:"; \
+						       git diff scripts/ edge/esp32 scripts/traceability_schema.yaml; \
+						       exit 1; \
+					       fi
+		# Comprobación de que el parent está registrado y limpio en DVC/Git antes de registrar
+		@PARENT_PATH=executions/f06_quant/$(PARENT)/outputs.yaml.dvc; \
+		test -f "$$PARENT_PATH" || (echo "[ERROR] Parent $(PARENT) not registered in DVC (outputs.yaml.dvc missing)"; exit 1); \
+		git log --oneline -- "$$PARENT_PATH" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) not committed in git"; exit 1); \
+		dvc status "$$PARENT_PATH" | grep 'is changed' && (echo "[ERROR] Parent $(PARENT) has changed after registration. Please register again."; exit 1) || true
+	@test -n "$(VARIANT)" || (echo "[ERROR] Usage: make register7 VARIANT=v7XX"; exit 1)
 
-	$(MAKE) publish-generic \
+	$(MAKE) register-generic \
 		PHASE=$(PHASE7) \
 		VARIANTS_DIR=$(VARIANTS_DIR7) \
 		PUBLISH_EXTS="yaml csv json txt html" \
@@ -1163,8 +1401,8 @@ help7:
 	@echo " Checking:"
 	@echo "   make check7 VARIANT=v701"
 	@echo ""
-	@echo " Publish:"
-	@echo "   make publish7 VARIANT=v701"
+	@echo " Register:"
+	@echo "   make register7 VARIANT=v701"
 	@echo ""
 	@echo "==============================================="
 
@@ -1198,6 +1436,34 @@ VARIANTS_DIR8 = executions/$(PHASE8)
 ############################################
 
 variant8: check-variant-format
+		   # Comprobación de que todos los parents están registrados y limpios en DVC/Git
+		   @python3 -c '
+	import os, sys, ast
+	parents = os.environ.get("PARENTS", "")
+	if parents.startswith("["):
+		plist = ast.literal_eval(parents)
+	else:
+		plist = [p.strip() for p in parents.replace(",", " ").split() if p.strip()]
+	errored = False
+	for p in plist:
+		dvc_path = f"executions/f07_modval/{p}/outputs.yaml.dvc"
+		if not os.path.isfile(dvc_path):
+			print(f"[ERROR] Parent {p} no está registrado en DVC (outputs.yaml.dvc no existe)")
+			errored = True
+			continue
+		from subprocess import run, PIPE
+		gitlog = run(["git", "log", "--oneline", "--", dvc_path], stdout=PIPE)
+		if not gitlog.stdout.strip():
+			print(f"[ERROR] Parent {p} no está comiteado en git")
+			errored = True
+			continue
+		dvcstat = run(["dvc", "status", dvc_path], stdout=PIPE)
+		if b'is changed' in dvcstat.stdout:
+			print(f"[ERROR] Parent {p} ha cambiado tras el registro. Haz register de nuevo.")
+			errored = True
+	if errored:
+		sys.exit(1)
+	'
 	@test -n "$(PARENTS)" || (echo "[ERROR] You must specify PARENTS as list (e.g. '[v700, v701]' or 'v700,v701')"; exit 1)
 	@test -n "$(PLATFORM)" || (echo "[ERROR] You must specify PLATFORM (e.g. PLATFORM=esp32)"; exit 1)
 	@test -n "$(MTI_MS)" || (echo "[ERROR] You must specify MTI_MS in milliseconds (e.g. MTI_MS=100)"; exit 1)
@@ -1409,10 +1675,90 @@ check8: check-variant-format
 # FASE 08 — PUBLISH
 ############################################
 
-publish8: check-variant-format
-	@test -n "$(VARIANT)" || (echo "[ERROR] Usage: make publish8 VARIANT=v8XX"; exit 1)
+register8: check-variant-format
+			   # Informe de cambios en parents y código relevante
+			   @python3 -c '
+		import os, sys, ast, subprocess
+		parents = os.environ.get("PARENTS", "")
+		if parents.startswith("["):
+			plist = ast.literal_eval(parents)
+		else:
+			plist = [p.strip() for p in parents.replace(",", " ").split() if p.strip()]
+		errored = False
+		for p in plist:
+			dvc_path = f"executions/f07_modval/{p}/outputs.yaml.dvc"
+			yaml_path = f"executions/f07_modval/{p}/outputs.yaml"
+			if os.path.isfile(dvc_path):
+				gitlog = subprocess.run(["git", "log", "--oneline", "--", dvc_path], capture_output=True)
+				if not gitlog.stdout.strip():
+					   print(f"[ERROR] Parent {p} .dvc not committed in git")
+					errored = True
+					continue
+				dvcstat = subprocess.run(["dvc", "status", dvc_path], capture_output=True)
+				if b'is changed' in dvcstat.stdout:
+					   print(f"[ERROR] Parent {p} has changed after registration.")
+					try:
+						subprocess.run(["dvc", "diff", "-t", "--show-json", dvc_path], check=True)
+					except Exception:
+						subprocess.run(["dvc", "diff", dvc_path])
+					errored = True
+			elif os.path.isfile(yaml_path):
+				gitlog = subprocess.run(["git", "log", "--oneline", "--", yaml_path], capture_output=True)
+				if not gitlog.stdout.strip():
+					   print(f"[ERROR] Parent {p} outputs.yaml not committed in git")
+					errored = True
+					continue
+				status = subprocess.run(["git", "status", "--porcelain", yaml_path], capture_output=True, text=True)
+				if status.stdout.strip():
+					   print(f"[ERROR] Parent {p} outputs.yaml has changed after registration.")
+					subprocess.run(["git", "diff", yaml_path])
+					errored = True
+			else:
+				   print(f"[ERROR] Parent {p} missing outputs.yaml(.dvc)")
+				errored = True
+		if errored:
+			sys.exit(1)
 
-	$(MAKE) publish-generic \
+		code_status = subprocess.run(["git", "status", "--porcelain", "scripts/", "edge/esp32", "scripts/traceability_schema.yaml"], capture_output=True, text=True)
+		# Makefile excluido temporalmente de la comprobación de integridad
+		if code_status.stdout.strip():
+			print("[ERROR] Uncommitted changes in scripts/ or edge/esp32.")
+			print(code_status.stdout)
+			print("[INFO] Code diff:")
+			subprocess.run(["git", "diff", "scripts/", "edge/esp32", "scripts/traceability_schema.yaml"])
+			sys.exit(1)
+		'
+		   # Comprobación de que todos los parents están registrados y limpios en DVC/Git antes de registrar
+		   @python3 -c '
+	import os, sys, ast
+	parents = os.environ.get("PARENTS", "")
+	if parents.startswith("["):
+		plist = ast.literal_eval(parents)
+	else:
+		plist = [p.strip() for p in parents.replace(",", " ").split() if p.strip()]
+	errored = False
+	for p in plist:
+		dvc_path = f"executions/f07_modval/{p}/outputs.yaml.dvc"
+		if not os.path.isfile(dvc_path):
+			print(f"[ERROR] Parent {p} not registered in DVC (outputs.yaml.dvc missing)")
+			errored = True
+			continue
+		from subprocess import run, PIPE
+		gitlog = run(["git", "log", "--oneline", "--", dvc_path], stdout=PIPE)
+		if not gitlog.stdout.strip():
+			print(f"[ERROR] Parent {p} not committed in git")
+			errored = True
+			continue
+		dvcstat = run(["dvc", "status", dvc_path], stdout=PIPE)
+		if b'is changed' in dvcstat.stdout:
+			print(f"[ERROR] Parent {p} has changed after registration. Please register again.")
+			errored = True
+	if errored:
+		sys.exit(1)
+	'
+	@test -n "$(VARIANT)" || (echo "[ERROR] Usage: make register8 VARIANT=v8XX"; exit 1)
+
+	$(MAKE) register-generic \
 		PHASE=$(PHASE8) \
 		VARIANTS_DIR=$(VARIANTS_DIR8) \
 		PUBLISH_EXTS="yaml csv json txt html" \
@@ -1483,11 +1829,11 @@ help: help-setup help1 help2 help3 help4 help5 help6 help7 help8
 	setup check-setup clean-setup \
 	nb-run-generic script-run-generic \
 	variant-generic check-variant-format \
-	publish-generic remove-generic check-results-generic export-generic \
+	register-generic remove-generic check-results-generic export-generic \
 	script1 script2 script3 script4 script5 script6 script7 script8 \
 	variant1 variant2 variant3 variant4 variant5 variant6 variant7 variant8 \
 	check1 check2 check3 check4 check5 check6 check7 check8 \
-	publish1 publish2 publish3 publish4 publish5 publish6 publish7 publish8 \
+	register1 register2 register3 register4 register5 register6 register7 register8 \
 	remove1 remove2 remove3 remove4 remove5 remove6 remove7 remove8 \
 	help1 help2 help3 help4 help5 help6 help7 help8
 
@@ -1495,4 +1841,4 @@ help: help-setup help1 help2 help3 help4 help5 help6 help7 help8
 # Utils
 ############################################
 generate_lineage: 
-	${PYTHON} scripts/core/variants_lineage/generate_lineage.py 
+	${PYTHON} scripts/core/variants_lineage/generate_lineage.py
