@@ -1,8 +1,10 @@
 phase: f01_explore
-variant: v100
+variant: v111
 parent: null
 parameters:
   raw_path: data/raw.csv
   cleaning: basic
   nan_values:
   - -999999
+  first_line: 1
+  max_lines: 50000
