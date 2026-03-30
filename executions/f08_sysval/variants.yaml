@@ -1,7 +1,4 @@
 variants:
-  v812:
-    created_at: '2026-03-29T16:29:54.165431+00:00'
-    params_path: executions/f08_sysval/v812/params.yaml
   v813:
     created_at: '2026-03-29T16:38:02.809103+00:00'
     params_path: executions/f08_sysval/v813/params.yaml
