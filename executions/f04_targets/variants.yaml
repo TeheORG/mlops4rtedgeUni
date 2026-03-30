@@ -1,7 +1,4 @@
 variants:
-  v415:
-    created_at: '2026-03-28T03:45:23.387174+00:00'
-    params_path: executions/f04_targets/v415/params.yaml
   v416:
     created_at: '2026-03-28T03:45:25.382609+00:00'
     params_path: executions/f04_targets/v416/params.yaml
