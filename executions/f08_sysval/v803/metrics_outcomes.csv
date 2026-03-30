@@ -1,3 +1,0 @@
-model_id,model_name,n_attempts,n_ok,n_fail,n_offload,n_wd_late,ok_rate,offload_rate,wd_late_rate,fail_rate
-0,Battery_Active_Power_any-to-80_100-cnn1d-v500,3223,3223,0.0,0,0,1.0,0.0,0.0,0.0
-1,PVPCS_Active_Power_any-to-80_100-cnn1d-v502,3224,3223,1.0,0,0,0.9996898263027295,0.0,0.0,0.00031017369727047146
