@@ -1,0 +1,12 @@
+phase: f02_events
+variant: v205
+parent: v105
+parameters:
+  Tu: 10
+  strategy: transitions
+  bands:
+  - 40
+  - 60
+  nan_mode: keep
+parent_hashes:
+  v105: cc5137d9a9c4fc57ad65ad5b629957f375b4e040fd08b02571d05c498a60c330
