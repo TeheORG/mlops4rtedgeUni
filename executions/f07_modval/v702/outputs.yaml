@@ -1,0 +1,45 @@
+generated_at: '2026-03-27T20:07:09.517329'
+phase: f07_modval
+parent:
+  phase: f06_quant
+  variant: v602
+artifacts:
+- executions/f07_modval/v702/07_model_profile.yaml
+- executions/f07_modval/v702/metrics_models.csv
+- executions/f07_modval/v702/metrics_memory.csv
+- executions/f07_modval/v702/metrics_system_timing.csv
+exports:
+  edge_capable: true
+  incompatibility_reason: null
+  model_id: PVPCS_Active_Power_any-to-80_100-cnn1d-v502__esp32
+  runtime_model_name: PVPCS_Active_Power_any-to-80_100-cnn1d-v502
+  prediction_name: PVPCS_Active_Power_any-to-80_100
+  platform: esp32
+  Tu: 10
+  OW: 6
+  LT: 1
+  PW: 1
+  event_type_count: 221
+  operators:
+  - CAST
+  - CONV_2D
+  - DEQUANTIZE
+  - EXPAND_DIMS
+  - FULLY_CONNECTED
+  - GATHER
+  - LOGISTIC
+  - REDUCE_MAX
+  - RESHAPE
+  decision_threshold: 0.36092594265937805
+  arena_bytes: 75900
+  model_memory_bytes: 50600
+  itmax_ms: 16.205
+  ITmax: 100
+  MTI_MS: 100
+  quality_score: 0.3981231520761024
+  n_inferences: 22509.0
+  ok_rate: 0.9999555733262251
+  offload_rate: 0.0
+  watchdog_rate: 0.0
+  edge_run_completed: true
+  phase_status_reason: completed

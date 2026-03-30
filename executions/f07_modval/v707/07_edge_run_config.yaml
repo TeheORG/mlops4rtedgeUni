@@ -1,0 +1,49 @@
+phase: f07_modval
+variant: v707
+platform: esp32
+execution:
+  project_dir: esp32_project
+  runner_dir: null
+time_scale_factor: 0.01
+geometry:
+  Tu_dataset: 10
+  Tu_edge_ms: 100.0
+  OW: 6
+  LT: 1
+  PW: 1
+events:
+  event_type_count: 221
+drain:
+  tu_ms: 100.0
+  recommended_drain_seconds: 5.0
+memory:
+  arena_per_model: 90816
+  arena_global: 105462
+models:
+- id: 0
+  name: FC_Active_Power_any-to-80_100-cnn1d-v507
+  threshold: 0.3615439832210541
+  itmax: 100
+  mti_ms: 100
+  arena_required: 90816
+  model_size_bytes: 60544
+  input_bytes: 4
+  output_bytes: 1
+prediction:
+  name: FC_Active_Power_any-to-80_100-cnn1d-v507
+  threshold: 0.3615439832210541
+operators:
+- CAST
+- CONV_2D
+- DEQUANTIZE
+- EXPAND_DIMS
+- FULLY_CONNECTED
+- GATHER
+- LOGISTIC
+- REDUCE_MAX
+- RESHAPE
+limits:
+  MTI_MS: 100
+  ITmax: 100
+dataset:
+  max_rows: null

@@ -1,0 +1,45 @@
+generated_at: '2026-03-29T15:35:36.280548'
+phase: f07_modval
+parent:
+  phase: f06_quant
+  variant: v604
+artifacts:
+- executions/f07_modval/v704/07_model_profile.yaml
+- executions/f07_modval/v704/metrics_models.csv
+- executions/f07_modval/v704/metrics_memory.csv
+- executions/f07_modval/v704/metrics_system_timing.csv
+exports:
+  edge_capable: true
+  incompatibility_reason: null
+  model_id: GE_Body_Active_Power_any-to-80_100-cnn1d-v504__esp32
+  runtime_model_name: GE_Body_Active_Power_any-to-80_100-cnn1d-v504
+  prediction_name: GE_Body_Active_Power_any-to-80_100
+  platform: esp32
+  Tu: 10
+  OW: 6
+  LT: 1
+  PW: 1
+  event_type_count: 221
+  operators:
+  - CAST
+  - CONV_2D
+  - DEQUANTIZE
+  - EXPAND_DIMS
+  - FULLY_CONNECTED
+  - GATHER
+  - LOGISTIC
+  - REDUCE_MAX
+  - RESHAPE
+  decision_threshold: 0.4130264222621918
+  arena_bytes: 90816
+  model_memory_bytes: 60544
+  itmax_ms: 19.434
+  ITmax: 100
+  MTI_MS: 100
+  quality_score: 0.0035339591385974605
+  n_inferences: 18097.0
+  ok_rate: 1.0
+  offload_rate: 0.0
+  watchdog_rate: 0.0
+  edge_run_completed: true
+  phase_status_reason: completed

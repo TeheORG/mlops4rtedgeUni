@@ -1,0 +1,15 @@
+phase: f07_modval
+variant: v704
+parent: v604
+parameters:
+  parent_variant: v604
+  time_scale_factor: 0.01
+  Tu: 10
+  OW: 6
+  LT: 1
+  PW: 1
+  prediction_name: GE_Body_Active_Power_any-to-80_100
+  decision_threshold: 0.4130264222621918
+  event_type_count: 221
+  MTI_MS: 100
+  platform: esp32

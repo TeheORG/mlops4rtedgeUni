@@ -1,0 +1,11 @@
+generated_at: '2026-03-27T21:29:58.902608'
+phase: f07_modval
+parent:
+  phase: f06_quant
+  variant: v605
+artifacts: []
+exports:
+  edge_capable: false
+  incompatibility_reason: 'Parent F05 no produjo un modelo entrenable: La clase menos
+    poblada tiene 1 muestra(s); train_test_split estratificado requiere al menos 2'
+  phase_status_reason: configuration_edge_capable_false
