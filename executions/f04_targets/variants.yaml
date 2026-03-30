@@ -1,7 +1,4 @@
 variants:
-  v407:
-    created_at: '2026-03-27T11:16:36.343974+00:00'
-    params_path: executions/f04_targets/v407/params.yaml
   v408:
     created_at: '2026-03-27T11:16:38.199782+00:00'
     params_path: executions/f04_targets/v408/params.yaml
