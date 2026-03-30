@@ -107,7 +107,11 @@ endif
 $(info [INFO] Using Python interpreter in venv: $(PYTHON))
 
 ############################################
-# Generic targets by phase (reusable patterns for different phases)
+# Generic targets by phase
+############################################
+
+############################################
+# Generic targets by phase
 ############################################
 
 check-variant-format:
@@ -118,15 +122,62 @@ check-variant-format:
 	    exit 1; \
 	fi
 
-variant-generic: check-variant-format
-	@echo "==> Creating variant $(PHASE):$(VARIANT)"
-	@$(PYTHON) -m scripts.core.params_manager create \
-		--phase $(PHASE) \
-		--variant $(VARIANT) \
-		--set-args "$(strip $(EXTRA_FLAGS))"
-	@echo "==> Variant created: $(PHASE):$(VARIANT)"
-	@echo "==> Regenerando dashboard de linaje"
-	@$(MAKE) generate_lineage || true
+############################################
+# Internal helpers (inline Python, no extra script)
+############################################
+
+# Resolve parent phase + parent(s) from params.yaml of a created variant.
+# Outputs shell assignments:
+#   PARENT_PHASE="f01_explore"
+#   PARENTS="v109"
+# or for F08:
+#   PARENT_PHASE="f07_modval"
+#   PARENTS="v700 v701 v702"
+RESOLVE_PARENT_INFO = $(PYTHON) -c "import yaml; from pathlib import Path; from scripts.core.params_manager import infer_parent_phase, load_schema; phase='$(PHASE)'; params_path='$(VARIANTS_DIR)/$(VARIANT)/params.yaml'; data=yaml.safe_load(open(params_path).read()) or {}; parent=data.get('parent'); params=data.get('parameters', {}) or {}; parents=params.get('parents', []) or []; schema=load_schema(); parent_phase=infer_parent_phase(schema, phase) or ''; resolved = [parent] if parent else (parents if parents else []); print('PARENT_PHASE=\"%s\"' % parent_phase); print('PARENTS=\"%s\"' % ' '.join(resolved))"
+
+# Create creation_context.yaml with commit + digest of watched paths
+define WRITE_CREATION_CONTEXT
+    $(PYTHON) - "$(VARIANTS_DIR)/$(VARIANT)/creation_context.yaml" "$(PHASE)" <<'PY'
+import sys, yaml, hashlib, subprocess
+from pathlib import Path
+from datetime import datetime, timezone
+
+out = Path(sys.argv[1])
+phase = sys.argv[2]
+
+watch_paths = ["scripts", "scripts/traceability_schema.yaml"]
+if phase in ("f07_modval", "f08_sysval"):
+    watch_paths.insert(1, "edge")
+
+def digest(paths):
+    h = hashlib.sha256()
+    files = []
+    for p in paths:
+        path = Path(p)
+        if not path.exists():
+            continue
+        if path.is_file():
+            files.append(path)
+        else:
+            files.extend(sorted(x for x in path.rglob("*") if x.is_file()))
+    for f in sorted(files):
+        h.update(str(f).encode())
+        h.update(f.read_bytes())
+    return h.hexdigest()
+
+ctx = {
+    "created_at": datetime.now(timezone.utc).isoformat(),
+    "created_git_commit": subprocess.check_output(
+        ["git", "rev-parse", "HEAD"], text=True
+    ).strip(),
+    "watched_paths": watch_paths,
+    "watched_digest": digest(watch_paths),
+}
+with out.open("w") as fh:
+    yaml.safe_dump(ctx, fh, sort_keys=False)
+PY
+endef
+
 
 script-run-generic: check-variant-format
 	@echo "==> Running script PHASE $(PHASE) for variant $(VARIANT)"
@@ -136,86 +187,86 @@ script-run-generic: check-variant-format
 		$(PYTHON) $(SCRIPT) --variant $(VARIANT); \
 	fi
 
+variant-generic: check-variant-format
+	@set -eu; \
+	echo "==> Creando variante $(PHASE):$(VARIANT)"; \
+	$(PYTHON) -m scripts.core.params_manager create \
+		--phase $(PHASE) \
+		--variant $(VARIANT) \
+		--set-args "$(strip $(EXTRA_FLAGS))"; \
+	echo "[OK] Variante creada: $(PHASE):$(VARIANT)";
+
+############################################
+# Register variant
+############################################
+
 register-generic: check-variant-format
-	@echo "==> Validating variant $(PHASE):$(VARIANT)"
-	$(PYTHON) -m scripts.core.traceability validate-variant --phase $(PHASE) --variant $(VARIANT)
+	@set -eu; \
+	echo "==> Registering $(PHASE):$(VARIANT)"; \
+	echo "==> Validating + auditing variant"; \
+	$(PYTHON) -m scripts.core.traceability validate-variant \
+		--phase $(PHASE) \
+		--variant $(VARIANT) || exit 1; \
+	echo "==> Registering DVC artifacts"; \
+	for ext in $(DVC_EXTS); do \
+		$(DVC) add "$(VARIANTS_DIR)/$(VARIANT)"/*.$$ext 2>/dev/null || true; \
+	done; \
+	echo "==> Adding files to Git"; \
+	git add "$(VARIANTS_DIR)/$(VARIANT)" 2>/dev/null || true; \
+	git add "$(VARIANTS_DIR)/$(VARIANT)"/*.dvc 2>/dev/null || true; \
+	git add "$(VARIANTS_DIR)/variants.yaml" 2>/dev/null || true; \
+	git add dvc.yaml dvc.lock 2>/dev/null || true; \
+	echo "==> Commit"; \
+	git commit -m "register $(PHASE):$(VARIANT)" || true; \
+	echo "==> Push (if configured)"; \
+	MODE=$$($(PYTHON) -c "import yaml, pathlib; cfg=yaml.safe_load(pathlib.Path('.mlops4ofp/setup.yaml').read_text()); print(cfg.get('git',{}).get('mode','none'))"); \
+	if [ "$$MODE" = "custom" ]; then git push register HEAD:main || true; fi; \
+	echo "==> DVC push"; \
+	$(DVC) push -r storage || true; \
+	echo "[OK] Registered $(PHASE):$(VARIANT)"
 
-	@echo "==> Registering DVC artifacts for $(PHASE):$(VARIANT)"
-	@for ext in $(PUBLISH_EXTS); do \
-	  $(DVC) add $(VARIANTS_DIR)/$(VARIANT)/*.$$ext 2>/dev/null || true; \
-	done
-
-	@echo "==> Adding to Git only the registered variant files and DVC metadata"
-	@git add $(VARIANTS_DIR)/$(VARIANT) 2>/dev/null || true
-	@git add $(VARIANTS_DIR)/$(VARIANT)/*.dvc 2>/dev/null || true
-	@git add $(VARIANTS_DIR)/variants.yaml 2>/dev/null || true
-	@git add dvc.yaml dvc.lock 2>/dev/null || true
-
-	@if [ -d ".git" ]; then \
-		git commit -m "register variant: $(PHASE) $(VARIANT)" || true; \
-	else \
-		echo "[INFO] No Git repo detected: skipping commit"; \
-	fi
-	# Pre-checks: DVC remote 'storage' must exist
-	@if ! $(DVC) remote list 2>/dev/null | grep -q "^storage"; then \
-		echo "[ERROR] Remote DVC 'storage' not configured. Run 'make setup' or contact the admin"; exit 1; \
-	fi
-
-	# Determine register mode from setup.yaml and push to Git accordingly
-	@MODE=$$($(PYTHON) -c "import yaml, pathlib; cfg = yaml.safe_load(pathlib.Path('.mlops4ofp/setup.yaml').read_text()); print(cfg.get('git', {}).get('mode', 'none'))"); \
-	if [ "$$MODE" = "custom" ]; then \
-		echo "[INFO] Remote 'register' detected: pushing to register"; \
-		git push register HEAD:main || echo "[WARN] git push register failed"; \
-	elif [ "$$MODE" = "none" ]; then \
-		echo "[INFO] Setup in git.mode=none: local commit only"; \
-	else \
-		echo "[ERROR] Remote 'register' not configured and setup not in 'none' mode."; exit 1; \
-	fi
-
-	@echo "==> Push DVC"
-	@$(DVC) push -r storage || (echo "[ERROR] dvc push failed"; exit 1)
-
-	@echo "[OK] Publication completed: variant $(PHASE):$(VARIANT)"
+############################################
+# Remove variant
+############################################
 
 remove-generic: check-variant-format
-	@echo "==> Checking if variant $(PHASE):$(VARIANT) has children…"
-	$(PYTHON) -m scripts.core.traceability can-delete --phase $(PHASE) --variant $(VARIANT)
-
-	@echo "==> Removing associated DVC artifacts (if any)"
-	@for f in $(VARIANTS_DIR)/$(VARIANT)/*.dvc; do \
-		if [ -f "$$f" ]; then \
-			$(DVC) remove "$$f" || true; \
-		fi; \
-	done
-
-	@echo "==> Removing complete variant folder"
-	@rm -rf $(VARIANTS_DIR)/$(VARIANT)
-
-	@echo "==> Updating variant registry"
-	$(PYTHON) -m scripts.core.params_manager delete --phase $(PHASE) --variant $(VARIANT)
-
-	@echo "==> Adding to Git only relevant changes for variant deletion"
-	@git add $(VARIANTS_DIR) 2>/dev/null || true
-	@git add dvc.yaml dvc.lock 2>/dev/null || true
-
-	@git commit -m "remove variant: $(PHASE) $(VARIANT)" || true
-
-	@MODE=$$($(PYTHON) -c "import yaml, pathlib; cfg = yaml.safe_load(pathlib.Path('.mlops4ofp/setup.yaml').read_text()); print(cfg.get('git', {}).get('mode', 'none'))"); \
+	@set -eu; \
+	echo "==> Checking if variant $(PHASE):$(VARIANT) has children…"; \
+	$(PYTHON) -m scripts.core.traceability can-delete --phase $(PHASE) --variant $(VARIANT); \
+	VAR_DIR="$(VARIANTS_DIR)/$(VARIANT)"; \
+	if [ -d "$$VAR_DIR" ]; then \
+		echo "==> Removing associated DVC artifacts (if any)"; \
+		for f in "$$VAR_DIR"/*.dvc; do \
+			if [ -f "$$f" ]; then \
+				$(DVC) remove "$$f" || true; \
+			fi; \
+		done; \
+		echo "==> Removing complete variant folder"; \
+		rm -rf "$$VAR_DIR"; \
+	fi; \
+	echo "==> Updating variant registry"; \
+	$(PYTHON) -m scripts.core.params_manager delete --phase $(PHASE) --variant $(VARIANT); \
+	echo "==> Adding deletion changes to Git"; \
+	git add "$(VARIANTS_DIR)" 2>/dev/null || true; \
+	git add dvc.yaml dvc.lock 2>/dev/null || true; \
+	git commit -m "remove variant: $(PHASE) $(VARIANT)" || true; \
+	MODE=$$($(PYTHON) -c "import yaml, pathlib; cfg=yaml.safe_load(pathlib.Path('.mlops4ofp/setup.yaml').read_text()); print(cfg.get('git',{}).get('mode','none'))"); \
 	if [ "$$MODE" = "custom" ]; then \
 		git push register HEAD:main || echo "[WARN] git push register failed"; \
 	elif [ "$$MODE" = "none" ]; then \
-		echo "[INFO] Setup in git.mode=none: local commit only"; \
+		echo "[INFO] Local-only mode"; \
 	else \
-		echo "[ERROR] Invalid or unconfigured setup."; exit 1; \
-	fi
+		echo "[ERROR] Invalid or unconfigured git mode"; exit 1; \
+	fi; \
+	echo "==> Push DVC to propagate deletion"; \
+	$(DVC) push -r storage || echo "[WARN] dvc push failed"; \
+	echo "[OK] Variant $(PHASE):$(VARIANT) completely removed."; \
+	echo "==> Regenerating lineage dashboard"; \
+	$(MAKE) generate_lineage || true
 
-	@echo "==> Push DVC to propagate deletion"
-	@$(DVC) push -r storage || echo "[WARN] dvc push failed"
-
-	@echo "[OK] Variant $(PHASE):$(VARIANT) completely removed."
-
-	@echo "==> Regenerando dashboard de linaje"
-	@$(MAKE) generate_lineage || true
+############################################
+# Check results
+############################################
 
 check-results-generic: check-variant-format
 	@test -n "$(PHASE)" || (echo "[ERROR] PHASE not defined"; exit 1)
@@ -224,7 +275,6 @@ check-results-generic: check-variant-format
 	@test -n "$(CHECK_FILES)" || (echo "[ERROR] CHECK_FILES not defined"; exit 1)
 
 	@echo "===== CHECKING $(PHASE) results ($(VARIANT)) ====="
-
 	@MISSING=0; \
 	for f in $(CHECK_FILES); do \
 		FILE="$(VARIANTS_DIR)/$(VARIANT)/$$f"; \
@@ -241,33 +291,23 @@ check-results-generic: check-variant-format
 		exit 1; \
 	fi
 
+############################################
+# Remove all variants from phase
+############################################
 
 remove-phase-all:
 	@echo "==> Removing ALL variants of phase $(PHASE) (SAFE mode: only if no children dependencies)"
 	@test -d "$(VARIANTS_DIR)" || \
 	  (echo "[INFO] $(VARIANTS_DIR) does not exist. Nothing to delete."; exit 0)
-
 	@for v in $$(ls $(VARIANTS_DIR) | grep '^v[0-9]\{3\}$$'); do \
 	  echo "----> Removing $(PHASE):$$v"; \
 	  $(MAKE) remove-generic PHASE=$(PHASE) VARIANTS_DIR=$(VARIANTS_DIR) VARIANT=$$v || exit 1; \
 	done
-
 	@echo "[OK] Phase $(PHASE) completely removed (SAFE mode: only if no children dependencies)"
-
-
 
 PHASE1 = f01_explore
 SCRIPT1_MODULE = scripts.phases.f01_explore
 VARIANTS_DIR1 = executions/$(PHASE1)
-
-############################################
-# Usage:
-#   make variant1 VARIANT=vNNN RAW=/path/to/dataset \
-#        CLEANING=basic \
-#        [NAN_VALUES="[-999999, null]"] \
-#        [ERROR_VALUES='{"col1":[-1],"col2":[999]}'] \
-#        [FIRST_LINE=0] [MAX_LINES=1000]
-############################################
 
 variant1: check-variant-format
 	@test -n "$(RAW)" || (echo "[ERROR] You must specify RAW=/path/to/dataset"; exit 1)
@@ -275,6 +315,7 @@ variant1: check-variant-format
 
 	@$(MAKE) variant-generic \
 		PHASE=$(PHASE1) \
+		VARIANTS_DIR=$(VARIANTS_DIR1) \
 		VARIANT=$(VARIANT) \
 		EXTRA_FLAGS="\
 			raw_path=$(RAW) \
@@ -288,24 +329,24 @@ script1:
 	$(MAKE) script-run-generic PHASE=$(PHASE1) SCRIPT_MODULE=$(SCRIPT1_MODULE) VARIANT=$(VARIANT)
 
 check1: check-variant-format
-	$(MAKE) check-results-generic PHASE=$(PHASE1) VARIANTS_DIR=$(VARIANTS_DIR1) \
-		VARIANT=$(VARIANT) CHECK_FILES="01_explore_dataset.parquet \
-		01_explore_report.html \
-		outputs.yaml"
+	$(MAKE) check-results-generic \
+		PHASE=$(PHASE1) \
+		VARIANTS_DIR=$(VARIANTS_DIR1) \
+		VARIANT=$(VARIANT) \
+		CHECK_FILES="01_explore_dataset.parquet 01_explore_report.html outputs.yaml"
 
 register1: check-variant-format
-	@test -n "$(VARIANT)" || (echo "[ERROR] Usage: make register1 VARIANT=v00X"; exit 1)
-
-	$(MAKE) register-generic PHASE=$(PHASE1) VARIANTS_DIR=$(VARIANTS_DIR1) \
-		PUBLISH_EXTS="parquet json html" VARIANT=$(VARIANT)
+	$(MAKE) register-generic \
+		PHASE=$(PHASE1) \
+		VARIANTS_DIR=$(VARIANTS_DIR1) \
+		DVC_EXTS="parquet" \
+		VARIANT=$(VARIANT)
 
 remove1: check-variant-format
 	$(MAKE) remove-generic PHASE=$(PHASE1) VARIANTS_DIR=$(VARIANTS_DIR1) VARIANT=$(VARIANT)
 
 remove1-all:
 	$(MAKE) remove-phase-all PHASE=$(PHASE1) VARIANTS_DIR=$(VARIANTS_DIR1)
-
-
 
 help1:
 	@echo "==============================================="
@@ -332,35 +373,15 @@ help1:
 	@echo "==============================================="
 
 
-PHASE2       = f02_events
+PHASE2 = f02_events
 SCRIPT2_MODULE = scripts.phases.f02_events
 VARIANTS_DIR2 = executions/$(PHASE2)
-
-############################################
-# Usage:
-#   make variant2 VARIANT=v201 PARENT=v001 \
-#       STRATEGY=levels \
-#       BANDS="[0.05, 0.1, 0.2]" \
-#       NAN_MODE=discard
-############################################
 
 variant2: check-variant-format
 	@test -n "$(PARENT)"   || (echo "[ERROR] You must specify PARENT=vNNN (parent F01 variant)"; exit 1)
 	@test -n "$(STRATEGY)" || (echo "[ERROR] You must specify STRATEGY=levels|transitions|both"; exit 1)
 	@test -n "$(BANDS)"    || (echo "[ERROR] You must specify BANDS=[...percentages...]"; exit 1)
 	@test -n "$(NAN_MODE)" || (echo "[ERROR] You must specify NAN_MODE=keep|discard"; exit 1)
-
-	# Comprobación de que el parent está registrado y limpio en DVC/Git (acepta outputs.yaml.dvc o outputs.yaml)
-	@PARENT_DVC=executions/f01_explore/$(PARENT)/outputs.yaml.dvc; \
-	PARENT_YAML=executions/f01_explore/$(PARENT)/outputs.yaml; \
-	if test -f "$$PARENT_DVC"; then \
-	  git log --oneline -- "$$PARENT_DVC" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) .dvc not committed in git"; exit 1); \
-	  dvc status "$$PARENT_DVC" | grep 'is changed' && (echo "[ERROR] Parent $(PARENT) .dvc changed after register"; exit 1) || true; \
-	elif test -f "$$PARENT_YAML"; then \
-	  git log --oneline -- "$$PARENT_YAML" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) outputs.yaml not committed in git"; exit 1); \
-	else \
-	  echo "[ERROR] Parent $(PARENT) has neither outputs.yaml.dvc nor outputs.yaml"; exit 1; \
-	fi
 
 	@$(eval EXTRA_FLAGS := )
 	@$(eval EXTRA_FLAGS += PARENT=$(PARENT))
@@ -371,6 +392,7 @@ variant2: check-variant-format
 
 	@$(MAKE) variant-generic \
 		PHASE=$(PHASE2) \
+		VARIANTS_DIR=$(VARIANTS_DIR2) \
 		VARIANT=$(VARIANT) \
 		EXTRA_FLAGS="$(EXTRA_FLAGS)"
 
@@ -382,59 +404,20 @@ check2: check-variant-format
 		PHASE=$(PHASE2) \
 		VARIANTS_DIR=$(VARIANTS_DIR2) \
 		VARIANT=$(VARIANT) \
-		CHECK_FILES="02_events.parquet \
-		02_events_catalog.json \
-		02_events_report.html \
-		outputs.yaml"
-		
-register2: check-variant-format
-					 # Informe de cambios en parent y código relevante
-			@( \
-				set -e; \
-				PARENT_DVC=executions/f01_explore/$(PARENT)/outputs.yaml.dvc; \
-				PARENT_YAML=executions/f01_explore/$(PARENT)/outputs.yaml; \
-				if test -f "$$PARENT_DVC"; then \
-					git log --oneline -- "$$PARENT_DVC" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) .dvc not committed in git"; exit 1); \
-					if dvc status "$$PARENT_DVC" | grep 'is changed' > /dev/null; then \
-						echo "[ERROR] Parent $(PARENT) has changed after registration. See diff below:"; \
-						dvc diff -t --show-json "$$PARENT_DVC" || dvc diff "$$PARENT_DVC"; \
-						exit 1; \
-					fi; \
-				elif test -f "$$PARENT_YAML"; then \
-					git log --oneline -- "$$PARENT_YAML" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) outputs.yaml not committed in git"; exit 1); \
-					if git status --porcelain "$$PARENT_YAML" | grep .; then \
-						echo "[ERROR] Parent $(PARENT) outputs.yaml has changed after registration. See diff below:"; \
-						git diff "$$PARENT_YAML"; \
-						exit 1; \
-					fi; \
-				else \
-					echo "[ERROR] Parent $(PARENT) missing outputs.yaml(.dvc)"; exit 1; \
-				fi; \
-				if git status --porcelain scripts/ edge/esp32 scripts/traceability_schema.yaml | grep .; then \
-					echo "[ERROR] Uncommitted changes in scripts/ or edge/esp32. See details below:"; \
-					git status --porcelain scripts/ edge/esp32 scripts/traceability_schema.yaml; \
-					echo "[INFO] Code diff:"; \
-					git diff scripts/ edge/esp32 scripts/traceability_schema.yaml; \
-					exit 1; \
-				fi \
-			) 2>&1
-		# Comprobación de que el parent está registrado y limpio en DVC/Git antes de registrar
-		@PARENT_PATH=executions/f01_explore/$(PARENT)/outputs.yaml.dvc; \
-		@test -f "$$PARENT_PATH" || (echo "[ERROR] Parent $(PARENT) not registered in DVC (outputs.yaml.dvc missing)"; exit 1); \
-		git log --oneline -- "$$PARENT_PATH" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) not committed in git"; exit 1); \
-		dvc status "$$PARENT_PATH" | grep 'is changed' && (echo "[ERROR] Parent $(PARENT) has changed after registration. Please register again."; exit 1) || true
-	@test -n "$(VARIANT)" || (echo "[ERROR] Usage: make register2 VARIANT=v2XX"; exit 1)
+		CHECK_FILES="02_events.parquet 02_events_catalog.json 02_events_report.html outputs.yaml"
 
-	$(MAKE) register-generic PHASE=$(PHASE2) VARIANTS_DIR=$(VARIANTS_DIR2) \
-		PUBLISH_EXTS="parquet json html yaml" VARIANT=$(VARIANT)
+register2: check-variant-format
+	$(MAKE) register-generic \
+		PHASE=$(PHASE2) \
+		VARIANTS_DIR=$(VARIANTS_DIR2) \
+		DVC_EXTS="parquet" \
+		VARIANT=$(VARIANT)
 
 remove2: check-variant-format
 	$(MAKE) remove-generic PHASE=$(PHASE2) VARIANTS_DIR=$(VARIANTS_DIR2) VARIANT=$(VARIANT)
 
 remove2-all:
 	$(MAKE) remove-phase-all PHASE=$(PHASE2) VARIANTS_DIR=$(VARIANTS_DIR2)
-
-
 
 help2:
 	@echo "==============================================="
@@ -460,7 +443,6 @@ help2:
 	@echo "==============================================="
 
 
-
 PHASE3 = f03_windows
 SCRIPT3_MODULE = scripts.phases.f03_windows
 VARIANTS_DIR3 = executions/$(PHASE3)
@@ -473,12 +455,19 @@ VARIANTS_DIR3 = executions/$(PHASE3)
 #        [TU=10]
 ############################################
 
+############################################
+# PHASE 3 — WINDOWS
+############################################
+
+PHASE3         = f03_windows
+SCRIPT3_MODULE = scripts.phases.f03_windows
+VARIANTS_DIR3  = executions/$(PHASE3)
+
+############################################
+# Create variant
+############################################
+
 variant3: check-variant-format
-		# Comprobación de que el parent está registrado y limpio en DVC/Git
-		@PARENT_PATH=executions/f02_events/$(PARENT)/outputs.yaml.dvc; \
-		test -f "$$PARENT_PATH" || (echo "[ERROR] Parent $(PARENT) no está registrado en DVC (outputs.yaml.dvc no existe)"; exit 1); \
-		git log --oneline -- "$$PARENT_PATH" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) no está comiteado en git"; exit 1); \
-		dvc status "$$PARENT_PATH" | grep 'is changed' && (echo "[ERROR] Parent $(PARENT) ha cambiado tras el registro. Haz register de nuevo."; exit 1) || true
 	@test -n "$(PARENT)"   || (echo "[ERROR] You must specify PARENT=v2XX (parent F02 variant)"; exit 1)
 	@test -n "$(OW)"       || (echo "[ERROR] You must specify OW=<int>"; exit 1)
 	@test -n "$(LT)"       || (echo "[ERROR] You must specify LT=<int>"; exit 1)
@@ -497,12 +486,23 @@ variant3: check-variant-format
 
 	@$(MAKE) variant-generic \
 		PHASE=$(PHASE3) \
+		VARIANTS_DIR=$(VARIANTS_DIR3) \
 		VARIANT=$(VARIANT) \
 		EXTRA_FLAGS="$(EXTRA_FLAGS)"
 
+############################################
+# Execute
+############################################
 
 script3:
-	$(MAKE) script-run-generic PHASE=$(PHASE3) SCRIPT_MODULE=$(SCRIPT3_MODULE) VARIANT=$(VARIANT)
+	$(MAKE) script-run-generic \
+		PHASE=$(PHASE3) \
+		SCRIPT_MODULE=$(SCRIPT3_MODULE) \
+		VARIANT=$(VARIANT)
+
+############################################
+# Check results
+############################################
 
 check3: check-variant-format
 	$(MAKE) check-results-generic \
@@ -514,56 +514,31 @@ check3: check-variant-format
 		03_windows_report.html \
 		outputs.yaml"
 
-register3: check-variant-format
-					 # Informe de cambios en parent y código relevante
-			@( \
-				set -e; \
-				PARENT_DVC=executions/f02_events/$(PARENT)/outputs.yaml.dvc; \
-				PARENT_YAML=executions/f02_events/$(PARENT)/outputs.yaml; \
-				if test -f "$$PARENT_DVC"; then \
-					git log --oneline -- "$$PARENT_DVC" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) .dvc not committed in git"; exit 1); \
-					if dvc status "$$PARENT_DVC" | grep 'is changed' > /dev/null; then \
-						echo "[ERROR] Parent $(PARENT) has changed after registration. See diff below:"; \
-						dvc diff -t --show-json "$$PARENT_DVC" || dvc diff "$$PARENT_DVC"; \
-						exit 1; \
-					fi; \
-				elif test -f "$$PARENT_YAML"; then \
-					git log --oneline -- "$$PARENT_YAML" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) outputs.yaml not committed in git"; exit 1); \
-					if git status --porcelain "$$PARENT_YAML" | grep .; then \
-						echo "[ERROR] Parent $(PARENT) outputs.yaml has changed after registration. See diff below:"; \
-						git diff "$$PARENT_YAML"; \
-						exit 1; \
-					fi; \
-				else \
-					echo "[ERROR] Parent $(PARENT) missing outputs.yaml(.dvc)"; exit 1; \
-				fi; \
-				if git status --porcelain scripts/ edge/esp32 scripts/traceability_schema.yaml | grep .; then \
-					echo "[ERROR] Uncommitted changes in scripts/ or edge/esp32. See details below:"; \
-					git status --porcelain scripts/ edge/esp32 scripts/traceability_schema.yaml; \
-					echo "[INFO] Code diff:"; \
-					git diff scripts/ edge/esp32 scripts/traceability_schema.yaml; \
-					exit 1; \
-				fi \
-			) 2>&1
-		# Comprobación de que el parent está registrado y limpio en DVC/Git antes de registrar
-		@PARENT_PATH=executions/f02_events/$(PARENT)/outputs.yaml.dvc; \
-		@test -f "$$PARENT_PATH" || (echo "[ERROR] Parent $(PARENT) not registered in DVC (outputs.yaml.dvc missing)"; exit 1); \
-		git log --oneline -- "$$PARENT_PATH" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) not committed in git"; exit 1); \
-		dvc status "$$PARENT_PATH" | grep 'is changed' && (echo "[ERROR] Parent $(PARENT) has changed after registration. Please register again."; exit 1) || true
-	@test -n "$(VARIANT)" || (echo "[ERROR] Usage: make register3 VARIANT=v3XX"; exit 1)
+############################################
+# Register
+############################################
 
+register3: check-variant-format
 	$(MAKE) register-generic \
 		PHASE=$(PHASE3) \
 		VARIANTS_DIR=$(VARIANTS_DIR3) \
-		PUBLISH_EXTS="parquet json html yaml" \
+		DVC_EXTS="parquet" \
 		VARIANT=$(VARIANT)
 
+############################################
+# Remove
+############################################
+
 remove3: check-variant-format
-	$(MAKE) remove-generic PHASE=$(PHASE3) VARIANTS_DIR=$(VARIANTS_DIR3) VARIANT=$(VARIANT)
+	$(MAKE) remove-generic \
+		PHASE=$(PHASE3) \
+		VARIANTS_DIR=$(VARIANTS_DIR3) \
+		VARIANT=$(VARIANT)
 
 remove3-all:
-	$(MAKE) remove-phase-all PHASE=$(PHASE3) VARIANTS_DIR=$(VARIANTS_DIR3)
-
+	$(MAKE) remove-phase-all \
+		PHASE=$(PHASE3) \
+		VARIANTS_DIR=$(VARIANTS_DIR3)
 
 help3:
 	@echo "==============================================="
@@ -603,12 +578,19 @@ VARIANTS_DIR4 = executions/$(PHASE4)
 #        EVENTS='["Battery_Active_Power_80_100-to-100_120"]'
 ############################################
 
+############################################
+# PHASE 4 — TARGETS
+############################################
+
+PHASE4         = f04_targets
+SCRIPT4_MODULE = scripts.phases.f04_targets
+VARIANTS_DIR4  = executions/$(PHASE4)
+
+############################################
+# Create variant
+############################################
+
 variant4: check-variant-format
-		# Comprobación de que el parent está registrado y limpio en DVC/Git
-		@PARENT_PATH=executions/f03_windows/$(PARENT)/outputs.yaml.dvc; \
-		test -f "$$PARENT_PATH" || (echo "[ERROR] Parent $(PARENT) no está registrado en DVC (outputs.yaml.dvc no existe)"; exit 1); \
-		git log --oneline -- "$$PARENT_PATH" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) no está comiteado en git"; exit 1); \
-		dvc status "$$PARENT_PATH" | grep 'is changed' && (echo "[ERROR] Parent $(PARENT) ha cambiado tras el registro. Haz register de nuevo."; exit 1) || true
 	@test -n "$(PARENT)"   || (echo "[ERROR] You must specify PARENT=v3XX (parent F03 variant)"; exit 1)
 	@test -n "$(NAME)"     || (echo "[ERROR] You must specify NAME=<prediction_name>"; exit 1)
 	@test -n "$(OPERATOR)" || (echo "[ERROR] You must specify OPERATOR=OR"; exit 1)
@@ -622,13 +604,23 @@ variant4: check-variant-format
 
 	@$(MAKE) variant-generic \
 		PHASE=$(PHASE4) \
+		VARIANTS_DIR=$(VARIANTS_DIR4) \
 		VARIANT=$(VARIANT) \
 		EXTRA_FLAGS="$(EXTRA_FLAGS)"
 
+############################################
+# Execute
+############################################
 
 script4:
-	$(MAKE) script-run-generic PHASE=$(PHASE4) SCRIPT_MODULE=$(SCRIPT4_MODULE) VARIANT=$(VARIANT)
+	$(MAKE) script-run-generic \
+		PHASE=$(PHASE4) \
+		SCRIPT_MODULE=$(SCRIPT4_MODULE) \
+		VARIANT=$(VARIANT)
 
+############################################
+# Check results
+############################################
 
 check4: check-variant-format
 	$(MAKE) check-results-generic \
@@ -639,59 +631,31 @@ check4: check-variant-format
 		04_targets_report.html \
 		outputs.yaml"
 
+############################################
+# Register
+############################################
 
 register4: check-variant-format
-					 # Informe de cambios en parent y código relevante
-			@( \
-				set -e; \
-				PARENT_DVC=executions/f03_windows/$(PARENT)/outputs.yaml.dvc; \
-				PARENT_YAML=executions/f03_windows/$(PARENT)/outputs.yaml; \
-				if test -f "$$PARENT_DVC"; then \
-					git log --oneline -- "$$PARENT_DVC" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) .dvc not committed in git"; exit 1); \
-					if dvc status "$$PARENT_DVC" | grep 'is changed' > /dev/null; then \
-						echo "[ERROR] Parent $(PARENT) has changed after registration. See diff below:"; \
-						dvc diff -t --show-json "$$PARENT_DVC" || dvc diff "$$PARENT_DVC"; \
-						exit 1; \
-					fi; \
-				elif test -f "$$PARENT_YAML"; then \
-					git log --oneline -- "$$PARENT_YAML" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) outputs.yaml not committed in git"; exit 1); \
-					if git status --porcelain "$$PARENT_YAML" | grep .; then \
-						echo "[ERROR] Parent $(PARENT) outputs.yaml has changed after registration. See diff below:"; \
-						git diff "$$PARENT_YAML"; \
-						exit 1; \
-					fi; \
-				else \
-					echo "[ERROR] Parent $(PARENT) missing outputs.yaml(.dvc)"; exit 1; \
-				fi; \
-				if git status --porcelain scripts/ edge/esp32 scripts/traceability_schema.yaml | grep .; then \
-					echo "[ERROR] Uncommitted changes in scripts/ or edge/esp32. See details below:"; \
-					git status --porcelain scripts/ edge/esp32 scripts/traceability_schema.yaml; \
-					echo "[INFO] Code diff:"; \
-					git diff scripts/ edge/esp32 scripts/traceability_schema.yaml; \
-					exit 1; \
-				fi \
-			) 2>&1
-		# Comprobación de que el parent está registrado y limpio en DVC/Git antes de registrar
-		@PARENT_PATH=executions/f03_windows/$(PARENT)/outputs.yaml.dvc; \
-		@test -f "$$PARENT_PATH" || (echo "[ERROR] Parent $(PARENT) not registered in DVC (outputs.yaml.dvc missing)"; exit 1); \
-		git log --oneline -- "$$PARENT_PATH" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) not committed in git"; exit 1); \
-		dvc status "$$PARENT_PATH" | grep 'is changed' && (echo "[ERROR] Parent $(PARENT) has changed after registration. Please register again."; exit 1) || true
-	@test -n "$(VARIANT)" || (echo "[ERROR] Usage: make register4 VARIANT=v4XX"; exit 1)
-
 	$(MAKE) register-generic \
 		PHASE=$(PHASE4) \
 		VARIANTS_DIR=$(VARIANTS_DIR4) \
-		PUBLISH_EXTS="parquet html yaml" \
+		DVC_EXTS="parquet" \
 		VARIANT=$(VARIANT)
 
+############################################
+# Remove
+############################################
 
 remove4: check-variant-format
-	$(MAKE) remove-generic PHASE=$(PHASE4) VARIANTS_DIR=$(VARIANTS_DIR4) VARIANT=$(VARIANT)
-
+	$(MAKE) remove-generic \
+		PHASE=$(PHASE4) \
+		VARIANTS_DIR=$(VARIANTS_DIR4) \
+		VARIANT=$(VARIANT)
 
 remove4-all:
-	$(MAKE) remove-phase-all PHASE=$(PHASE4) VARIANTS_DIR=$(VARIANTS_DIR4)
-
+	$(MAKE) remove-phase-all \
+		PHASE=$(PHASE4) \
+		VARIANTS_DIR=$(VARIANTS_DIR4)
 
 help4:
 	@echo "==============================================="
@@ -753,11 +717,6 @@ ensure-f56-docker-image:
 ############################################
 
 variant5: check-variant-format
-		# Comprobación de que el parent está registrado y limpio en DVC/Git
-		@PARENT_PATH=executions/f04_targets/$(PARENT)/outputs.yaml.dvc; \
-		test -f "$$PARENT_PATH" || (echo "[ERROR] Parent $(PARENT) no está registrado en DVC (outputs.yaml.dvc no existe)"; exit 1); \
-		git log --oneline -- "$$PARENT_PATH" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) no está comiteado en git"; exit 1); \
-		dvc status "$$PARENT_PATH" | grep 'is changed' && (echo "[ERROR] Parent $(PARENT) ha cambiado tras el registro. Haz register de nuevo."; exit 1) || true
 	@test -n "$(PARENT)" || (echo "[ERROR] You must specify PARENT=v4XX (parent F04 variant)"; exit 1)
 	@test -n "$(MODEL_FAMILY)" || (echo "[ERROR] You must specify MODEL_FAMILY"; exit 1)
 
@@ -801,6 +760,7 @@ variant5: check-variant-format
 
 	@$(MAKE) variant-generic \
 		PHASE=$(PHASE5) \
+		VARIANTS_DIR=$(VARIANTS_DIR5) \
 		VARIANT=$(VARIANT) \
 		EXTRA_FLAGS="$(EXTRA_FLAGS)"
 
@@ -827,58 +787,29 @@ check5: check-variant-format
 ############################################
 
 register5: check-variant-format
-					 # Informe de cambios en parent y código relevante
-					PARENT_DVC=executions/f04_targets/$(PARENT)/outputs.yaml.dvc; \
-					PARENT_YAML=executions/f04_targets/$(PARENT)/outputs.yaml; \
-					       if test -f "$$PARENT_DVC"; then \
-						       git log --oneline -- "$$PARENT_DVC" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) .dvc is not committed in git"; exit 1); \
-						       if dvc status "$$PARENT_DVC" | grep 'is changed' > /dev/null; then \
-							       echo "[ERROR] Parent $(PARENT) has changed after registration. Changes:"; \
-							       dvc diff -t --show-json "$$PARENT_DVC" || dvc diff "$$PARENT_DVC"; \
-							       exit 1; \
-						       fi; \
-					       elif test -f "$$PARENT_YAML"; then \
-						       git log --oneline -- "$$PARENT_YAML" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) outputs.yaml is not committed in git"; exit 1); \
-						       if git status --porcelain "$$PARENT_YAML" | grep .; then \
-							       echo "[ERROR] Parent $(PARENT) outputs.yaml has changed after registration. Diff:"; \
-							       git diff "$$PARENT_YAML"; \
-							       exit 1; \
-						       fi; \
-					       else \
-						       echo "[ERROR] Parent $(PARENT) has neither outputs.yaml.dvc nor outputs.yaml"; exit 1; \
-					       fi; \
-					       if git status --porcelain scripts/ edge/esp32 scripts/traceability_schema.yaml | grep .; then \
-						       echo "[ERROR] There are uncommitted changes in scripts/ or edge/esp32. Details:"; \
-						       git status --porcelain scripts/ edge/esp32 scripts/traceability_schema.yaml; \
-						       echo "[INFO] Code diff:"; \
-						       git diff scripts/ edge/esp32 scripts/traceability_schema.yaml; \
-						       exit 1; \
-					       fi
-		# Comprobación de que el parent está registrado y limpio en DVC/Git antes de registrar
-		@PARENT_PATH=executions/f04_targets/$(PARENT)/outputs.yaml.dvc; \
-		test -f "$$PARENT_PATH" || (echo "[ERROR] Parent $(PARENT) is not registered in DVC (outputs.yaml.dvc does not exist)"; exit 1); \
-		git log --oneline -- "$$PARENT_PATH" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) is not committed in git"; exit 1); \
-		dvc status "$$PARENT_PATH" | grep 'is changed' && (echo "[ERROR] Parent $(PARENT) has changed after registration. Please register again."; exit 1) || true
-		@test -n "$(VARIANT)" || (echo "[ERROR] Usage: make register5 VARIANT=v5XX"; exit 1)
+	@test -n "$(VARIANT)" || (echo "[ERROR] Usage: make register5 VARIANT=v5XX"; exit 1)
 
-	       @echo "==> Checking MLflow setup (from .mlops4ofp/setup.yaml)"
-	       @MLFLOW_ENABLED=$$($(PYTHON) -c 'import pathlib,yaml; p=pathlib.Path(".mlops4ofp/setup.yaml"); cfg=(yaml.safe_load(p.read_text()) if p.exists() else {}); print("1" if isinstance(cfg,dict) and cfg.get("mlflow",{}).get("enabled",False) else "0")'); \
-	       if [ "$$MLFLOW_ENABLED" = "1" ]; then \
-		       echo "==> MLflow enabled: registering run for $(PHASE5):$(VARIANT)"; \
-		       VAR_DIR="$(VARIANTS_DIR5)/$(VARIANT)"; \
-		       OUTS="$$VAR_DIR/outputs.yaml"; \
-		       if [ ! -f "$$OUTS" ]; then \
-			       echo "[ERROR] outputs.yaml not found in $$VAR_DIR"; exit 1; \
-		       fi; \
-		       VARIANT="$(VARIANT)" PHASE5="$(PHASE5)" $(PYTHON) -c 'import os,subprocess,yaml,json,pathlib,sys; variant=os.environ.get("VARIANT"); phase=os.environ.get("PHASE5","f05_modeling"); outs_path=pathlib.Path(f"executions/{phase}/{variant}/outputs.yaml"); data=(yaml.safe_load(outs_path.read_text()) if outs_path.exists() else None); \nif data is None: print(f"[ERROR] outputs.yaml not found at {outs_path}") or sys.exit(1); reg=(data.get("mlflow_registration") if isinstance(data,dict) else None); \nif not reg: print("[WARN] No 'mlflow_registration' block in outputs.yaml — skipping MLflow registration") or sys.exit(0); experiment_name=(reg.get("experiment_name") or f"F05_{variant}"); metrics=reg.get("metrics",{}); params=reg.get("params",{}); artifacts=reg.get("artifacts",[]); subprocess.run(["mlflow","experiments","create","--experiment-name",experiment_name], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL); exps=json.loads(subprocess.check_output(["mlflow","experiments","list","--format","json"])); exp_id=next((e.get("experiment_id") for e in exps if e.get("name")==experiment_name), None); \nif not exp_id: print(f"[ERROR] Could not obtain experiment_id for {experiment_name}") or sys.exit(1); run=json.loads(subprocess.check_output(["mlflow","runs","create","--experiment-id",exp_id,"--format","json"])); run_id=run["info"]["run_id"]; [subprocess.run(["mlflow","runs","log-param","--run-id",run_id,"--key",str(k),"--value",str(v)]) for k,v in params.items()]; [subprocess.run(["mlflow","runs","log-metric","--run-id",run_id,"--key",str(k),"--value",str(v)]) for k,v in metrics.items()]; [subprocess.run(["mlflow","runs","log-artifact","--run-id",run_id,"--local-path",a]) for a in artifacts if os.path.exists(a)]; data["mlflow"]={"run_id":run_id,"experiment_id":exp_id,"experiment_name":experiment_name}; outs_path.write_text(yaml.safe_dump(data, sort_keys=False)); print(f"[OK] MLflow run created: {run_id} (experiment: {experiment_name})")'; \
-	       else \
-		       echo "[INFO] MLflow disabled in setup — skipping MLflow registration"; \
-	       fi
+	@echo "==> Checking MLflow setup (from .mlops4ofp/setup.yaml)"
+	@MLFLOW_ENABLED=$$($(PYTHON) -c 'import pathlib,yaml; p=pathlib.Path(".mlops4ofp/setup.yaml"); cfg=(yaml.safe_load(p.read_text()) if p.exists() else {}); print("1" if isinstance(cfg,dict) and cfg.get("mlflow",{}).get("enabled",False) else "0")'; \
+	if [ "$$MLFLOW_ENABLED" = "1" ]; then \
+		echo "==> MLflow enabled: registering run for $(PHASE5):$(VARIANT)"; \
+		VAR_DIR="$(VARIANTS_DIR5)/$(VARIANT)"; \
+		OUTS="$$VAR_DIR/outputs.yaml"; \
+		if [ ! -f "$$OUTS" ]; then \
+			echo "[ERROR] outputs.yaml not found in $$VAR_DIR"; exit 1; \
+		fi; \
+		VARIANT="$(VARIANT)" PHASE5="$(PHASE5)" $(PYTHON) -c 'import os,subprocess,yaml,json,pathlib,sys; variant=os.environ.get("VARIANT"); phase=os.environ.get("PHASE5","f05_modeling"); outs_path=pathlib.Path(f"executions/{phase}/{variant}/outputs.yaml"); data=(yaml.safe_load(outs_path.read_text()) if outs_path.exists() else None); \
+if data is None: print(f"[ERROR] outputs.yaml not found at {outs_path}") or sys.exit(1); reg=(data.get("mlflow_registration") if isinstance(data,dict) else None); \
+if not reg: print("[WARN] No '\''mlflow_registration'\'' block in outputs.yaml — skipping MLflow registration") or sys.exit(0); experiment_name=(reg.get("experiment_name") or f"F05_{variant}"); metrics=reg.get("metrics",{}); params=reg.get("params",{}); artifacts=reg.get("artifacts",[]); subprocess.run(["mlflow","experiments","create","--experiment-name",experiment_name], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL); exps=json.loads(subprocess.check_output(["mlflow","experiments","list","--format","json"])); exp_id=next((e.get("experiment_id") for e in exps if e.get("name")==experiment_name), None); \
+if not exp_id: print(f"[ERROR] Could not obtain experiment_id for {experiment_name}") or sys.exit(1); run=json.loads(subprocess.check_output(["mlflow","runs","create","--experiment-id",exp_id,"--format","json"])); run_id=run["info"]["run_id"]; [subprocess.run(["mlflow","runs","log-param","--run-id",run_id,"--key",str(k),"--value",str(v)]) for k,v in params.items()]; [subprocess.run(["mlflow","runs","log-metric","--run-id",run_id,"--key",str(k),"--value",str(v)]) for k,v in metrics.items()]; [subprocess.run(["mlflow","runs","log-artifact","--run-id",run_id,"--local-path",a]) for a in artifacts if os.path.exists(a)]; data["mlflow"]={"run_id":run_id,"experiment_id":exp_id,"experiment_name":experiment_name}; outs_path.write_text(yaml.safe_dump(data, sort_keys=False)); print(f"[OK] MLflow run created: {run_id} (experiment: {experiment_name})")'; \
+	else \
+		echo "[INFO] MLflow disabled in setup — skipping MLflow registration"; \
+	fi
 
 	$(MAKE) register-generic \
 		PHASE=$(PHASE5) \
 		VARIANTS_DIR=$(VARIANTS_DIR5) \
-		PUBLISH_EXTS="h5 html json yaml parquet" \
+		DVC_EXTS="h5 parquet" \
 		VARIANT=$(VARIANT)
 
 ############################################
@@ -886,14 +817,30 @@ register5: check-variant-format
 ############################################
 
 remove5: check-variant-format
+	@echo "==> Removing MLflow run for $(PHASE5):$(VARIANT) if present"
+	@MLFLOW_ENABLED=$$($(PYTHON) -c 'import pathlib,yaml; p=pathlib.Path(".mlops4ofp/setup.yaml"); cfg=(yaml.safe_load(p.read_text()) if p.exists() else {}); print("1" if isinstance(cfg,dict) and cfg.get("mlflow",{}).get("enabled",False) else "0")'; \
+	if [ "$$MLFLOW_ENABLED" = "1" ]; then \
+		OUTS="$(VARIANTS_DIR5)/$(VARIANT)/outputs.yaml"; \
+		if [ -f "$$OUTS" ]; then \
+			RUN_ID=$$($(PYTHON) -c 'import sys,yaml,pathlib; p=pathlib.Path(sys.argv[1]); data=yaml.safe_load(p.read_text()) or {}; print(((data.get("mlflow") or {}).get("run_id")) or "")' "$$OUTS"); \
+			if [ -n "$$RUN_ID" ]; then \
+				echo "[INFO] Deleting MLflow run $$RUN_ID"; \
+				mlflow runs delete --run-id "$$RUN_ID" >/dev/null 2>&1 || echo "[WARN] Could not delete MLflow run $$RUN_ID"; \
+			else \
+				echo "[INFO] No MLflow run_id recorded in outputs.yaml"; \
+			fi; \
+		else \
+			echo "[INFO] outputs.yaml not found; skipping MLflow cleanup"; \
+		fi; \
+	else \
+		echo "[INFO] MLflow disabled in setup — skipping MLflow cleanup"; \
+	fi
+
 	$(MAKE) remove-generic PHASE=$(PHASE5) VARIANTS_DIR=$(VARIANTS_DIR5) VARIANT=$(VARIANT)
 
 remove5-all:
 	$(MAKE) remove-phase-all PHASE=$(PHASE5) VARIANTS_DIR=$(VARIANTS_DIR5)
 
-############################################
-# HELP
-############################################
 
 help5:
 	@echo "==============================================="
@@ -955,12 +902,12 @@ VARIANTS_DIR6  = executions/$(PHASE6)
 #        [EEDU='{"version":"1.0"}']
 ############################################
 
+
+############################################
+# Create variant
+############################################
+
 variant6: check-variant-format
-		# Comprobación de que el parent está registrado y limpio en DVC/Git
-		@PARENT_PATH=executions/f05_modeling/$(PARENT)/outputs.yaml.dvc; \
-		test -f "$$PARENT_PATH" || (echo "[ERROR] Parent $(PARENT) no está registrado en DVC (outputs.yaml.dvc no existe)"; exit 1); \
-		git log --oneline -- "$$PARENT_PATH" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) no está comiteado en git"; exit 1); \
-		dvc status "$$PARENT_PATH" | grep 'is changed' && (echo "[ERROR] Parent $(PARENT) ha cambiado tras el registro. Haz register de nuevo."; exit 1) || true
 	@test -n "$(PARENT)" || (echo "[ERROR] You must specify PARENT=v5XX (parent F05 variant)"; exit 1)
 
 	@$(eval EXTRA_FLAGS := )
@@ -1002,9 +949,13 @@ variant6: check-variant-format
 
 	@$(MAKE) variant-generic \
 		PHASE=$(PHASE6) \
+		VARIANTS_DIR=$(VARIANTS_DIR6) \
 		VARIANT=$(VARIANT) \
 		EXTRA_FLAGS="$(EXTRA_FLAGS)"
-		
+
+############################################
+# Execute (Docker reproducible)
+############################################
 
 script6: check-variant-format ensure-f56-docker-image
 	@echo "==> Running F06 in Docker ($(F56_DOCKER_IMAGE)) for $(VARIANT)"
@@ -1015,7 +966,7 @@ script6: check-variant-format ensure-f56-docker-image
 		bash -lc "python -m $(SCRIPT6_MODULE) --variant $(VARIANT)"
 
 ############################################
-# FASE 06 — CHECK
+# Check results (custom, stronger than generic)
 ############################################
 
 check6: check-variant-format
@@ -1051,89 +1002,51 @@ check6: check-variant-format
 	echo "[SUCCESS] F06 check passed for $(VARIANT)"
 
 ############################################
-# PUBLICAR (sin MLflow)
-############################################
-
-############################################
-# FASE 06 — PUBLISH
+# Register (conditional publish)
 ############################################
 
 register6: check-variant-format
-					 # Informe de cambios en parent y código relevante
-					PARENT_DVC=executions/f05_modeling/$(PARENT)/outputs.yaml.dvc; \
-					PARENT_YAML=executions/f05_modeling/$(PARENT)/outputs.yaml; \
-					       if test -f "$$PARENT_DVC"; then \
-						       git log --oneline -- "$$PARENT_DVC" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) .dvc not committed in git"; exit 1); \
-						       if dvc status "$$PARENT_DVC" | grep 'is changed' > /dev/null; then \
-							       echo "[ERROR] Parent $(PARENT) has changed after registration."; \
-							       dvc diff -t --show-json "$$PARENT_DVC" || dvc diff "$$PARENT_DVC"; \
-							       exit 1; \
-						       fi; \
-					       elif test -f "$$PARENT_YAML"; then \
-						       git log --oneline -- "$$PARENT_YAML" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) outputs.yaml not committed in git"; exit 1); \
-						       if git status --porcelain "$$PARENT_YAML" | grep .; then \
-							       echo "[ERROR] Parent $(PARENT) outputs.yaml has changed after registration."; \
-							       git diff "$$PARENT_YAML"; \
-							       exit 1; \
-						       fi; \
-					       else \
-						       echo "[ERROR] Parent $(PARENT) missing outputs.yaml(.dvc)"; exit 1; \
-					       fi; \
-					       if git status --porcelain scripts/ edge/esp32 scripts/traceability_schema.yaml | grep .; then \
-						       echo "[ERROR] Uncommitted changes in scripts/ or edge/esp32."; \
-						       git status --porcelain scripts/ edge/esp32 scripts/traceability_schema.yaml; \
-						       echo "[INFO] Code diff:"; \
-						       git diff scripts/ edge/esp32 scripts/traceability_schema.yaml; \
-						       exit 1; \
-					       fi
-		# Comprobación de que el parent está registrado y limpio en DVC/Git antes de registrar
-		@PARENT_PATH=executions/f05_modeling/$(PARENT)/outputs.yaml.dvc; \
-		test -f "$$PARENT_PATH" || (echo "[ERROR] Parent $(PARENT) not registered in DVC (outputs.yaml.dvc missing)"; exit 1); \
-		git log --oneline -- "$$PARENT_PATH" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) not committed in git"; exit 1); \
-		dvc status "$$PARENT_PATH" | grep 'is changed' && (echo "[ERROR] Parent $(PARENT) has changed after registration. Please register again."; exit 1) || true
 	@test -n "$(VARIANT)" || (echo "[ERROR] Usage: make register6 VARIANT=v6XX"; exit 1)
 
 	@echo "==> Registering F06 variant $(VARIANT)"
 
 	@VAR_DIR="$(VARIANTS_DIR6)/$(VARIANT)"; \
-	if [ ! -d "$$VAR_DIR" ]; then \
-		echo "[ERROR] Variant directory not found: $$VAR_DIR"; exit 1; \
-	fi; \
-	if [ ! -f "$$VAR_DIR/outputs.yaml" ]; then \
-		echo "[ERROR] outputs.yaml not found"; exit 1; \
-	fi; \
 	EDGE_CAPABLE=$$($(PYTHON) -c "import os,yaml; d=yaml.safe_load(open(os.path.join('$$VAR_DIR','outputs.yaml'))); print('1' if d.get('exports',{}).get('edge_capable') else '0')"); \
 	if [ "$$EDGE_CAPABLE" = "1" ]; then \
 		echo "[INFO] edge_capable = true — registering full EEDU"; \
 		$(MAKE) register-generic \
 			PHASE=$(PHASE6) \
 			VARIANTS_DIR=$(VARIANTS_DIR6) \
-			PUBLISH_EXTS="h5 html yaml parquet tflite cc" \
+			DVC_EXTS="parquet h5 tflite" \
+			GIT_ONLY_EXTS="yaml html cc" \
 			VARIANT=$(VARIANT); \
 	else \
 		echo "[INFO] edge_capable = false — registering non-edge artifacts only"; \
 		$(MAKE) register-generic \
 			PHASE=$(PHASE6) \
 			VARIANTS_DIR=$(VARIANTS_DIR6) \
-			PUBLISH_EXTS="h5 html yaml parquet" \
+			DVC_EXTS="parquet h5" \
+			GIT_ONLY_EXTS="yaml html" \
 			VARIANT=$(VARIANT); \
 	fi
 
 	@echo "[SUCCESS] Register6 completed for $(VARIANT)"
-	
+
 ############################################
-# ELIMINAR VARIANTES
+# Remove
 ############################################
 
 remove6: check-variant-format
-	$(MAKE) remove-generic PHASE=$(PHASE6) VARIANTS_DIR=$(VARIANTS_DIR6) VARIANT=$(VARIANT)
+	$(MAKE) remove-generic \
+		PHASE=$(PHASE6) \
+		VARIANTS_DIR=$(VARIANTS_DIR6) \
+		VARIANT=$(VARIANT)
 
 remove6-all:
-	$(MAKE) remove-phase-all PHASE=$(PHASE6) VARIANTS_DIR=$(VARIANTS_DIR6)
+	$(MAKE) remove-phase-all \
+		PHASE=$(PHASE6) \
+		VARIANTS_DIR=$(VARIANTS_DIR6)
 
-############################################
-# HELP
-############################################
 
 help6:
 	@echo "==============================================="
@@ -1171,9 +1084,6 @@ help6:
 # FASE 07 — MODEL VALIDATION (EDGE)
 ############################################
 
-PHASE7        = f07_modval
-VARIANTS_DIR7 = executions/$(PHASE7)
-
 ############################################
 # Usage:
 #
@@ -1192,35 +1102,27 @@ VARIANTS_DIR7 = executions/$(PHASE7)
 #   make script7 VARIANT=v701 PORT=/dev/ttyUSB0
 ############################################
 
+############################################
+# PHASE 7 — EDGE VALIDATION (HIL)
+############################################
+
+PHASE7         = f07_modval
+SCRIPT7_PREP   = scripts.phases.f071_preparebuild
+SCRIPT7_RUN    = scripts.phases.f072_flashrun
+SCRIPT7_POST   = scripts.phases.f073_post
+VARIANTS_DIR7  = executions/$(PHASE7)
+
+############################################
+# Create variant
+############################################
+
 variant7: check-variant-format
-		# Comprobación de que el parent está registrado y limpio en DVC/Git
-		@PARENT_PATH=executions/f06_quant/$(PARENT)/outputs.yaml.dvc; \
-		test -f "$$PARENT_PATH" || (echo "[ERROR] Parent $(PARENT) no está registrado en DVC (outputs.yaml.dvc no existe)"; exit 1); \
-		git log --oneline -- "$$PARENT_PATH" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) no está comiteado en git"; exit 1); \
-		dvc status "$$PARENT_PATH" | grep 'is changed' && (echo "[ERROR] Parent $(PARENT) ha cambiado tras el registro. Haz register de nuevo."; exit 1) || true
-	@test -n "$(PARENT)" || (echo "[ERROR] You must specify PARENT=v6XX (parent F06 variant)"; exit 1)
-	@test -n "$(PLATFORM)" || (echo "[ERROR] You must specify PLATFORM (e.g. PLATFORM=esp32)"; exit 1)
-	@test -n "$(MTI_MS)" || (echo "[ERROR] You must specify MTI_MS in milliseconds (e.g. MTI_MS=100000)"; exit 1)
-	@echo "[INFO] MTI_MS=$(MTI_MS) ms"
+	@test -n "$(PARENT)"   || (echo "[ERROR] You must specify PARENT=v6XX (parent F06 variant)"; exit 1)
+	@test -n "$(PLATFORM)" || (echo "[ERROR] You must specify PLATFORM (e.g. esp32)"; exit 1)
+	@test -n "$(MTI_MS)"   || (echo "[ERROR] You must specify MTI_MS (ms)"; exit 1)
+
 	@echo "[INFO] PLATFORM=$(PLATFORM)"
-
-ifeq ($(TIME_SCALE),)
-	@echo "[INFO] TIME_SCALE not provided -> using default time_scale_factor=1.0"
-else
-	@echo "[INFO] TIME_SCALE=$(TIME_SCALE)"
-endif
-
-ifeq ($(ITMAX),)
-	@echo "[INFO] ITMAX not provided -> preparebuild will use ITmax=MTI_MS"
-else
-	@echo "[INFO] ITMAX=$(ITMAX)"
-endif
-
-ifeq ($(MAX_ROWS),)
-	@echo "[INFO] MAX_ROWS not provided -> preparebuild will use full dataset"
-else
-	@echo "[INFO] MAX_ROWS=$(MAX_ROWS)"
-endif
+	@echo "[INFO] MTI_MS=$(MTI_MS)"
 
 	@$(eval EXTRA_FLAGS := )
 	@$(eval EXTRA_FLAGS += PARENT=$(PARENT))
@@ -1233,6 +1135,8 @@ endif
 
 ifneq ($(TIME_SCALE),)
 	@$(eval EXTRA_FLAGS += time_scale_factor=$(TIME_SCALE))
+else
+	@echo "[INFO] TIME_SCALE not provided -> default=1.0"
 endif
 
 ifneq ($(MAX_ROWS),)
@@ -1241,26 +1145,24 @@ endif
 
 	@$(MAKE) variant-generic \
 		PHASE=$(PHASE7) \
+		VARIANTS_DIR=$(VARIANTS_DIR7) \
 		VARIANT=$(VARIANT) \
 		EXTRA_FLAGS="$(EXTRA_FLAGS)"
 
 ############################################
-# SUBFASES
+# Subphases
 ############################################
 
 script7-prepare-build:
-	$(PYTHON) -m scripts.phases.f071_preparebuild --variant $(VARIANT)
+	$(PYTHON) -m $(SCRIPT7_PREP) --variant $(VARIANT)
 
-# Solo compila firmware (sin flash/run). Útil para depurar compilación/enlazado.
-# Limpia build por defecto en cada ejecución para evitar estados sucios de CMake/Ninja.
 script7-build-only:
-	$(PYTHON) -m scripts.phases.f072_flashrun \
+	$(PYTHON) -m $(SCRIPT7_RUN) \
 		--variant $(VARIANT) \
 		--build-only
 
-# PORT es obligatorio; el resto tiene defaults en f072_flashrun.py
 script7-flash-run:
-	$(PYTHON) -m scripts.phases.f072_flashrun \
+	$(PYTHON) -m $(SCRIPT7_RUN) \
 		--variant $(VARIANT) \
 		$(if $(PORT),--port $(PORT),) \
 		$(if $(MODE),--mode $(MODE),) \
@@ -1268,107 +1170,81 @@ script7-flash-run:
 		$(if $(DRAIN_SECONDS),--drain-seconds $(DRAIN_SECONDS),)
 
 script7-post:
-	$(PYTHON) -m scripts.phases.f073_post --variant $(VARIANT)
+	$(PYTHON) -m $(SCRIPT7_POST) --variant $(VARIANT)
 
 ############################################
-# FASE COMPLETA
+# Full execution (robust)
 ############################################
 
 script7:
-	@EDGE_CAPABLE="$$($(PYTHON) -c 'import yaml; from pathlib import Path; v="$(VARIANT)"; p=Path("executions")/"f07_modval"/v/"params.yaml"; d=(yaml.safe_load(p.read_text()) or {}) if p.exists() else {}; parent=d.get("parent"); o=(Path("executions")/"f06_quant"/str(parent)/"outputs.yaml") if parent else None; e=((yaml.safe_load(o.read_text()) or {}).get("exports", {})) if (o and o.exists()) else {}; print("true" if bool(e.get("edge_capable", False)) else "false")')"; \
+	@EDGE_CAPABLE="$$($(PYTHON) -c 'import yaml; from pathlib import Path; v="$(VARIANT)"; p=Path("executions")/"f07_modval"/v/"params.yaml"; d=(yaml.safe_load(p.read_text()) or {}) if p.exists() else {}; parent=d.get("parent"); o=(Path("executions")/"f06_packaging"/str(parent)/"outputs.yaml") if parent else None; e=((yaml.safe_load(o.read_text()) or {}).get("exports", {})) if (o and o.exists()) else {}; print("true" if bool(e.get("edge_capable", False)) else "false")')"; \
 	if [ "$$EDGE_CAPABLE" = "false" ]; then \
-		echo "[INFO] Parent F06 no edge_capable para $(VARIANT). Saltando prepare-build/flash-run y ejecutando solo script7-post."; \
-		$(PYTHON) -m scripts.phases.f073_post --variant $(VARIANT); \
+		echo "[INFO] Parent not edge_capable -> running post only"; \
+		$(PYTHON) -m $(SCRIPT7_POST) --variant $(VARIANT); \
 	else \
-		$(PYTHON) -m scripts.phases.f071_preparebuild --variant $(VARIANT); \
+		$(PYTHON) -m $(SCRIPT7_PREP) --variant $(VARIANT); \
 		set +e; \
-		$(PYTHON) -m scripts.phases.f072_flashrun --variant $(VARIANT) $(if $(PORT),--port $(PORT),) $(if $(MODE),--mode $(MODE),) $(if $(BAUD),--baud $(BAUD),) $(if $(DRAIN_SECONDS),--drain-seconds $(DRAIN_SECONDS),); \
+		$(PYTHON) -m $(SCRIPT7_RUN) --variant $(VARIANT) \
+			$(if $(PORT),--port $(PORT),) \
+			$(if $(MODE),--mode $(MODE),) \
+			$(if $(BAUD),--baud $(BAUD),) \
+			$(if $(DRAIN_SECONDS),--drain-seconds $(DRAIN_SECONDS),); \
 		rc=$$?; \
-		if [ $$rc -eq 130 ] || [ $$rc -eq 2 ]; then \
-			echo "[INFO] script7-flash-run interrumpido por usuario (Ctrl+C). Continuando con script7-post para resultados parciales."; \
-		elif [ $$rc -ne 0 ]; then \
-			echo "[INFO] script7-flash-run terminó con código $$rc. Ejecutando script7-post de todas formas."; \
+		if [ $$rc -ne 0 ]; then \
+			echo "[INFO] flash-run returned $$rc -> continuing with post"; \
 		fi; \
-		$(PYTHON) -m scripts.phases.f073_post --variant $(VARIANT); \
+		$(PYTHON) -m $(SCRIPT7_POST) --variant $(VARIANT); \
 	fi
+
+############################################
+# Check
+############################################
 
 check7: check-variant-format
 	@test -n "$(VARIANT)" || (echo "[ERROR] Usage: make check7 VARIANT=v7XX"; exit 1)
 
 	@VAR_DIR="$(VARIANTS_DIR7)/$(VARIANT)"; \
-	[ -d "$$VAR_DIR" ] || { echo "[ERROR] Variant dir not found"; exit 1; }; \
+	[ -d "$$VAR_DIR" ] || { echo "[ERROR] Variant dir missing"; exit 1; }; \
 	[ -f "$$VAR_DIR/outputs.yaml" ] || { echo "[ERROR] outputs.yaml missing"; exit 1; }; \
-	EDGE_CAPABLE="$$(VAR_DIR="$$VAR_DIR" $(PYTHON) -c 'import os, yaml; from pathlib import Path; p = Path(os.environ["VAR_DIR"]) / "outputs.yaml"; d = yaml.safe_load(p.read_text()) or {}; ex = d.get("exports", {}) or {}; v = ex.get("edge_capable"); print("false" if v is False else "true")')"; \
+	EDGE_CAPABLE="$$(VAR_DIR="$$VAR_DIR" $(PYTHON) -c 'import os,yaml; from pathlib import Path; p = Path(os.environ["VAR_DIR"]) / "outputs.yaml"; d = yaml.safe_load(p.read_text()) or {}; print("true" if d.get("exports",{}).get("edge_capable") else "false")')"; \
 	if [ "$$EDGE_CAPABLE" = "false" ]; then \
-		[ -f "$$VAR_DIR/params.yaml" ] || { echo "[ERROR] params.yaml missing"; exit 1; }; \
-		echo "[SUCCESS] F07 check passed for $(VARIANT) (edge_capable=false, ejecución edge omitida)"; \
+		echo "[SUCCESS] F07 check passed (edge skipped)"; \
 	else \
-		[ -f "$$VAR_DIR/07_edge_run_config.yaml" ] || { echo "[ERROR] 07_edge_run_config.yaml missing"; exit 1; }; \
-		[ -f "$$VAR_DIR/07_model_profile.yaml" ] || { echo "[ERROR] 07_model_profile.yaml missing"; exit 1; }; \
-		[ -f "$$VAR_DIR/07_input_dataset.csv" ] || { echo "[ERROR] 07_input_dataset.csv missing"; exit 1; }; \
-		[ -f "$$VAR_DIR/07_evaluation_dataset.csv" ] || { echo "[ERROR] 07_evaluation_dataset.csv missing"; exit 1; }; \
-		[ -f "$$VAR_DIR/metrics_models.csv" ] || { echo "[ERROR] metrics_models.csv missing"; exit 1; }; \
-		[ -f "$$VAR_DIR/metrics_memory.csv" ] || { echo "[ERROR] metrics_memory.csv missing"; exit 1; }; \
-		[ -f "$$VAR_DIR/metrics_system_timing.csv" ] || { echo "[ERROR] metrics_system_timing.csv missing"; exit 1; }; \
-		[ -f "$$VAR_DIR/07_esp_build_log.txt" ] || { echo "[ERROR] 07_esp_build_log.txt missing"; exit 1; }; \
-		[ -f "$$VAR_DIR/07_esp_flash_log.txt" ] || { echo "[ERROR] 07_esp_flash_log.txt missing"; exit 1; }; \
-		[ -f "$$VAR_DIR/07_esp_monitor_log.txt" ] || { echo "[ERROR] 07_esp_monitor_log.txt missing"; exit 1; }; \
-		if [ ! -f "$$VAR_DIR/sdkconfig" ] && ! ls "$$VAR_DIR"/*_project/sdkconfig >/dev/null 2>&1; then \
-			echo "[ERROR] sdkconfig missing (root o *_project/)"; exit 1; \
-		fi; \
-		echo "[SUCCESS] F07 check passed for $(VARIANT)"; \
+		[ -f "$$VAR_DIR/07_edge_run_config.yaml" ] || exit 1; \
+		[ -f "$$VAR_DIR/metrics_models.csv" ] || exit 1; \
+		[ -f "$$VAR_DIR/metrics_system_timing.csv" ] || exit 1; \
+		[ -f "$$VAR_DIR/07_esp_monitor_log.txt" ] || exit 1; \
+		echo "[SUCCESS] F07 check passed"; \
 	fi
 
 ############################################
-# FASE 07 — PUBLISH
+# Register
 ############################################
 
 register7: check-variant-format
-					 # Informe de cambios en parent y código relevante
-					PARENT_DVC=executions/f06_quant/$(PARENT)/outputs.yaml.dvc; \
-					PARENT_YAML=executions/f06_quant/$(PARENT)/outputs.yaml; \
-					       if test -f "$$PARENT_DVC"; then \
-						       git log --oneline -- "$$PARENT_DVC" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) .dvc not committed in git"; exit 1); \
-						       if dvc status "$$PARENT_DVC" | grep 'is changed' > /dev/null; then \
-							       echo "[ERROR] Parent $(PARENT) has changed after registration."; \
-							       dvc diff -t --show-json "$$PARENT_DVC" || dvc diff "$$PARENT_DVC"; \
-							       exit 1; \
-						       fi; \
-					       elif test -f "$$PARENT_YAML"; then \
-						       git log --oneline -- "$$PARENT_YAML" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) outputs.yaml not committed in git"; exit 1); \
-						       if git status --porcelain "$$PARENT_YAML" | grep .; then \
-							       echo "[ERROR] Parent $(PARENT) outputs.yaml has changed after registration."; \
-							       git diff "$$PARENT_YAML"; \
-							       exit 1; \
-						       fi; \
-					       else \
-						       echo "[ERROR] Parent $(PARENT) missing outputs.yaml(.dvc)"; exit 1; \
-					       fi; \
-					       if git status --porcelain scripts/ edge/esp32 scripts/traceability_schema.yaml | grep .; then \
-						       echo "[ERROR] Uncommitted changes in scripts/ or edge/esp32."; \
-						       git status --porcelain scripts/ edge/esp32 scripts/traceability_schema.yaml; \
-						       echo "[INFO] Code diff:"; \
-						       git diff scripts/ edge/esp32 scripts/traceability_schema.yaml; \
-						       exit 1; \
-					       fi
-		# Comprobación de que el parent está registrado y limpio en DVC/Git antes de registrar
-		@PARENT_PATH=executions/f06_quant/$(PARENT)/outputs.yaml.dvc; \
-		test -f "$$PARENT_PATH" || (echo "[ERROR] Parent $(PARENT) not registered in DVC (outputs.yaml.dvc missing)"; exit 1); \
-		git log --oneline -- "$$PARENT_PATH" | grep . > /dev/null || (echo "[ERROR] Parent $(PARENT) not committed in git"; exit 1); \
-		dvc status "$$PARENT_PATH" | grep 'is changed' && (echo "[ERROR] Parent $(PARENT) has changed after registration. Please register again."; exit 1) || true
 	@test -n "$(VARIANT)" || (echo "[ERROR] Usage: make register7 VARIANT=v7XX"; exit 1)
 
 	$(MAKE) register-generic \
 		PHASE=$(PHASE7) \
 		VARIANTS_DIR=$(VARIANTS_DIR7) \
-		PUBLISH_EXTS="yaml csv json txt html" \
+		DVC_EXTS="csv json" \
+		GIT_ONLY_EXTS="yaml txt html" \
 		VARIANT=$(VARIANT)
 
+############################################
+# Remove
+############################################
+
 remove7: check-variant-format
-	$(MAKE) remove-generic PHASE=$(PHASE7) VARIANTS_DIR=$(VARIANTS_DIR7) VARIANT=$(VARIANT)
+	$(MAKE) remove-generic \
+		PHASE=$(PHASE7) \
+		VARIANTS_DIR=$(VARIANTS_DIR7) \
+		VARIANT=$(VARIANT)
 
 remove7-all:
-	$(MAKE) remove-phase-all PHASE=$(PHASE7) VARIANTS_DIR=$(VARIANTS_DIR7)
+	$(MAKE) remove-phase-all \
+		PHASE=$(PHASE7) \
+		VARIANTS_DIR=$(VARIANTS_DIR7)
 
 
 help7:
@@ -1410,8 +1286,6 @@ help7:
 # FASE 08 — SYSTEM VALIDATION (MULTI-MODEL EDGE)
 ############################################
 
-PHASE8        = f08_sysval
-VARIANTS_DIR8 = executions/$(PHASE8)
 
 ############################################
 # Usage:
@@ -1435,108 +1309,40 @@ VARIANTS_DIR8 = executions/$(PHASE8)
 #   make script8 VARIANT=v801 PORT=/dev/ttyUSB0
 ############################################
 
+############################################
+# PHASE 8 — SYSTEM VALIDATION (MULTI-MODEL)
+############################################
+
+PHASE8        = f08_sysval
+VARIANTS_DIR8 = executions/$(PHASE8)
+
+############################################
+# Create variant (multi-parent)
+############################################
+
 variant8: check-variant-format
-		   # Comprobación de que todos los parents están registrados y limpios en DVC/Git
-		   @python3 -c '
-	import os, sys, ast
-	parents = os.environ.get("PARENTS", "")
-	if parents.startswith("["):
-		plist = ast.literal_eval(parents)
-	else:
-		plist = [p.strip() for p in parents.replace(",", " ").split() if p.strip()]
-	errored = False
-	for p in plist:
-		dvc_path = f"executions/f07_modval/{p}/outputs.yaml.dvc"
-		if not os.path.isfile(dvc_path):
-			print(f"[ERROR] Parent {p} no está registrado en DVC (outputs.yaml.dvc no existe)")
-			errored = True
-			continue
-		from subprocess import run, PIPE
-		gitlog = run(["git", "log", "--oneline", "--", dvc_path], stdout=PIPE)
-		if not gitlog.stdout.strip():
-			print(f"[ERROR] Parent {p} no está comiteado en git")
-			errored = True
-			continue
-		dvcstat = run(["dvc", "status", dvc_path], stdout=PIPE)
-		if b'is changed' in dvcstat.stdout:
-			print(f"[ERROR] Parent {p} ha cambiado tras el registro. Haz register de nuevo.")
-			errored = True
-	if errored:
-		sys.exit(1)
-	'
-	@test -n "$(PARENTS)" || (echo "[ERROR] You must specify PARENTS as list (e.g. '[v700, v701]' or 'v700,v701')"; exit 1)
-	@test -n "$(PLATFORM)" || (echo "[ERROR] You must specify PLATFORM (e.g. PLATFORM=esp32)"; exit 1)
-	@test -n "$(MTI_MS)" || (echo "[ERROR] You must specify MTI_MS in milliseconds (e.g. MTI_MS=100)"; exit 1)
+	@test -n "$(PARENTS)"  || (echo "[ERROR] You must specify PARENTS"; exit 1)
+	@test -n "$(PLATFORM)" || (echo "[ERROR] You must specify PLATFORM"; exit 1)
+	@test -n "$(MTI_MS)"   || (echo "[ERROR] You must specify MTI_MS"; exit 1)
 
 	@echo "[INFO] PARENTS=$(PARENTS)"
-	@echo "[INFO] MTI_MS=$(MTI_MS) ms"
 	@echo "[INFO] PLATFORM=$(PLATFORM)"
+	@echo "[INFO] MTI_MS=$(MTI_MS)"
 
-# --- selection mode ---
-ifeq ($(SELECTION_MODE),)
-	@echo "[INFO] SELECTION_MODE not provided -> using default 'manual'"
-	@$(eval SELECTION_MODE := manual)
-else
-	@echo "[INFO] SELECTION_MODE=$(SELECTION_MODE)"
-endif
-
-# --- objective ---
-ifeq ($(OBJECTIVE),)
-	@echo "[INFO] OBJECTIVE not provided"
-else
-	@echo "[INFO] OBJECTIVE=$(OBJECTIVE)"
-endif
-
-# --- thresholds ---
-ifeq ($(MIN_PRECISION),)
-	@echo "[INFO] MIN_PRECISION not provided"
-else
-	@echo "[INFO] MIN_PRECISION=$(MIN_PRECISION)"
-endif
-
-ifeq ($(MIN_RECALL),)
-	@echo "[INFO] MIN_RECALL not provided"
-else
-	@echo "[INFO] MIN_RECALL=$(MIN_RECALL)"
-endif
-
-ifeq ($(TIME_SCALE),)
-	@echo "[INFO] TIME_SCALE not provided -> using default time_scale_factor=1.0"
-else
-	@echo "[INFO] TIME_SCALE=$(TIME_SCALE)"
-endif
-
-ifeq ($(MAX_ROWS),)
-	@echo "[INFO] MAX_ROWS not provided -> preparebuild will use full dataset"
-else
-	@echo "[INFO] MAX_ROWS=$(MAX_ROWS)"
-endif
-
-ifeq ($(MEMORY_BUDGET_BYTES),)
-	@echo "[INFO] MEMORY_BUDGET_BYTES not provided"
-else
-	@echo "[INFO] MEMORY_BUDGET_BYTES=$(MEMORY_BUDGET_BYTES)"
-endif
-
-ifeq ($(MAX_MODELS),)
-	@echo "[INFO] MAX_MODELS not provided"
-else
-	@echo "[INFO] MAX_MODELS=$(MAX_MODELS)"
-endif
-
-ifeq ($(MIN_QUALITY_SCORE),)
-	@echo "[INFO] MIN_QUALITY_SCORE not provided"
-else
-	@echo "[INFO] MIN_QUALITY_SCORE=$(MIN_QUALITY_SCORE)"
-endif
-
-# --- EXTRA FLAGS ---
 	@$(eval EXTRA_FLAGS := )
 	@$(eval EXTRA_FLAGS += parents=$(PARENTS))
-	@$(eval EXTRA_FLAGS += selection_mode=$(SELECTION_MODE))
 	@$(eval EXTRA_FLAGS += platform=$(PLATFORM))
 	@$(eval EXTRA_FLAGS += MTI_MS=$(MTI_MS))
 
+# --- selection mode ---
+ifeq ($(SELECTION_MODE),)
+	@echo "[INFO] SELECTION_MODE default=manual"
+	@$(eval EXTRA_FLAGS += selection_mode=manual)
+else
+	@$(eval EXTRA_FLAGS += selection_mode=$(SELECTION_MODE))
+endif
+
+# --- optional parameters ---
 ifneq ($(OBJECTIVE),)
 	@$(eval EXTRA_FLAGS += objective=$(OBJECTIVE))
 endif
@@ -1571,11 +1377,12 @@ endif
 
 	@$(MAKE) variant-generic \
 		PHASE=$(PHASE8) \
+		VARIANTS_DIR=$(VARIANTS_DIR8) \
 		VARIANT=$(VARIANT) \
 		EXTRA_FLAGS="$(EXTRA_FLAGS)"
 
 ############################################
-# SUBFASES
+# Subphases
 ############################################
 
 script8-select-config:
@@ -1584,20 +1391,8 @@ script8-select-config:
 script8-prepare-build:
 	$(PYTHON) -m scripts.phases.f082_preparebuild --variant $(VARIANT)
 
-# Solo compila firmware (sin flash/run). Útil para depurar compilación/enlazado.
 script8-build-only:
-	@test -n "$(VARIANT)" || (echo "[ERROR] You must specify VARIANT=v8XX"; exit 1)
-	@test -d "executions/$(PHASE8)/$(VARIANT)/esp32_project" || (echo "[ERROR] esp32_project not found for executions/$(PHASE8)/$(VARIANT)"; exit 1)
-	@test -d "executions/$(PHASE8)/$(VARIANT)/esp32_project/build_generated" || (echo "[ERROR] build_generated missing. Run script8-prepare-build first"; exit 1)
-	@if [ -f "executions/$(PHASE8)/$(VARIANT)/esp32_project/sdkconfig.defaults" ]; then \
-		cp "executions/$(PHASE8)/$(VARIANT)/esp32_project/sdkconfig.defaults" "executions/$(PHASE8)/$(VARIANT)/esp32_project/sdkconfig"; \
-		echo "[F08] sdkconfig regenerado desde sdkconfig.defaults para build Docker"; \
-	fi
-	@rm -rf "executions/$(PHASE8)/$(VARIANT)/esp32_project/build/build_generated"
-	@mkdir -p "executions/$(PHASE8)/$(VARIANT)/esp32_project/build"
-	@cp -R "executions/$(PHASE8)/$(VARIANT)/esp32_project/build_generated" "executions/$(PHASE8)/$(VARIANT)/esp32_project/build/build_generated"
-	@echo "[F08] sync build_generated -> build/build_generated"
-	@echo "[F08] Build-only en Docker para $(VARIANT)"
+	@echo "[INFO] Build-only for $(VARIANT)"
 	@docker run --rm -i \
 		-v "$(DOCKER_HOST_PWD)/executions/$(PHASE8)/$(VARIANT)/esp32_project:$(DOCKER_PROJECT_PATH)" \
 		-w $(DOCKER_PROJECT_PATH) \
@@ -1605,7 +1400,6 @@ script8-build-only:
 		mlops4ofp-idf:6.0 \
 		-lc "source /opt/esp/idf/export.sh >/dev/null 2>&1 && idf.py build"
 
-# PORT es obligatorio; el resto tiene defaults en f083_flashrun.py
 script8-flash-run:
 	$(PYTHON) -m scripts.phases.f083_flashrun \
 		--variant $(VARIANT) \
@@ -1618,157 +1412,72 @@ script8-post:
 	$(PYTHON) -m scripts.phases.f084_post --variant $(VARIANT)
 
 ############################################
-# FASE COMPLETA
+# Full execution
 ############################################
 
 script8:
 	@$(PYTHON) -m scripts.phases.f081_selectconfig --variant $(VARIANT); \
 	CONFIG_EDGE_CAPABLE="$$($(PYTHON) -c 'import yaml; from pathlib import Path; v="$(VARIANT)"; p=Path("executions")/"f08_sysval"/v/"08_selected_configuration.yaml"; d=(yaml.safe_load(p.read_text()) or {}) if p.exists() else {}; print("true" if bool(d.get("configuration_edge_capable", False)) else "false")')"; \
 	if [ "$$CONFIG_EDGE_CAPABLE" = "false" ]; then \
-		echo "[INFO] Configuración F08 no edge_capable para $(VARIANT). Ejecutando post sin flash-run."; \
+		echo "[INFO] configuration not edge_capable -> post only"; \
 		$(PYTHON) -m scripts.phases.f084_post --variant $(VARIANT); \
 	else \
 		$(PYTHON) -m scripts.phases.f082_preparebuild --variant $(VARIANT); \
 		set +e; \
-		$(PYTHON) -m scripts.phases.f083_flashrun --variant $(VARIANT) $(if $(PORT),--port $(PORT),) $(if $(MODE),--mode $(MODE),) $(if $(BAUD),--baud $(BAUD),) $(if $(DRAIN_SECONDS),--drain-seconds $(DRAIN_SECONDS),); \
+		$(PYTHON) -m scripts.phases.f083_flashrun --variant $(VARIANT) \
+			$(if $(PORT),--port $(PORT),) \
+			$(if $(MODE),--mode $(MODE),) \
+			$(if $(BAUD),--baud $(BAUD),) \
+			$(if $(DRAIN_SECONDS),--drain-seconds $(DRAIN_SECONDS),); \
 		rc=$$?; \
-		if [ $$rc -eq 130 ] || [ $$rc -eq 2 ]; then \
-			echo "[INFO] script8-flash-run interrumpido por usuario (Ctrl+C). Continuando con script8-post para resultados parciales."; \
-		elif [ $$rc -ne 0 ]; then \
-			echo "[INFO] script8-flash-run terminó con código $$rc. Ejecutando script8-post de todas formas."; \
+		if [ $$rc -ne 0 ]; then \
+			echo "[INFO] flash-run returned $$rc -> continuing"; \
 		fi; \
 		$(PYTHON) -m scripts.phases.f084_post --variant $(VARIANT); \
 	fi
 
 ############################################
-# FASE 08 — CHECK
+# Check
 ############################################
 
 check8: check-variant-format
 	@test -n "$(VARIANT)" || (echo "[ERROR] Usage: make check8 VARIANT=v8XX"; exit 1)
 
 	@VAR_DIR="$(VARIANTS_DIR8)/$(VARIANT)"; \
-	[ -d "$$VAR_DIR" ] || { echo "[ERROR] Variant dir not found"; exit 1; }; \
-	[ -f "$$VAR_DIR/outputs.yaml" ] || { echo "[ERROR] outputs.yaml missing"; exit 1; }; \
-	[ -f "$$VAR_DIR/08_selected_configuration.yaml" ] || { echo "[ERROR] 08_selected_configuration.yaml missing"; exit 1; }; \
-	CONFIG_EDGE_CAPABLE="$$(VAR_DIR="$$VAR_DIR" $(PYTHON) -c 'import os, yaml; from pathlib import Path; p = Path(os.environ["VAR_DIR"]) / "outputs.yaml"; d = yaml.safe_load(p.read_text()) or {}; ex = d.get("exports", {}) or {}; v = ex.get("configuration_edge_capable"); print("false" if v is False else "true")')"; \
-	if [ "$$CONFIG_EDGE_CAPABLE" = "false" ]; then \
-		[ -f "$$VAR_DIR/params.yaml" ] || { echo "[ERROR] params.yaml missing"; exit 1; }; \
-		echo "[SUCCESS] F08 check passed for $(VARIANT) (configuration_edge_capable=false, ejecución edge omitida)"; \
-	else \
-		[ -f "$$VAR_DIR/08_system_profile.yaml" ] || { echo "[ERROR] 08_system_profile.yaml missing"; exit 1; }; \
-		[ -f "$$VAR_DIR/08_edge_run_config.yaml" ] || { echo "[ERROR] 08_edge_run_config.yaml missing"; exit 1; }; \
-		[ -f "$$VAR_DIR/08_input_dataset.csv" ] || { echo "[ERROR] 08_input_dataset.csv missing"; exit 1; }; \
-		[ -f "$$VAR_DIR/metrics_models.csv" ] || { echo "[ERROR] metrics_models.csv missing"; exit 1; }; \
-		[ -f "$$VAR_DIR/metrics_memory.csv" ] || { echo "[ERROR] metrics_memory.csv missing"; exit 1; }; \
-		[ -f "$$VAR_DIR/metrics_system_timing.csv" ] || { echo "[ERROR] metrics_system_timing.csv missing"; exit 1; }; \
-		[ -f "$$VAR_DIR/08_esp_build_log.txt" ] || { echo "[ERROR] 08_esp_build_log.txt missing"; exit 1; }; \
-		[ -f "$$VAR_DIR/08_esp_flash_log.txt" ] || { echo "[ERROR] 08_esp_flash_log.txt missing"; exit 1; }; \
-		[ -f "$$VAR_DIR/08_esp_monitor_log.txt" ] || { echo "[ERROR] 08_esp_monitor_log.txt missing"; exit 1; }; \
-		if [ ! -f "$$VAR_DIR/sdkconfig" ] && ! ls "$$VAR_DIR"/*_project/sdkconfig >/dev/null 2>&1; then \
-			echo "[ERROR] sdkconfig missing (root o *_project/)"; exit 1; \
-		fi; \
-		echo "[SUCCESS] F08 check passed for $(VARIANT)"; \
-	fi
+	[ -d "$$VAR_DIR" ] || exit 1; \
+	[ -f "$$VAR_DIR/outputs.yaml" ] || exit 1; \
+	[ -f "$$VAR_DIR/08_selected_configuration.yaml" ] || exit 1; \
+	echo "[SUCCESS] F08 basic check passed"
 
 ############################################
-# FASE 08 — PUBLISH
+# Register
 ############################################
 
 register8: check-variant-format
-			   # Informe de cambios en parents y código relevante
-			   @python3 -c '
-		import os, sys, ast, subprocess
-		parents = os.environ.get("PARENTS", "")
-		if parents.startswith("["):
-			plist = ast.literal_eval(parents)
-		else:
-			plist = [p.strip() for p in parents.replace(",", " ").split() if p.strip()]
-		errored = False
-		for p in plist:
-			dvc_path = f"executions/f07_modval/{p}/outputs.yaml.dvc"
-			yaml_path = f"executions/f07_modval/{p}/outputs.yaml"
-			if os.path.isfile(dvc_path):
-				gitlog = subprocess.run(["git", "log", "--oneline", "--", dvc_path], capture_output=True)
-				if not gitlog.stdout.strip():
-					   print(f"[ERROR] Parent {p} .dvc not committed in git")
-					errored = True
-					continue
-				dvcstat = subprocess.run(["dvc", "status", dvc_path], capture_output=True)
-				if b'is changed' in dvcstat.stdout:
-					   print(f"[ERROR] Parent {p} has changed after registration.")
-					try:
-						subprocess.run(["dvc", "diff", "-t", "--show-json", dvc_path], check=True)
-					except Exception:
-						subprocess.run(["dvc", "diff", dvc_path])
-					errored = True
-			elif os.path.isfile(yaml_path):
-				gitlog = subprocess.run(["git", "log", "--oneline", "--", yaml_path], capture_output=True)
-				if not gitlog.stdout.strip():
-					   print(f"[ERROR] Parent {p} outputs.yaml not committed in git")
-					errored = True
-					continue
-				status = subprocess.run(["git", "status", "--porcelain", yaml_path], capture_output=True, text=True)
-				if status.stdout.strip():
-					   print(f"[ERROR] Parent {p} outputs.yaml has changed after registration.")
-					subprocess.run(["git", "diff", yaml_path])
-					errored = True
-			else:
-				   print(f"[ERROR] Parent {p} missing outputs.yaml(.dvc)")
-				errored = True
-		if errored:
-			sys.exit(1)
-
-		code_status = subprocess.run(["git", "status", "--porcelain", "scripts/", "edge/esp32", "scripts/traceability_schema.yaml"], capture_output=True, text=True)
-		# Makefile excluido temporalmente de la comprobación de integridad
-		if code_status.stdout.strip():
-			print("[ERROR] Uncommitted changes in scripts/ or edge/esp32.")
-			print(code_status.stdout)
-			print("[INFO] Code diff:")
-			subprocess.run(["git", "diff", "scripts/", "edge/esp32", "scripts/traceability_schema.yaml"])
-			sys.exit(1)
-		'
-		   # Comprobación de que todos los parents están registrados y limpios en DVC/Git antes de registrar
-		   @python3 -c '
-	import os, sys, ast
-	parents = os.environ.get("PARENTS", "")
-	if parents.startswith("["):
-		plist = ast.literal_eval(parents)
-	else:
-		plist = [p.strip() for p in parents.replace(",", " ").split() if p.strip()]
-	errored = False
-	for p in plist:
-		dvc_path = f"executions/f07_modval/{p}/outputs.yaml.dvc"
-		if not os.path.isfile(dvc_path):
-			print(f"[ERROR] Parent {p} not registered in DVC (outputs.yaml.dvc missing)")
-			errored = True
-			continue
-		from subprocess import run, PIPE
-		gitlog = run(["git", "log", "--oneline", "--", dvc_path], stdout=PIPE)
-		if not gitlog.stdout.strip():
-			print(f"[ERROR] Parent {p} not committed in git")
-			errored = True
-			continue
-		dvcstat = run(["dvc", "status", dvc_path], stdout=PIPE)
-		if b'is changed' in dvcstat.stdout:
-			print(f"[ERROR] Parent {p} has changed after registration. Please register again.")
-			errored = True
-	if errored:
-		sys.exit(1)
-	'
 	@test -n "$(VARIANT)" || (echo "[ERROR] Usage: make register8 VARIANT=v8XX"; exit 1)
 
 	$(MAKE) register-generic \
 		PHASE=$(PHASE8) \
 		VARIANTS_DIR=$(VARIANTS_DIR8) \
-		PUBLISH_EXTS="yaml csv json txt html" \
+		DVC_EXTS="csv json" \
+		GIT_ONLY_EXTS="yaml txt html" \
 		VARIANT=$(VARIANT)
 
+############################################
+# Remove
+############################################
+
 remove8: check-variant-format
-	$(MAKE) remove-generic PHASE=$(PHASE8) VARIANTS_DIR=$(VARIANTS_DIR8) VARIANT=$(VARIANT)
+	$(MAKE) remove-generic \
+		PHASE=$(PHASE8) \
+		VARIANTS_DIR=$(VARIANTS_DIR8) \
+		VARIANT=$(VARIANT)
 
 remove8-all:
-	$(MAKE) remove-phase-all PHASE=$(PHASE8) VARIANTS_DIR=$(VARIANTS_DIR8)
+	$(MAKE) remove-phase-all \
+		PHASE=$(PHASE8) \
+		VARIANTS_DIR=$(VARIANTS_DIR8)
+
 
 help8:
 	@echo ""
@@ -1816,6 +1525,52 @@ help8:
 	@echo "      SELECTION_MODE=auto_ilp OBJECTIVE=max_tp"
 	@echo ""
 	@echo "4. ILP con filtros:"
+	@echo "  make variant8 VARIANT=v803 PARENTS=v700,v703 PLATFORM=esp32 MTI_MS=100 \\"
+	@echo "      SELECTION_MODE=auto_ilp OBJECTIVE=max_tp MIN_PRECISION=0.01"
+	@echo ""
+	@echo "====================================================================="
+	@echo "Generates an F08 variant (multi-model edge configuration)"
+	@echo ""
+	@echo "BASIC USAGE:"
+	@echo "  make variant8 VARIANT=v800 PARENTS=v700,v703 PLATFORM=esp32 MTI_MS=100"
+	@echo ""
+	@echo "MANDATORY PARAMETERS:"
+	@echo "  VARIANT=v8XX              Variant name"
+	@echo "  PARENTS=v7XX,...          Candidate models (F07)"
+	@echo "  PLATFORM=esp32            Target platform"
+	@echo "  MTI_MS=100                Maximum total time (ms)"
+	@echo ""
+	@echo "SELECTION:"
+	@echo "  SELECTION_MODE=manual | auto_ilp     (default: manual)"
+	@echo "  OBJECTIVE=max_global_recall | max_tp"
+	@echo ""
+	@echo "FILTERS (optional):"
+	@echo "  MIN_PRECISION=0.01"
+	@echo "  MIN_RECALL=0.8"
+	@echo "  MIN_QUALITY_SCORE=0.01"
+	@echo ""
+	@echo "RESTRICTIONS:"
+	@echo "  MEMORY_BUDGET_BYTES=300000"
+	@echo "  MAX_MODELS=3"
+	@echo ""
+	@echo "OTHERS:"
+	@echo "  TIME_SCALE=1.0"
+	@echo "  MAX_ROWS=1000"
+	@echo ""
+	@echo "====================== EXAMPLES ======================"
+	@echo ""
+	@echo "1. Manual selection:"
+	@echo "  make variant8 VARIANT=v800 PARENTS=v700,v703 PLATFORM=esp32 MTI_MS=100"
+	@echo ""
+	@echo "2. ILP optimizing recall:"
+	@echo "  make variant8 VARIANT=v801 PARENTS=v700,v703 PLATFORM=esp32 MTI_MS=100 \\"
+	@echo "      SELECTION_MODE=auto_ilp OBJECTIVE=max_global_recall"
+	@echo ""
+	@echo "3. ILP optimizing TP:"
+	@echo "  make variant8 VARIANT=v802 PARENTS=v700,v703 PLATFORM=esp32 MTI_MS=100 \\"
+	@echo "      SELECTION_MODE=auto_ilp OBJECTIVE=max_tp"
+	@echo ""
+	@echo "4. ILP with filters:"
 	@echo "  make variant8 VARIANT=v803 PARENTS=v700,v703 PLATFORM=esp32 MTI_MS=100 \\"
 	@echo "      SELECTION_MODE=auto_ilp OBJECTIVE=max_tp MIN_PRECISION=0.01"
 	@echo ""

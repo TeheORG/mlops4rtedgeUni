@@ -8,6 +8,8 @@ from typing import List, Dict, Any
 import yaml
 from scripts.core.schema_utils import load_traceability_schema as _load_traceability_schema
 
+import hashlib
+
 
 # ============================================================
 # RUTAS DEL PROYECTO
@@ -363,8 +365,17 @@ def main():
         if args.command == "can-delete":
             can_delete_variant(args.phase, args.variant)
         elif args.command == "validate-variant":
+            # 1. existencia
             validate_variant_exists(args.phase, args.variant)
-            print(f"[OK] La variante {args.phase}:{args.variant} existe.")
+            from pathlib import Path
+            import yaml
+            params_path = Path("executions") / args.phase / args.variant / "params.yaml"
+            if not params_path.exists():
+                raise RuntimeError(f"Missing params.yaml for {args.phase}:{args.variant}")
+            params = yaml.safe_load(params_path.read_text())
+            audit_parents(params)
+            audit_code()
+            print(f"[OK] Variant {args.phase}:{args.variant} validated (audit OK)")
         else:
             parser.print_help()
             sys.exit(1)
@@ -372,6 +383,99 @@ def main():
         print(f"[ERROR] {e}", file=sys.stderr)
         sys.exit(1)
 
+# ============================
+# AUDIT VALIDATION
+# ============================
+
+
+def _sha256_file(path: Path) -> str:
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        h.update(f.read())
+    return h.hexdigest()
+
+
+def _file_mtime(path: Path) -> str:
+    ts = path.stat().st_mtime
+    return datetime.fromtimestamp(ts).strftime("%Y-%m-%d %H:%M:%S")
+
+
+def _git_diff(path: Path) -> str:
+    try:
+        return subprocess.check_output(
+            ["git", "diff", "--", str(path)],
+            text=True
+        )
+    except Exception:
+        return "<diff not available>"
+
+
+def find_parent_phase(parent_variant: str) -> str:
+    """Busca en todas las fases la variante padre y devuelve la fase donde se encuentra."""
+    executions_dir = Path("executions")
+    for phase_dir in executions_dir.iterdir():
+        if not phase_dir.is_dir():
+            continue
+        params_path = phase_dir / parent_variant / "params.yaml"
+        if params_path.exists():
+            return phase_dir.name
+    raise RuntimeError(f"No se encontró la fase para el padre {parent_variant}")
+
+
+def audit_parents(params: dict):
+    parents = []
+    if "parent" in params:
+        parents = [params["parent"]]
+    elif "parents" in params:
+        parents = params["parents"]
+
+    parent_hashes = params.get("parent_hashes", {})
+
+    for p in parents:
+        parent_phase = find_parent_phase(p)
+        parent_path = Path("executions") / parent_phase / p / "outputs.yaml"
+
+        if not parent_path.exists():
+            raise RuntimeError(f"[AUDIT] Missing outputs.yaml for parent {p}")
+
+        expected = parent_hashes.get(p)
+        current = _sha256_file(parent_path)
+
+        if expected and expected != current:
+            print("\n[AUDIT ERROR] Parent artifact modified\n")
+            print(f"Variant parent: {p}")
+            print(f"File: {parent_path}")
+
+            print("\n--- ORIGINAL (registered)")
+            print(f"hash={expected}")
+
+            print("\n--- CURRENT")
+            print(f"time={_file_mtime(parent_path)} hash={current}")
+
+            print("\n--- DIFF")
+            print(_git_diff(parent_path))
+
+            raise RuntimeError("Parent outputs.yaml modified")
+
+
+def audit_code():
+    try:
+        changed = subprocess.check_output(
+            ["git", "status", "--porcelain", "scripts/"],
+            text=True
+        ).strip()
+    except Exception:
+        changed = ""
+
+    if changed:
+        print("\n[AUDIT ERROR] Source code modified\n")
+        print("\n--- CURRENT STATE")
+        print("Uncommitted changes detected in scripts/")
+
+        print("\n--- DIFF")
+        print(subprocess.getoutput("git diff scripts/"))
+
+        raise RuntimeError("Source code modified")
 
 if __name__ == "__main__":
     main()

@@ -1,0 +1,16 @@
+phase: f04_targets
+variant: v405
+parent: v305
+parameters:
+  parent_variant: v305
+  Tu: 10
+  OW: 6
+  LT: 1
+  PW: 1
+  event_type_count: 71
+  prediction_name: test
+  target_operator: OR
+  target_event_types:
+  - event
+parent_hashes:
+  v305: efbdcc6189fc3793378302a0c5446f30d945e7f4262ec016ede90cf399bd32f6
