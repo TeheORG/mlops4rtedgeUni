@@ -300,22 +300,29 @@ def _sha256_file(path: Path) -> str:
 
 def compute_parent_hashes(phase: str, params: dict) -> dict:
     parents = []
-
     if "parent" in params:
         parents = [params["parent"]]
     elif "parents" in params:
         parents = params["parents"]
 
     hashes = {}
-
     schema = load_schema()
-    for p in parents:
-        parent_phase = infer_parent_phase(schema, phase)
-        parent_outputs = Path("executions") / parent_phase / p / "outputs.yaml"
+    parent_phase = infer_parent_phase(schema, phase)
 
+    # Fase 1: no debe tener parent
+    if parent_phase is None:
+        if parents:
+            raise RuntimeError(f"La fase {phase} no debe tener parent (solo permitido en fases >1)")
+        return hashes  # vacío
+
+    # Fases >1: deben tener parent
+    if not parents:
+        raise RuntimeError(f"La fase {phase} requiere parent (obligatorio en fases >1)")
+
+    for p in parents:
+        parent_outputs = Path("executions") / parent_phase / p / "outputs.yaml"
         if parent_outputs.exists():
             hashes[p] = _sha256_file(parent_outputs)
-
     return hashes
     
 # ===============================================================
@@ -546,28 +553,10 @@ class ParamsManager:
         # AUDIT: store parent hashes
         # ============================
 
+
         try:
-            from pathlib import Path
-            import hashlib
-
-            def _sha256_file(path: Path) -> str:
-                h = hashlib.sha256()
-                with open(path, "rb") as f:
-                    h.update(f.read())
-                return h.hexdigest()
-
-            parent_hashes = {}
-
-            if parent_variant:
-                # Infer parent phase using the existing infer_parent_phase function
-                parent_phase = infer_parent_phase(schema, self.phase)
-                parent_outputs = Path("executions") / parent_phase / parent_variant / "outputs.yaml"
-
-                if parent_outputs.exists():
-                    parent_hashes[parent_variant] = _sha256_file(parent_outputs)
-
+            parent_hashes = compute_parent_hashes(self.phase, final_params)
             final_params["parent_hashes"] = parent_hashes
-
         except Exception as e:
             print(f"[WARN] Could not compute parent hashes: {e}")
 

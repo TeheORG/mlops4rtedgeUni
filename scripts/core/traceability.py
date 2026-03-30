@@ -429,6 +429,35 @@ def audit_parents(params: dict):
     elif "parents" in params:
         parents = params["parents"]
 
+    # Si no hay parents, nada que auditar
+    if not parents:
+        return
+
+
+    import re
+    phase = params.get("phase")
+    if not phase:
+        # intentar inferir desde params.yaml path
+        import inspect
+        frame = inspect.currentframe()
+        while frame:
+            local_vars = frame.f_locals
+            if "args" in local_vars and hasattr(local_vars["args"], "phase"):
+                phase = local_vars["args"].phase
+                break
+            frame = frame.f_back
+
+    # Permitir parent: null o parents: null/lista vacía sólo en f01 y f08
+    if phase and re.match(r"^f0?1(_|$)|^f0?8(_|$)", phase):
+        if all(p is None for p in parents):
+            return
+    # Para el resto, error si hay parent None
+    if any(p is None for p in parents):
+        raise RuntimeError(f"[AUDIT] Se encontró un parent=None en la definición de variante para la fase {phase}. Esto no es válido.")
+    # Si la fase es f01* y hay parent no None, error
+    if phase and re.match(r"^f0?1(_|$)", phase) and any(p is not None for p in parents):
+        raise RuntimeError(f"[AUDIT] La fase {phase} no debe tener parent (solo permitido en fases >1)")
+
     parent_hashes = params.get("parent_hashes", {})
 
     for p in parents:
