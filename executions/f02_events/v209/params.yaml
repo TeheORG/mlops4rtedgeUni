@@ -1,14 +1,11 @@
 phase: f02_events
-variant: v201
-parent: v100
+variant: v209
+parent: v109
 parameters:
   Tu: 10
   strategy: transitions
   bands:
-  - 10
-  - 20
   - 40
   - 60
   - 80
-  - 90
   nan_mode: keep
