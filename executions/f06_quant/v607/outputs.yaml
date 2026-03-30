@@ -1,0 +1,60 @@
+phase: f06_quant
+variant: v607
+artifacts:
+  calibration_dataset:
+    path: 06_calibration_dataset.parquet
+    sha256: e09e20551e92e357ab3010c063acc86e53af9d6de9f02c4b66bd259fb8423eb8
+  report:
+    path: 06_quant_report.html
+    sha256: 7ad04b60aeb72b03796017520262a4bf7ca5902e7509aa3be05723db3df58415
+  model_float:
+    path: 06_model_float.h5
+    sha256: 0a8f6bdfc201f9d3971de00a958738d63727a4a62e0f8e98637d62eb94bb35dc
+  model_tflite:
+    path: 06_model_tflite.tflite
+    sha256: 06573b509ecf411c905bb346d2c009ebaecaecdae22d41bfab4793a1734797cb
+  eedu_manifest:
+    path: eedu/eedu_manifest.yaml
+    sha256: 10ac465277ddae6c1276c9fbadcba636cf8dfcc144d203f6e30eb3af5385d9a6
+exports:
+  Tu: 10
+  OW: 6
+  LT: 1
+  PW: 1
+  event_type_count: 221
+  prediction_name: FC_Active_Power_any-to-80_100
+  runtime_model_name: FC_Active_Power_any-to-80_100-cnn1d-v507
+  model_family: cnn1d
+  edge_capable: true
+  decision_threshold: 0.3615439832210541
+  model_size_bytes: 60544
+  arena_estimated_bytes: 90816
+  footprint_estimated_bytes: 151360
+  operators:
+  - CAST
+  - CONV_2D
+  - DEQUANTIZE
+  - EXPAND_DIMS
+  - FULLY_CONNECTED
+  - GATHER
+  - LOGISTIC
+  - REDUCE_MAX
+  - RESHAPE
+  input_dtype: uint8
+  output_dtype: int8
+  input_shape:
+  - 1
+  - 4
+  output_shape:
+  - 1
+  - 1
+  input_bytes: 4
+  output_bytes: 1
+metrics:
+  execution_time: 4.773614458999873
+  tflm_compatible: true
+  operators_detected: 8
+  unsupported_operators: 0
+  n_calibration_samples: 20162
+  single_input_output_int8: false
+  single_input_output_integer: true

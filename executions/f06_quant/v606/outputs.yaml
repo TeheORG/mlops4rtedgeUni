@@ -1,0 +1,60 @@
+phase: f06_quant
+variant: v606
+artifacts:
+  calibration_dataset:
+    path: 06_calibration_dataset.parquet
+    sha256: 4c3b0cf82dcd2f0101cd89fc073d96e317dca6fd2a86c1a347a9ea76f24d0409
+  report:
+    path: 06_quant_report.html
+    sha256: a9204edd882554ad6bb1a53e79cde6f7b2f67e233f0a088d3af76f6d62f298ca
+  model_float:
+    path: 06_model_float.h5
+    sha256: dffbe1c57ba0512512f45ed9a0505313ccc9e0ab8e79469771a87f2bc76ff58d
+  model_tflite:
+    path: 06_model_tflite.tflite
+    sha256: 896ffc8df23063635e4f32f5f4aa36750788774f479cc559b7c0feeaaa09cf62
+  eedu_manifest:
+    path: eedu/eedu_manifest.yaml
+    sha256: 2162948b69159b323b76bd29cfa21ea55053c9ccb42750fee7e76cc243b8175b
+exports:
+  Tu: 10
+  OW: 6
+  LT: 1
+  PW: 1
+  event_type_count: 221
+  prediction_name: FC_Active_Power_FC_END_Set_any-to-80_100
+  runtime_model_name: FC_Active_Power_FC_END_Set_any-to-80_100-cnn1d-v506
+  model_family: cnn1d
+  edge_capable: true
+  decision_threshold: 0.6166953444480896
+  model_size_bytes: 60544
+  arena_estimated_bytes: 90816
+  footprint_estimated_bytes: 151360
+  operators:
+  - CAST
+  - CONV_2D
+  - DEQUANTIZE
+  - EXPAND_DIMS
+  - FULLY_CONNECTED
+  - GATHER
+  - LOGISTIC
+  - REDUCE_MAX
+  - RESHAPE
+  input_dtype: uint8
+  output_dtype: int8
+  input_shape:
+  - 1
+  - 4
+  output_shape:
+  - 1
+  - 1
+  input_bytes: 4
+  output_bytes: 1
+metrics:
+  execution_time: 4.73385621000034
+  tflm_compatible: true
+  operators_detected: 8
+  unsupported_operators: 0
+  n_calibration_samples: 20006
+  single_input_output_int8: false
+  single_input_output_integer: true

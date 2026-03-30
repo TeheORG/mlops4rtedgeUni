@@ -1,0 +1,58 @@
+variants:
+  v600:
+    created_at: '2026-03-27T12:07:51.605584+00:00'
+    params_path: executions/f06_quant/v600/params.yaml
+  v601:
+    created_at: '2026-03-27T12:08:02.925206+00:00'
+    params_path: executions/f06_quant/v601/params.yaml
+  v602:
+    created_at: '2026-03-27T12:08:14.362927+00:00'
+    params_path: executions/f06_quant/v602/params.yaml
+  v603:
+    created_at: '2026-03-27T12:08:26.295928+00:00'
+    params_path: executions/f06_quant/v603/params.yaml
+  v604:
+    created_at: '2026-03-27T12:08:38.044441+00:00'
+    params_path: executions/f06_quant/v604/params.yaml
+  v605:
+    created_at: '2026-03-27T12:08:49.477436+00:00'
+    params_path: executions/f06_quant/v605/params.yaml
+  v606:
+    created_at: '2026-03-27T12:08:56.245539+00:00'
+    params_path: executions/f06_quant/v606/params.yaml
+  v607:
+    created_at: '2026-03-27T12:09:07.564479+00:00'
+    params_path: executions/f06_quant/v607/params.yaml
+  v608:
+    created_at: '2026-03-27T12:09:18.972079+00:00'
+    params_path: executions/f06_quant/v608/params.yaml
+  v610:
+    created_at: '2026-03-28T04:08:49.230978+00:00'
+    params_path: executions/f06_quant/v610/params.yaml
+  v611:
+    created_at: '2026-03-28T04:09:00.983397+00:00'
+    params_path: executions/f06_quant/v611/params.yaml
+  v612:
+    created_at: '2026-03-28T04:09:12.381775+00:00'
+    params_path: executions/f06_quant/v612/params.yaml
+  v613:
+    created_at: '2026-03-28T04:09:24.706129+00:00'
+    params_path: executions/f06_quant/v613/params.yaml
+  v614:
+    created_at: '2026-03-28T04:09:36.766767+00:00'
+    params_path: executions/f06_quant/v614/params.yaml
+  v615:
+    created_at: '2026-03-28T04:09:48.240116+00:00'
+    params_path: executions/f06_quant/v615/params.yaml
+  v616:
+    created_at: '2026-03-28T04:09:55.243378+00:00'
+    params_path: executions/f06_quant/v616/params.yaml
+  v617:
+    created_at: '2026-03-28T04:10:07.038914+00:00'
+    params_path: executions/f06_quant/v617/params.yaml
+  v618:
+    created_at: '2026-03-28T04:10:18.812759+00:00'
+    params_path: executions/f06_quant/v618/params.yaml
+  v698:
+    created_at: '2026-03-30T01:37:51.174538+00:00'
+    params_path: executions/f06_quant/v698/params.yaml

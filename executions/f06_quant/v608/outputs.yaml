@@ -1,0 +1,29 @@
+phase: f06_quant
+variant: v608
+artifacts:
+  calibration_dataset:
+    path: 06_calibration_dataset.parquet
+    sha256: f52be7a24ce45ca828ca6867cebb55b5b2f659d89805bee118428feedfd72b62
+  report:
+    path: 06_quant_report.html
+    sha256: e4295a1fa3c33f01280ceb1b55242bb47d4c8b5950c23e5f381034bcfc41a40c
+exports:
+  Tu: 10
+  OW: 6
+  LT: 1
+  PW: 1
+  event_type_count: 221
+  prediction_name: MG-LV-MSB_AC_Voltage_any-to-80_100
+  runtime_model_name: MG-LV-MSB_AC_Voltage_any-to-80_100-cnn1d-v508
+  model_family: cnn1d
+  edge_capable: false
+  incompatibility_reason: 'Parent F05 no produjo un modelo entrenable: La clase menos
+    poblada tiene 1 muestra(s); train_test_split estratificado requiere al menos 2'
+metrics:
+  execution_time: 0.20640874999980952
+  tflm_compatible: false
+  operators_detected: 0
+  unsupported_operators: 0
+  n_calibration_samples: 20001
+  single_input_output_int8: false
+  single_input_output_integer: false

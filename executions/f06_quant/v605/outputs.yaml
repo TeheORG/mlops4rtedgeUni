@@ -1,0 +1,29 @@
+phase: f06_quant
+variant: v605
+artifacts:
+  calibration_dataset:
+    path: 06_calibration_dataset.parquet
+    sha256: a02447ecf916feadfabbfaf5fc551c065c1257963ca515e5f4b9af3c3647aa09
+  report:
+    path: 06_quant_report.html
+    sha256: c1c1f3c69a7043ad8dbdbd0281336bb26722e7fe5744936c5759484e7acc56e5
+exports:
+  Tu: 10
+  OW: 6
+  LT: 1
+  PW: 1
+  event_type_count: 221
+  prediction_name: GE_Body_Active_Power_Set_Response_any-to-80_100
+  runtime_model_name: GE_Body_Active_Power_Set_Response_any-to-80_100-cnn1d-v505
+  model_family: cnn1d
+  edge_capable: false
+  incompatibility_reason: 'Parent F05 no produjo un modelo entrenable: La clase menos
+    poblada tiene 1 muestra(s); train_test_split estratificado requiere al menos 2'
+metrics:
+  execution_time: 0.20784458400021322
+  tflm_compatible: false
+  operators_detected: 0
+  unsupported_operators: 0
+  n_calibration_samples: 20001
+  single_input_output_int8: false
+  single_input_output_integer: false
