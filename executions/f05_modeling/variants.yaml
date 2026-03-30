@@ -1,7 +1,4 @@
 variants:
-  v512:
-    created_at: '2026-03-28T03:51:16.523380+00:00'
-    params_path: executions/f05_modeling/v512/params.yaml
   v513:
     created_at: '2026-03-28T03:55:36.568569+00:00'
     params_path: executions/f05_modeling/v513/params.yaml
