@@ -413,21 +413,19 @@ def auto_detect_port():
         desc = (p.description or "").lower()
         manu = (p.manufacturer or "").lower()
 
-        hints = (
-            "usb",
-            "uart",
-            "cp210",
-            "ch340",
-            "wch",
-            "silicon",
-            "ftdi",
-            "ttyusb",
-            "ttyacm",
-            "cu.",
-        )
+        # Prioridad 1: puertos con VID/PID (puertos USB reales), excluye virtuales
+        if (p.vid is not None) and (p.pid is not None):
+            return True
+
+        # Prioridad 2: texto que indica puerto serie/UART, pero excluye explícitamente virtuales macOS
+        hints = ("usb", "uart", "cp210", "ch340", "wch", "silicon", "ftdi", "ttyusb", "ttyacm")
         by_text = any(h in dev or h in desc or h in manu for h in hints)
-        by_ids = (p.vid is not None) or (p.pid is not None)
-        return by_text or by_ids
+
+        # Excluye explícitamente puertos virtuales comunes en macOS
+        virt_hints = ("bluetooth", "debug-console", "incoming-port")
+        is_virtual = any(h in dev or h in desc for h in virt_hints)
+
+        return by_text and not is_virtual
 
     if len(ports) == 0:
         return None
