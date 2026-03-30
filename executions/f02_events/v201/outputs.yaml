@@ -1,0 +1,22 @@
+phase: f02_events
+variant: v201
+artifacts:
+  events:
+    path: 02_events.parquet
+    sha256: e71646bec7bbbef5e3676512d73ddfcb860df736bc491c09a26aa93d82f9873f
+  catalog:
+    path: 02_events_catalog.json
+    sha256: d78e34043c44d38383e6a54d49a31e8429063425ac6a3ba7139260fe0632a726
+  report:
+    path: 02_events_report.html
+    sha256: 6558b51a3e97161aba7dc03c0f598eeddcbd41e7358a4977f406fde692d058c7
+exports:
+  Tu: 10
+  n_events: 3887242
+  n_types: 731
+metrics:
+  execution_time: 39.629824083065614
+  n_rows_in: 3887242
+  n_rows_out: 3887242
+provenance:
+  generated_at: '2026-03-27T11:15:54.217026+00:00'
