@@ -1,0 +1,13 @@
+phase: f03_windows
+variant: v305
+parent: v205
+parameters:
+  parent_variant: v205
+  Tu: 10
+  OW: 6
+  LT: 1
+  PW: 1
+  window_strategy: synchro
+  nan_mode: discard
+parent_hashes:
+  v205: 56a1cc34ba1431ca933659143812189f4db85bb5787cf962bccfd3080697abe4
