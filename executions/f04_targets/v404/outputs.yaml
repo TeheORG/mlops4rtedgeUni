@@ -1,0 +1,29 @@
+phase: f04_targets
+variant: v404
+artifacts:
+  dataset:
+    path: 04_targets.parquet
+    sha256: 3a600d0d1c09acdca595bf47bea5ea87c523c941b9c6f3817b124eb3fd07a803
+  report:
+    path: 04_targets_report.html
+    sha256: 0642f2a1efd75311c9b5b8ecc003984d1d46fb4c823a98e5fb69833e5cbd068f
+exports:
+  Tu: 10
+  OW: 6
+  LT: 1
+  PW: 1
+  prediction_name: GE_Body_Active_Power_any-to-80_100
+  target_operator: OR
+  target_event_types:
+  - GE_Body_Active_Power_0_40-to-80_100
+  - GE_Body_Active_Power_40_60-to-80_100
+  - GE_Body_Active_Power_60_80-to-80_100
+  event_type_count: 221
+  n_windows: 875456
+  n_windows_pos: 562
+  n_windows_neg: 874894
+metrics:
+  execution_time: 0.9116738749435171
+  positive_ratio: 0.0006419511660209079
+provenance:
+  generated_at: '2026-03-27T11:16:32.283213+00:00'

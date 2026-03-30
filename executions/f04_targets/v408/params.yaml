@@ -1,0 +1,16 @@
+phase: f04_targets
+variant: v408
+parent: v300
+parameters:
+  parent_variant: v300
+  Tu: 10
+  OW: 6
+  LT: 1
+  PW: 1
+  event_type_count: 221
+  prediction_name: MG-LV-MSB_AC_Voltage_any-to-80_100
+  target_operator: OR
+  target_event_types:
+  - MG-LV-MSB_AC_Voltage_0_40-to-80_100
+  - MG-LV-MSB_AC_Voltage_40_60-to-80_100
+  - MG-LV-MSB_AC_Voltage_60_80-to-80_100

@@ -1,0 +1,16 @@
+phase: f04_targets
+variant: v416
+parent: v310
+parameters:
+  parent_variant: v310
+  Tu: 10
+  OW: 6
+  LT: 1
+  PW: 1
+  event_type_count: 221
+  prediction_name: FC_Active_Power_FC_END_Set_any-to-80_100
+  target_operator: OR
+  target_event_types:
+  - FC_Active_Power_FC_END_Set_0_40-to-80_100
+  - FC_Active_Power_FC_END_Set_40_60-to-80_100
+  - FC_Active_Power_FC_END_Set_60_80-to-80_100

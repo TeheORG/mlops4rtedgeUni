@@ -1,0 +1,29 @@
+phase: f04_targets
+variant: v416
+artifacts:
+  dataset:
+    path: 04_targets.parquet
+    sha256: 7655d52947dc9a868abc45948917d40f60b0c2bea96d85c8a95e6a79f409c672
+  report:
+    path: 04_targets_report.html
+    sha256: 982a7517482248b5ff0d339f2833d8f64cebaf766068baca14e6ba9f433eedc4
+exports:
+  Tu: 10
+  OW: 6
+  LT: 1
+  PW: 1
+  prediction_name: FC_Active_Power_FC_END_Set_any-to-80_100
+  target_operator: OR
+  target_event_types:
+  - FC_Active_Power_FC_END_Set_0_40-to-80_100
+  - FC_Active_Power_FC_END_Set_40_60-to-80_100
+  - FC_Active_Power_FC_END_Set_60_80-to-80_100
+  event_type_count: 221
+  n_windows: 875456
+  n_windows_pos: 6
+  n_windows_neg: 875450
+metrics:
+  execution_time: 0.9021769580431283
+  positive_ratio: 6.853571167483003e-06
+provenance:
+  generated_at: '2026-03-28T03:45:27.006398+00:00'

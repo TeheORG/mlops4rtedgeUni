@@ -1,0 +1,29 @@
+phase: f04_targets
+variant: v402
+artifacts:
+  dataset:
+    path: 04_targets.parquet
+    sha256: b96afc8509f82707c1dde62dfb892647c77868f908d1577977afba20bbdb78c0
+  report:
+    path: 04_targets_report.html
+    sha256: 2fdf3973962098318ae7ae6727bb3c3e0416214c15d78208a833cb3b0a594dfe
+exports:
+  Tu: 10
+  OW: 6
+  LT: 1
+  PW: 1
+  prediction_name: PVPCS_Active_Power_any-to-80_100
+  target_operator: OR
+  target_event_types:
+  - PVPCS_Active_Power_0_40-to-80_100
+  - PVPCS_Active_Power_40_60-to-80_100
+  - PVPCS_Active_Power_60_80-to-80_100
+  event_type_count: 221
+  n_windows: 875456
+  n_windows_pos: 6434
+  n_windows_neg: 869022
+metrics:
+  execution_time: 0.9077389590675011
+  positive_ratio: 0.007349312815264274
+provenance:
+  generated_at: '2026-03-27T11:16:28.569494+00:00'
