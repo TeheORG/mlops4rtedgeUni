@@ -1,7 +1,4 @@
 variants:
-  v300:
-    created_at: '2026-03-27T11:15:54.852218+00:00'
-    params_path: executions/f03_windows/v300/params.yaml
   v301:
     created_at: '2026-03-27T11:16:04.238388+00:00'
     params_path: executions/f03_windows/v301/params.yaml
