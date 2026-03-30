@@ -1,7 +1,4 @@
 variants:
-  v603:
-    created_at: '2026-03-27T12:08:26.295928+00:00'
-    params_path: executions/f06_quant/v603/params.yaml
   v604:
     created_at: '2026-03-27T12:08:38.044441+00:00'
     params_path: executions/f06_quant/v604/params.yaml
