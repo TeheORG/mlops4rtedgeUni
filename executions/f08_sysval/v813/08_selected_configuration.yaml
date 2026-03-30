@@ -1,0 +1,306 @@
+phase: f08_sysval
+variant: v813
+selection_mode: auto_ilp
+selection_completed: true
+selection_reason: null
+configuration_edge_capable: true
+compatible_input_signature: true
+system_viable: true
+exec_time_policy: effective_time_ms = ceil(itmax_ms + 5.0)
+parent:
+  phase: f07_modval
+  variants:
+  - v710
+  - v712
+requested_parent_variants:
+- v710
+- v711
+- v712
+- v713
+- v714
+- v715
+- v716
+- v717
+- v718
+selected_variants:
+- v710
+- v712
+non_edge_parent_variants:
+- v715
+- v718
+excluded_parents:
+- parent_variant: v715
+  stage: edge_capable_check
+  reason: 'Parent F05 no produjo un modelo entrenable: La clase menos poblada tiene
+    1 muestra(s); train_test_split estratificado requiere al menos 2'
+- parent_variant: v718
+  stage: edge_capable_check
+  reason: 'Parent F05 no produjo un modelo entrenable: La clase menos poblada tiene
+    1 muestra(s); train_test_split estratificado requiere al menos 2'
+- parent_variant: v711
+  runtime_model_name: Battery_Active_Power_Set_Response_any-to-80_100-cnn1d-v511
+  reason: precision<0.01
+- parent_variant: v713
+  runtime_model_name: GE_Active_Power_any-to-80_100-cnn1d-v513
+  reason: recall<0.05
+- parent_variant: v714
+  runtime_model_name: GE_Body_Active_Power_any-to-80_100-cnn1d-v514
+  reason: precision<0.01
+- parent_variant: v716
+  runtime_model_name: FC_Active_Power_FC_END_Set_any-to-80_100-cnn1d-v516
+  reason: precision<0.01
+- parent_variant: v717
+  runtime_model_name: FC_Active_Power_any-to-80_100-cnn1d-v517
+  reason: precision<0.01
+platform: esp32
+time_scale_factor: 0.01
+system_limits:
+  MTI_MS: 100
+  memory_budget_bytes: null
+  plate_available_heap_bytes: 316056
+  effective_memory_budget_bytes: 316056
+  max_models: null
+  min_quality_score: null
+  min_precision: 0.01
+  min_recall: 0.05
+  objective: max_tp
+common_input_signature:
+  Tu: 10
+  OW: 6
+  LT: 1
+  PW: 1
+  event_type_count: 221
+  input_dtype: uint8
+  output_dtype: int8
+  input_shape:
+  - 1
+  - 4
+  output_shape:
+  - 1
+  - 1
+  input_bytes: 4
+  output_bytes: 1
+aggregates:
+  total_models_requested: 9
+  total_models_declared: 7
+  total_models_selected: 2
+  required_arena_bytes: 120840
+  total_model_size_bytes: 131160
+  model_memory_payload_bytes: 252000
+  model_memory_required_bytes: 284768
+  operators_union:
+  - CAST
+  - CONV_2D
+  - DEQUANTIZE
+  - EXPAND_DIMS
+  - FULLY_CONNECTED
+  - GATHER
+  - LOGISTIC
+  - REDUCE_MAX
+  - RESHAPE
+  unique_windows_count: 3275
+  duplicate_windows_removed: 43304
+  max_exec_time_ms: 34.0
+  sum_effective_time_ms: 56.0
+  total_tp: 3107
+  total_tn: 27135
+  total_fp: 8522
+  total_fn: 1556
+  global_precision: 0.26717688537277495
+  global_recall: 0.6663092429766245
+memory_check:
+  source: min(memory_budget_bytes, f07.metrics_memory.heap_total_ref) if both available
+  plate_available_heap_bytes: 316056
+  effective_memory_budget_bytes: 316056
+  memory_guard_bytes: 32768
+  arena_global_bytes: 120840
+  models_memory_budget_bytes: 162448
+  model_memory_payload_bytes: 252000
+  model_memory_required_bytes: 284768
+  fit_margin_bytes: 31288
+  fits: true
+selection_report:
+  selection_mode: auto_ilp
+  objective: max_tp
+  solver_status: Optimal
+  objective_value: 3107.0
+  iterations: 1
+  lambda_last: null
+  gap_last: null
+  candidates_considered: 7
+  candidates_feasible_after_filters: 2
+  selected_count: 2
+  selected_variants:
+  - v710
+  - v712
+  excluded_parents:
+  - parent_variant: v715
+    stage: edge_capable_check
+    reason: 'Parent F05 no produjo un modelo entrenable: La clase menos poblada tiene
+      1 muestra(s); train_test_split estratificado requiere al menos 2'
+  - parent_variant: v718
+    stage: edge_capable_check
+    reason: 'Parent F05 no produjo un modelo entrenable: La clase menos poblada tiene
+      1 muestra(s); train_test_split estratificado requiere al menos 2'
+  - parent_variant: v711
+    runtime_model_name: Battery_Active_Power_Set_Response_any-to-80_100-cnn1d-v511
+    reason: precision<0.01
+  - parent_variant: v713
+    runtime_model_name: GE_Active_Power_any-to-80_100-cnn1d-v513
+    reason: recall<0.05
+  - parent_variant: v714
+    runtime_model_name: GE_Body_Active_Power_any-to-80_100-cnn1d-v514
+    reason: precision<0.01
+  - parent_variant: v716
+    runtime_model_name: FC_Active_Power_FC_END_Set_any-to-80_100-cnn1d-v516
+    reason: precision<0.01
+  - parent_variant: v717
+    runtime_model_name: FC_Active_Power_any-to-80_100-cnn1d-v517
+    reason: precision<0.01
+  memory:
+    effective_memory_budget_bytes: 316056
+    arena_global_bytes: 120840
+    memory_guard_bytes: 32768
+    models_memory_budget_bytes: 162448
+    selected_total_model_size_bytes: 131160
+    selected_model_memory_required_bytes: 284768
+    fit_margin_bytes: 31288
+  timing:
+    MTI_MS: 100.0
+    selected_sum_effective_time_ms: 56.0
+    selected_max_exec_time_ms: 34.0
+  quality_aggregates:
+    total_tp: 3107
+    total_tn: 27135
+    total_fp: 8522
+    total_fn: 1556
+    global_precision: 0.26717688537277495
+    global_recall: 0.6663092429766245
+datasets:
+  base_evaluation_dataset_csv: /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f07_modval/v710/07_evaluation_dataset.csv
+  source_evaluation_datasets_csv:
+  - /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f07_modval/v710/07_evaluation_dataset.csv
+  - /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f07_modval/v712/07_evaluation_dataset.csv
+  unique_windows_csv: /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f08_sysval/v813/08_unique_windows.csv
+  max_rows: null
+  full_rows_count: 46579
+  unique_windows_count: 3275
+models:
+- parent_variant: v710
+  model_id: Battery_Active_Power_any-to-80_100-cnn1d-v510__esp32
+  runtime_model_name: Battery_Active_Power_any-to-80_100-cnn1d-v510
+  prediction_name: Battery_Active_Power_any-to-80_100
+  platform: esp32
+  edge_capable: true
+  edge_run_completed: true
+  threshold: 0.26571032404899597
+  it_max_ms: 28.454
+  itmax_ms: 28.454
+  infer_mgmt_latency_max_ms: 1.047
+  cycle_mgmt_latency_max_ms: 0.892
+  management_overhead_ms: 5.0
+  effective_time_ms: 34.0
+  exec_time_ms: 34.0
+  ITmax: 100
+  MTI_MS: 100
+  arena_bytes: 120840
+  arena_global_bytes: 139990
+  model_size_bytes: 80560
+  operators:
+  - CAST
+  - CONV_2D
+  - DEQUANTIZE
+  - EXPAND_DIMS
+  - FULLY_CONNECTED
+  - GATHER
+  - LOGISTIC
+  - REDUCE_MAX
+  - RESHAPE
+  quality_score: 0.029931972789115645
+  precision: 0.016296296296296295
+  recall: 0.18333333333333332
+  tp: 11
+  tn: 17089
+  fp: 664
+  fn: 49
+  positive_support: 60
+  total_support: 17813
+  Tu: 10
+  OW: 6
+  LT: 1
+  PW: 1
+  event_type_count: 221
+  input_dtype: uint8
+  output_dtype: int8
+  input_shape:
+  - 1
+  - 4
+  output_shape:
+  - 1
+  - 1
+  input_bytes: 4
+  output_bytes: 1
+  model_tflite: /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f06_quant/v610/06_model_tflite.tflite
+  evaluation_dataset_csv: /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f07_modval/v710/07_evaluation_dataset.csv
+  input_dataset_csv: /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f07_modval/v710/07_input_dataset.csv
+  source_profile: /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f07_modval/v710/07_model_profile.yaml
+  _selected: true
+- parent_variant: v712
+  model_id: PVPCS_Active_Power_any-to-80_100-cnn1d-v512__esp32
+  runtime_model_name: PVPCS_Active_Power_any-to-80_100-cnn1d-v512
+  prediction_name: PVPCS_Active_Power_any-to-80_100
+  platform: esp32
+  edge_capable: true
+  edge_run_completed: true
+  threshold: 0.36092594265937805
+  it_max_ms: 16.205
+  itmax_ms: 16.205
+  infer_mgmt_latency_max_ms: 1.102
+  cycle_mgmt_latency_max_ms: 0.947
+  management_overhead_ms: 5.0
+  effective_time_ms: 22.0
+  exec_time_ms: 22.0
+  ITmax: 100
+  MTI_MS: 100
+  arena_bytes: 75900
+  arena_global_bytes: 88309
+  model_size_bytes: 50600
+  operators:
+  - CAST
+  - CONV_2D
+  - DEQUANTIZE
+  - EXPAND_DIMS
+  - FULLY_CONNECTED
+  - GATHER
+  - LOGISTIC
+  - REDUCE_MAX
+  - RESHAPE
+  quality_score: 0.39802018384007204
+  precision: 0.28263647982472156
+  recall: 0.6726048229415599
+  tp: 3096
+  tn: 10046
+  fp: 7858
+  fn: 1507
+  positive_support: 4603
+  total_support: 22507
+  Tu: 10
+  OW: 6
+  LT: 1
+  PW: 1
+  event_type_count: 221
+  input_dtype: uint8
+  output_dtype: int8
+  input_shape:
+  - 1
+  - 5
+  output_shape:
+  - 1
+  - 1
+  input_bytes: 5
+  output_bytes: 1
+  model_tflite: /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f06_quant/v612/06_model_tflite.tflite
+  evaluation_dataset_csv: /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f07_modval/v712/07_evaluation_dataset.csv
+  input_dataset_csv: /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f07_modval/v712/07_input_dataset.csv
+  source_profile: /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f07_modval/v712/07_model_profile.yaml
+  _selected: true

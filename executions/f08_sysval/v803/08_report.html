@@ -1,0 +1,224 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>F08 report</title>
+<style>
+body { font-family: Arial, sans-serif; margin: 24px; }
+h1, h2 { color: #222; }
+table { border-collapse: collapse; width: 100%; margin-bottom: 24px; }
+th, td { border: 1px solid #ccc; padding: 6px 8px; font-size: 13px; text-align: left; }
+th { background: #f5f5f5; }
+code { background: #f2f2f2; padding: 2px 4px; }
+</style>
+</head>
+<body>
+<h1>F08 — System Validation Report</h1>
+<p><strong>Generated at:</strong> 2026-03-29T15:57:47.962805</p>
+<p><strong>Selection mode:</strong> auto_ilp</p>
+<p><strong>Platform:</strong> esp32</p>
+<p><strong>Selected variants:</strong> ['v700', 'v702']</p>
+
+<h2>System summary</h2>
+<pre>configuration_edge_capable: true
+compatible_input_signature: true
+system_viable_initial: true
+MTI_MS: 100
+required_arena_bytes: 120840
+total_model_size_bytes: 131160
+</pre>
+
+<h2>Metrics by model</h2>
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>model_id</th>
+      <th>model_name</th>
+      <th>n_attempts</th>
+      <th>n_inferences</th>
+      <th>n_ok</th>
+      <th>n_fail</th>
+      <th>ok_rate</th>
+      <th>fail_rate</th>
+      <th>n_wd_late</th>
+      <th>wd_late_rate</th>
+      <th>n_wd_early</th>
+      <th>wd_early_rate</th>
+      <th>n_inference_incomplete</th>
+      <th>incomplete_rate</th>
+      <th>n_offload</th>
+      <th>offload_rate</th>
+      <th>n_urgent</th>
+      <th>urgent_rate</th>
+      <th>n_no_inference</th>
+      <th>no_inference_rate</th>
+      <th>infer_worst_ms</th>
+      <th>infer_overhead_max_ms</th>
+      <th>infer_mean_ms</th>
+      <th>infer_jitter_ms</th>
+      <th>process_max_ms</th>
+      <th>N_total</th>
+      <th>tp</th>
+      <th>fp</th>
+      <th>tn</th>
+      <th>fn</th>
+      <th>accuracy</th>
+      <th>precision</th>
+      <th>recall</th>
+      <th>f1</th>
+      <th>false_negative_rate</th>
+      <th>skipped_predictions</th>
+      <th>confusion_matrix</th>
+      <th>quality_score</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>0</td>
+      <td>Battery_Active_Power_any-to-80_100-cnn1d-v500</td>
+      <td>3223</td>
+      <td>3223.0</td>
+      <td>3223</td>
+      <td>0.0</td>
+      <td>1.00000</td>
+      <td>0.00000</td>
+      <td>0</td>
+      <td>0.0</td>
+      <td>0</td>
+      <td>0.0</td>
+      <td>0</td>
+      <td>0.0</td>
+      <td>0</td>
+      <td>0.0</td>
+      <td>0</td>
+      <td>0.0</td>
+      <td>0</td>
+      <td>0.00000</td>
+      <td>3.169640e+09</td>
+      <td>1.035</td>
+      <td>983362.578831</td>
+      <td>5.582290e+07</td>
+      <td>29.312</td>
+      <td>20145.0</td>
+      <td>35.0</td>
+      <td>912.0</td>
+      <td>12867.0</td>
+      <td>41.0</td>
+      <td>0.931216</td>
+      <td>0.036959</td>
+      <td>0.460526</td>
+      <td>0.068426</td>
+      <td>0.539474</td>
+      <td>6290.0</td>
+      <td>[[TN=12867, FP=912], [FN=41, TP=35]]</td>
+      <td>0.068426</td>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>PVPCS_Active_Power_any-to-80_100-cnn1d-v502</td>
+      <td>3224</td>
+      <td>3224.0</td>
+      <td>3223</td>
+      <td>1.0</td>
+      <td>0.99969</td>
+      <td>0.00031</td>
+      <td>0</td>
+      <td>0.0</td>
+      <td>0</td>
+      <td>0.0</td>
+      <td>0</td>
+      <td>0.0</td>
+      <td>0</td>
+      <td>0.0</td>
+      <td>0</td>
+      <td>0.0</td>
+      <td>1</td>
+      <td>0.00031</td>
+      <td>1.633600e+01</td>
+      <td>1.029</td>
+      <td>13.290271</td>
+      <td>4.887629e+00</td>
+      <td>17.322</td>
+      <td>26434.0</td>
+      <td>2216.0</td>
+      <td>4985.0</td>
+      <td>8682.0</td>
+      <td>1456.0</td>
+      <td>0.628525</td>
+      <td>0.307735</td>
+      <td>0.603486</td>
+      <td>0.407615</td>
+      <td>0.396514</td>
+      <td>9095.0</td>
+      <td>[[TN=8682, FP=4985], [FN=1456, TP=2216]]</td>
+      <td>0.407615</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>Memory summary</h2>
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>heap_total_ref</th>
+      <th>heap_free_min_bytes</th>
+      <th>heap_min_ever_bytes</th>
+      <th>heap_free_max_bytes</th>
+      <th>heap_free_mean_bytes</th>
+      <th>mem_used_max_bytes</th>
+      <th>mem_used_max_pct</th>
+      <th>heap_free_min_before_read_bytes</th>
+      <th>heap_free_mean_before_read_bytes</th>
+      <th>heap_free_min_after_read_bytes</th>
+      <th>heap_free_mean_after_read_bytes</th>
+      <th>heap_free_min_before_inf_bytes</th>
+      <th>heap_free_mean_before_inf_bytes</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>316056</td>
+      <td>137428</td>
+      <td>137428</td>
+      <td>138560</td>
+      <td>137498.7</td>
+      <td>178628</td>
+      <td>56.52</td>
+      <td>137496</td>
+      <td>137555.1</td>
+      <td>137496</td>
+      <td>137539.4</td>
+      <td>137428</td>
+      <td>137504.6</td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>System timing summary</h2>
+<table class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>n_tu</th>
+      <th>sys_cycle_worst_ms</th>
+      <th>sys_cycle_process_max_ms</th>
+      <th>sys_cycle_mean_ms</th>
+      <th>sys_cycle_median_ms</th>
+      <th>sys_cycle_max_ms</th>
+      <th>sys_cycle_std_ms</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>3223</td>
+      <td>1.632</td>
+      <td>1.632</td>
+      <td>0.867752</td>
+      <td>0.867</td>
+      <td>1.632</td>
+      <td>0.019432</td>
+    </tr>
+  </tbody>
+</table>
+
+</body>
+</html>

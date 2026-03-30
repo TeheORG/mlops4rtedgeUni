@@ -1,0 +1,28 @@
+run:
+  esp_run_completed: false
+  n_inferences: null
+  ok_rate: null
+  offload_rate: null
+  watchdog_rate: null
+  phase_status: skipped_inviable
+  phase_status_reason: manual_exceeds_time_budget
+timing:
+  esp_mean_latency_ms: null
+  esp_max_latency_ms: null
+  esp_jitter_ms: null
+memory:
+  esp_memory_peak_bytes: null
+  heap_free_min_bytes: null
+  heap_total_ref: null
+quality:
+  system_quality_score: null
+  mean_model_quality_score: null
+outcomes:
+  ok_rate: null
+  offload_rate: null
+  watchdog_rate: null
+system:
+  system_viable: false
+  phase_status: skipped_inviable
+  phase_status_reason: manual_exceeds_time_budget
+models_runtime_summary: []

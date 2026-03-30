@@ -1,0 +1,48 @@
+{
+  "runtime_events": 48489,
+  "parse_columns": [
+    "ts_us",
+    "ev",
+    "model_id",
+    "tu",
+    "a",
+    "b",
+    "c",
+    "event_name",
+    "domain",
+    "model_name",
+    "heap_free",
+    "heap_min",
+    "heap_total",
+    "fingerprint",
+    "predicted",
+    "plan_start_us",
+    "plan_deadline_us"
+  ],
+  "system_summary": {
+    "n_tu": 2405,
+    "sys_cycle_worst_ms": 0.885,
+    "sys_cycle_process_max_ms": 0.885,
+    "sys_cycle_mean_ms": 0.7745218295218295,
+    "sys_cycle_median_ms": 0.775,
+    "sys_cycle_max_ms": 0.885,
+    "sys_cycle_std_ms": 0.011399093664050217
+  },
+  "memory_summary": {
+    "heap_total_ref": 316056,
+    "heap_free_min_bytes": 182636,
+    "heap_min_ever_bytes": 182636,
+    "heap_free_max_bytes": 183616,
+    "heap_free_mean_bytes": 182726.8,
+    "mem_used_max_bytes": 133420,
+    "mem_used_max_pct": 42.21,
+    "heap_free_min_before_read_bytes": 182680,
+    "heap_free_mean_before_read_bytes": 182750.3,
+    "heap_free_min_after_read_bytes": 182680,
+    "heap_free_mean_after_read_bytes": 182739.9,
+    "heap_free_min_before_inf_bytes": 182680,
+    "heap_free_mean_before_inf_bytes": 182738.9
+  },
+  "models_metrics_rows": 1,
+  "prediction_rows": 2405
+}

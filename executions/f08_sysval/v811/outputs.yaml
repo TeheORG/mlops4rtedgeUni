@@ -1,0 +1,125 @@
+generated_at: '2026-03-29T16:29:53.847706'
+phase: f08_sysval
+parent:
+  phase: f07_modval
+  variants:
+  - v712
+artifacts:
+- executions/f08_sysval/v811/08_selected_configuration.yaml
+- executions/f08_sysval/v811/08_selection_report.yaml
+- executions/f08_sysval/v811/08_candidate_summary.csv
+- executions/f08_sysval/v811/08_unique_windows.csv
+- executions/f08_sysval/v811/08_system_profile.yaml
+- executions/f08_sysval/v811/08_edge_run_config.yaml
+- executions/f08_sysval/v811/08_input_dataset.csv
+- executions/f08_sysval/v811/08_model_execution_plan.yaml
+- executions/f08_sysval/v811/08_edge_predictions.csv
+- executions/f08_sysval/v811/08_edge_runtime_metrics_raw.json
+- executions/f08_sysval/v811/metrics_models.csv
+- executions/f08_sysval/v811/metrics_memory.csv
+- executions/f08_sysval/v811/metrics_system_timing.csv
+- executions/f08_sysval/v811/metrics_outcomes.csv
+- executions/f08_sysval/v811/metrics_system_summary.yaml
+- executions/f08_sysval/v811/08_report.html
+- executions/f08_sysval/v811/08_esp_build_log.txt
+- executions/f08_sysval/v811/08_esp_flash_log.txt
+- executions/f08_sysval/v811/08_esp_monitor_log.txt
+- executions/f08_sysval/v811/esp32_project/sdkconfig
+- executions/f08_sysval/v811/application_image.bin
+- executions/f08_sysval/v811/bootloader_image.bin
+- executions/f08_sysval/v811/partition_table_image.bin
+- executions/f08_sysval/v811/platform_build_bundle
+exports:
+  selection_mode: auto_ilp
+  objective: max_global_recall
+  solver_status: Optimal
+  solver_iterations: 3
+  solver_objective_value: 0.6726048229415599
+  solver_lambda_last: 0.6726048229415599
+  solver_gap_last: 0.0
+  parent_variants:
+  - v712
+  requested_parent_variants:
+  - v710
+  - v711
+  - v712
+  - v713
+  - v714
+  - v715
+  - v716
+  - v717
+  - v718
+  selected_variants:
+  - v712
+  excluded_parents:
+  - parent_variant: v715
+    stage: edge_capable_check
+    reason: 'Parent F05 no produjo un modelo entrenable: La clase menos poblada tiene
+      1 muestra(s); train_test_split estratificado requiere al menos 2'
+  - parent_variant: v718
+    stage: edge_capable_check
+    reason: 'Parent F05 no produjo un modelo entrenable: La clase menos poblada tiene
+      1 muestra(s); train_test_split estratificado requiere al menos 2'
+  platform: esp32
+  Tu: 10
+  OW: 6
+  LT: 1
+  PW: 1
+  event_type_count: 221
+  model_ids:
+  - PVPCS_Active_Power_any-to-80_100-cnn1d-v512__esp32
+  runtime_model_names:
+  - PVPCS_Active_Power_any-to-80_100-cnn1d-v512
+  MTI_MS: 100
+  total_models_requested: 9
+  total_models_declared: 7
+  total_models_selected: 1
+  total_model_size_bytes: 50600
+  required_arena_bytes: 120840
+  operators_union:
+  - CAST
+  - CONV_2D
+  - DEQUANTIZE
+  - EXPAND_DIMS
+  - FULLY_CONNECTED
+  - GATHER
+  - LOGISTIC
+  - REDUCE_MAX
+  - RESHAPE
+  compatible_input_signature: true
+  configuration_edge_capable: true
+  selection_completed: true
+  phase_status: completed
+  phase_status_reason: null
+  esp_run_completed: true
+  edge_run_completed: true
+  selection_global_precision: 0.28263647982472156
+  selection_global_recall: 0.6726048229415599
+  selection_sum_effective_time_ms: 22.0
+  selection_max_exec_time_ms: 22.0
+  max_exec_time_ms: 22.0
+  system_viable: true
+  unique_windows_count: 2449
+  duplicate_windows_removed: 23985
+  exec_time_policy: effective_time_ms = ceil(itmax_ms + 5.0)
+metrics:
+  execution_time: null
+  n_inferences: 2405
+  unique_windows_count: 2449
+  evaluated_rows_total: 2449
+  models_evaluated: 1
+  throughput_inf_per_sec: null
+  edge_mean_latency_ms: null
+  edge_max_latency_ms: null
+  edge_jitter_ms: null
+  esp_mean_latency_ms: null
+  esp_max_latency_ms: null
+  esp_jitter_ms: null
+  ok_rate: 0.9995843724023276
+  offload_rate: 0.0
+  watchdog_rate: 0.0
+  system_quality_score: 0.3790954415954416
+  mean_model_quality_score: 0.3790954415954416
+  edge_memory_peak_bytes: 133420.0
+  esp_memory_peak_bytes: 133420.0
+  pc_esp_agreement: null

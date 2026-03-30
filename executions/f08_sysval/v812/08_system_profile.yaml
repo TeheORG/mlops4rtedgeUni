@@ -1,0 +1,188 @@
+phase: f08_sysval
+variant: v812
+parent:
+  phase: f07_modval
+  variants:
+  - v712
+  - v713
+selection:
+  selected_variants:
+  - v712
+  - v713
+system:
+  platform: esp32
+  compatible_input_signature: true
+  configuration_edge_capable: true
+  system_viable: true
+  phase_status: completed
+  phase_status_reason: null
+execution_policy:
+  exec_time_policy: effective_time_ms = ceil(itmax_ms + 5.0)
+  max_exec_time_ms: 26.0
+  MTI_MS: 100
+datasets:
+  unique_windows_csv: /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f08_sysval/v812/08_unique_windows.csv
+  input_dataset_csv: /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f08_sysval/v812/08_input_dataset.csv
+  unique_windows_count: 3730
+  duplicate_windows_removed: 49084
+input_signature:
+  Tu: 10
+  OW: 6
+  LT: 1
+  PW: 1
+  event_type_count: 221
+  input_dtype: uint8
+  output_dtype: int8
+  input_shape:
+  - 1
+  - 4
+  output_shape:
+  - 1
+  - 1
+  input_bytes: 4
+  output_bytes: 1
+build:
+  operators_union:
+  - CAST
+  - CONV_2D
+  - DEQUANTIZE
+  - EXPAND_DIMS
+  - FULLY_CONNECTED
+  - GATHER
+  - LOGISTIC
+  - REDUCE_MAX
+  - RESHAPE
+  required_arena_bytes: 120840
+  total_model_size_bytes: 111144
+  total_models_declared: 7
+  total_models_selected: 2
+memory_check:
+  source: min(memory_budget_bytes, f07.metrics_memory.heap_total_ref) if both available
+  plate_available_heap_bytes: 316056
+  effective_memory_budget_bytes: 316056
+  memory_guard_bytes: 32768
+  arena_global_bytes: 120840
+  models_memory_budget_bytes: 162448
+  model_memory_payload_bytes: 231984
+  model_memory_required_bytes: 264752
+  fit_margin_bytes: 51304
+  fits: true
+models:
+- parent_variant: v712
+  model_id: PVPCS_Active_Power_any-to-80_100-cnn1d-v512__esp32
+  runtime_model_name: PVPCS_Active_Power_any-to-80_100-cnn1d-v512
+  prediction_name: PVPCS_Active_Power_any-to-80_100
+  quality_score: 0.39802018384007204
+  threshold: 0.36092594265937805
+  itmax_ms: 16.205
+  it_max_ms: 16.205
+  management_overhead_ms: 5.0
+  exec_time_ms: 22.0
+  ITmax: 100
+  MTI_MS: 100
+  arena_bytes: 75900
+  model_size_bytes: 50600
+  input_bytes: 5
+  output_bytes: 1
+  operators:
+  - CAST
+  - CONV_2D
+  - DEQUANTIZE
+  - EXPAND_DIMS
+  - FULLY_CONNECTED
+  - GATHER
+  - LOGISTIC
+  - REDUCE_MAX
+  - RESHAPE
+  model_tflite: /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f06_quant/v612/06_model_tflite.tflite
+  evaluation_dataset_csv: /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f07_modval/v712/07_evaluation_dataset.csv
+- parent_variant: v713
+  model_id: GE_Active_Power_any-to-80_100-cnn1d-v513__esp32
+  runtime_model_name: GE_Active_Power_any-to-80_100-cnn1d-v513
+  prediction_name: GE_Active_Power_any-to-80_100
+  quality_score: 0.012513352662902488
+  threshold: 0.46126407384872437
+  itmax_ms: 20.048
+  it_max_ms: 20.048
+  management_overhead_ms: 5.0
+  exec_time_ms: 26.0
+  ITmax: 100
+  MTI_MS: 100
+  arena_bytes: 90816
+  model_size_bytes: 60544
+  input_bytes: 5
+  output_bytes: 1
+  operators:
+  - CAST
+  - CONV_2D
+  - DEQUANTIZE
+  - EXPAND_DIMS
+  - FULLY_CONNECTED
+  - GATHER
+  - LOGISTIC
+  - REDUCE_MAX
+  - RESHAPE
+  model_tflite: /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f06_quant/v613/06_model_tflite.tflite
+  evaluation_dataset_csv: /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f07_modval/v713/07_evaluation_dataset.csv
+run:
+  edge_run_completed: false
+  esp_run_completed: true
+  n_inferences: 7358
+  ok_rate: 0.9998640935036694
+  offload_rate: 0.0
+  watchdog_rate: 0.0
+  phase_status: completed
+  phase_status_reason: null
+artifacts:
+  edge_run_config: /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f08_sysval/v812/08_edge_run_config.yaml
+  unique_windows: /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f08_sysval/v812/08_unique_windows.csv
+  input_dataset_csv: /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f08_sysval/v812/08_input_dataset.csv
+  edge_project_dir: /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f08_sysval/v812/esp32_project
+timing:
+  esp_mean_latency_ms: null
+  esp_max_latency_ms: null
+  esp_jitter_ms: null
+memory:
+  esp_memory_peak_bytes: 149992.0
+  heap_free_min_bytes: 166064.0
+  heap_total_ref: 316056.0
+quality:
+  system_quality_score: 0.1905882523331184
+  mean_model_quality_score: 0.1905882523331184
+outcomes:
+  ok_rate: 0.9998640935036694
+  offload_rate: 0.0
+  watchdog_rate: 0.0
+models_runtime_summary:
+- model_id: 0
+  model_name: PVPCS_Active_Power_any-to-80_100-cnn1d-v512
+  n_attempts: 3679
+  n_inferences: 3679.0
+  ok_rate: 1.0
+  offload_rate: 0.0
+  infer_worst_ms: 16.343
+  accuracy: 0.5693833281685776
+  precision: 0.2572912504994007
+  recall: 0.5849227974568574
+  f1: 0.3573806881243063
+  quality_score: 0.3573806881243063
+  tp: 1932.0
+  fp: 5577.0
+  tn: 7255.0
+  fn: 1371.0
+- model_id: 1
+  model_name: GE_Active_Power_any-to-80_100-cnn1d-v513
+  n_attempts: 3679
+  n_inferences: 3679.0
+  ok_rate: 0.9997281870073389
+  offload_rate: 0.0
+  infer_worst_ms: 21.04
+  accuracy: 0.7116540074821449
+  precision: 0.4105960264900662
+  recall: 0.01225296442687747
+  f1: 0.023795816541930533
+  quality_score: 0.023795816541930533
+  tp: 62.0
+  fp: 89.0
+  tn: 12493.0
+  fn: 4998.0

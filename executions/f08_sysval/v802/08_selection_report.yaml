@@ -1,0 +1,41 @@
+selection_mode: auto_ilp
+objective: max_tp
+solver_status: Optimal
+objective_value: 3138.0
+iterations: 1
+lambda_last: null
+gap_last: null
+candidates_considered: 7
+candidates_feasible_after_filters: 7
+selected_count: 2
+selected_variants:
+- v702
+- v703
+excluded_parents:
+- parent_variant: v705
+  stage: edge_capable_check
+  reason: 'Parent F05 no produjo un modelo entrenable: La clase menos poblada tiene
+    1 muestra(s); train_test_split estratificado requiere al menos 2'
+- parent_variant: v708
+  stage: edge_capable_check
+  reason: 'Parent F05 no produjo un modelo entrenable: La clase menos poblada tiene
+    1 muestra(s); train_test_split estratificado requiere al menos 2'
+memory:
+  effective_memory_budget_bytes: 316056
+  arena_global_bytes: 120840
+  memory_guard_bytes: 32768
+  models_memory_budget_bytes: 162448
+  selected_total_model_size_bytes: 111144
+  selected_model_memory_required_bytes: 264752
+  fit_margin_bytes: 51304
+timing:
+  MTI_MS: 100.0
+  selected_sum_effective_time_ms: 48.0
+  selected_max_exec_time_ms: 26.0
+quality_aggregates:
+  total_tp: 3138
+  total_tn: 27289
+  total_fp: 7933
+  total_fn: 7900
+  global_precision: 0.28344323006051847
+  global_recall: 0.28429063236093494

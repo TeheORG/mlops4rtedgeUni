@@ -1,0 +1,22 @@
+phase: f08_sysval
+variant: v813
+parent: null
+parameters:
+  parents:
+  - v710
+  - v711
+  - v712
+  - v713
+  - v714
+  - v715
+  - v716
+  - v717
+  - v718
+  selection_mode: auto_ilp
+  objective: max_tp
+  solver_time_limit_sec: 30
+  time_scale_factor: 0.01
+  MTI_MS: 100
+  platform: esp32
+  min_precision: 0.01
+  min_recall: 0.05

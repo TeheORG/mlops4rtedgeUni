@@ -1,0 +1,56 @@
+phase: f08_sysval
+models:
+- id: 0
+  runtime_model_name: Battery_Active_Power_any-to-80_100-cnn1d-v510
+  model_id: Battery_Active_Power_any-to-80_100-cnn1d-v510__esp32
+  parent_variant: v710
+  prediction_name: Battery_Active_Power_any-to-80_100
+  threshold: 0.26571032404899597
+  exec_time_ms: 34.0
+  itmax_ms: 28.454
+  management_overhead_ms: 5.0
+  mti_ms: 100
+  arena_required: 120840
+  model_size_bytes: 80560
+  input_bytes: 4
+  output_bytes: 1
+  model_tflite: /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f06_quant/v610/06_model_tflite.tflite
+  evaluation_dataset_csv: /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f07_modval/v710/07_evaluation_dataset.csv
+  operators:
+  - CAST
+  - CONV_2D
+  - DEQUANTIZE
+  - EXPAND_DIMS
+  - FULLY_CONNECTED
+  - GATHER
+  - LOGISTIC
+  - REDUCE_MAX
+  - RESHAPE
+  quality_score: 0.029931972789115645
+- id: 1
+  runtime_model_name: PVPCS_Active_Power_any-to-80_100-cnn1d-v512
+  model_id: PVPCS_Active_Power_any-to-80_100-cnn1d-v512__esp32
+  parent_variant: v712
+  prediction_name: PVPCS_Active_Power_any-to-80_100
+  threshold: 0.36092594265937805
+  exec_time_ms: 22.0
+  itmax_ms: 16.205
+  management_overhead_ms: 5.0
+  mti_ms: 100
+  arena_required: 75900
+  model_size_bytes: 50600
+  input_bytes: 5
+  output_bytes: 1
+  model_tflite: /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f06_quant/v612/06_model_tflite.tflite
+  evaluation_dataset_csv: /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f07_modval/v712/07_evaluation_dataset.csv
+  operators:
+  - CAST
+  - CONV_2D
+  - DEQUANTIZE
+  - EXPAND_DIMS
+  - FULLY_CONNECTED
+  - GATHER
+  - LOGISTIC
+  - REDUCE_MAX
+  - RESHAPE
+  quality_score: 0.39802018384007204

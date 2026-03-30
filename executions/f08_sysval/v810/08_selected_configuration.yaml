@@ -1,0 +1,128 @@
+phase: f08_sysval
+variant: v810
+selection_mode: manual
+selection_completed: true
+selection_reason: manual_exceeds_time_budget
+configuration_edge_capable: false
+compatible_input_signature: true
+system_viable: false
+exec_time_policy: effective_time_ms = ceil(itmax_ms + 5.0)
+parent:
+  phase: f07_modval
+  variants: []
+requested_parent_variants:
+- v710
+- v711
+- v712
+- v713
+- v714
+- v715
+- v716
+- v717
+- v718
+selected_variants: []
+non_edge_parent_variants:
+- v715
+- v718
+excluded_parents:
+- parent_variant: v715
+  stage: edge_capable_check
+  reason: 'Parent F05 no produjo un modelo entrenable: La clase menos poblada tiene
+    1 muestra(s); train_test_split estratificado requiere al menos 2'
+- parent_variant: v718
+  stage: edge_capable_check
+  reason: 'Parent F05 no produjo un modelo entrenable: La clase menos poblada tiene
+    1 muestra(s); train_test_split estratificado requiere al menos 2'
+platform: esp32
+time_scale_factor: 0.01
+system_limits:
+  MTI_MS: 100
+  memory_budget_bytes: null
+  max_models: null
+  min_quality_score: null
+  min_precision: null
+  min_recall: null
+  objective: max_global_recall
+common_input_signature:
+  Tu: 10
+  OW: 6
+  LT: 1
+  PW: 1
+  event_type_count: 221
+  input_dtype: uint8
+  output_dtype: int8
+  input_shape:
+  - 1
+  - 4
+  output_shape:
+  - 1
+  - 1
+  input_bytes: 4
+  output_bytes: 1
+aggregates:
+  total_models_requested: 9
+  total_models_declared: 7
+  total_models_selected: 0
+  required_arena_bytes: 0
+  total_model_size_bytes: 0
+  model_memory_payload_bytes: 0
+  model_memory_required_bytes: 0
+  operators_union:
+  - CAST
+  - CONV_2D
+  - DEQUANTIZE
+  - EXPAND_DIMS
+  - FULLY_CONNECTED
+  - GATHER
+  - LOGISTIC
+  - REDUCE_MAX
+  - RESHAPE
+  unique_windows_count: 0
+  duplicate_windows_removed: 0
+  max_exec_time_ms: 0.0
+  sum_effective_time_ms: 0.0
+  total_tp: 0
+  total_tn: 0
+  total_fp: 0
+  total_fn: 0
+  global_precision: null
+  global_recall: null
+memory_check:
+  source: f07.metrics_memory.heap_total_ref
+  plate_available_heap_bytes: 316056
+  effective_memory_budget_bytes: 316056
+  memory_guard_bytes: 32768
+  arena_global_bytes: 0
+  models_memory_budget_bytes: null
+  model_memory_payload_bytes: 0
+  model_memory_required_bytes: 0
+  fit_margin_bytes: null
+  fits: false
+selection_report:
+  selection_mode: manual
+  objective: max_global_recall
+  solver_status: ManualConstraintViolation
+  reason: manual_exceeds_time_budget
+  candidates_considered: 7
+  candidates_feasible_after_filters: 7
+  selected_count: 0
+  selected_variants: []
+  excluded_parents:
+  - parent_variant: v715
+    stage: edge_capable_check
+    reason: 'Parent F05 no produjo un modelo entrenable: La clase menos poblada tiene
+      1 muestra(s); train_test_split estratificado requiere al menos 2'
+  - parent_variant: v718
+    stage: edge_capable_check
+    reason: 'Parent F05 no produjo un modelo entrenable: La clase menos poblada tiene
+      1 muestra(s); train_test_split estratificado requiere al menos 2'
+  selected_sum_effective_time_ms: 179.0
+  MTI_MS: 100.0
+datasets:
+  base_evaluation_dataset_csv: null
+  source_evaluation_datasets_csv: []
+  unique_windows_csv: /Users/juancarlosduenaslopez/Documents/mlops/MLOps4OFP-FGCS/executions/f08_sysval/v810/08_unique_windows.csv
+  max_rows: null
+  full_rows_count: 0
+  unique_windows_count: 0
+models: []
