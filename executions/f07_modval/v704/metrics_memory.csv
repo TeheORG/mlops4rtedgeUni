@@ -1,2 +1,0 @@
-heap_total_ref,heap_free_min_bytes,heap_min_ever_bytes,heap_free_max_bytes,heap_free_mean_bytes,mem_used_max_bytes,mem_used_max_pct,heap_free_min_before_read_bytes,heap_free_mean_before_read_bytes,heap_free_min_after_read_bytes,heap_free_mean_after_read_bytes,heap_free_min_before_inf_bytes,heap_free_mean_before_inf_bytes
-316056,166260,166248,167232,166431.8,149796,47.4,166296,166450.5,166296,166449.2,166296,166443.7
