@@ -1,0 +1,18 @@
+phase: f04_targets
+variant: v405
+parent: v305
+parameters:
+  parent_variant: v305
+  Tu: 10
+  OW: 6
+  LT: 1
+  PW: 1
+  event_type_count: 125
+  prediction_name: Battery_Active_Power_any-to-80_100
+  target_operator: OR
+  target_event_types:
+  - FC_Active_Power_0_40-to-80_100
+  - FC_Active_Power_40_60-to-80_100
+  - FC_Active_Power_60_80-to-80_100
+parent_hashes:
+  v305: c14ae6cc26766f0040dcdfdb914bbdbc59bb2ee5b37974a0f99ca5a754cd6e6e
