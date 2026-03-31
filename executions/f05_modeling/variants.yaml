@@ -1,4 +1,1 @@
-variants:
-  v505:
-    created_at: '2026-03-31T00:31:14.665739+00:00'
-    params_path: executions/f05_modeling/v505/params.yaml
+variants: {}
