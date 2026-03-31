@@ -1,0 +1,30 @@
+phase: f03_windows
+variant: v305
+artifacts:
+  dataset:
+    path: 03_windows.parquet
+    sha256: 9de86fe3f5b752a9e208f7e0f7a31323f26b75716379353b20d30117fce09ca6
+  catalog:
+    path: 03_events_catalog.json
+    sha256: 7a567455929d9773a89d0dd569d83ae8be39c73e984331283742fe1a55cced0c
+  report:
+    path: 03_windows_report.html
+    sha256: 0c306d6f6b7eb7be340e4775cb43775f2b181792be8ef2131eef94eb63bc68c9
+exports:
+  Tu: 10
+  OW: 6
+  LT: 1
+  PW: 1
+  event_type_count: 125
+  window_strategy: synchro
+  nan_mode: discard
+  n_windows: 1855
+  n_windows_pos: 1855
+  n_windows_neg: 0
+metrics:
+  execution_time: 0.042120249941945076
+  n_events_in: 2000
+  n_windows_out: 1855
+  positive_ratio: 0.0
+provenance:
+  generated_at: '2026-03-31T00:34:18.246200+00:00'
