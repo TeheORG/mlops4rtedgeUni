@@ -1,0 +1,70 @@
+phase: f05_modeling
+variant: v505
+artifacts:
+  model:
+    path: 05_modeling_model.h5
+    sha256: e474ffae181d82506d946044fc36d0e2ddadcd5624478a4beefc574a473d5c4c
+  labeled_dataset:
+    path: 05_modeling_training_dataset.parquet
+    sha256: 62039911b7455bad4722d086b305f2973370d0cc660ce14d3e5a9ba20e134ba3
+  history:
+    path: 05_modeling_history.json
+    sha256: 1f25e8cb477498cc311e195a2eebb2f9e95f3f25ed692b8dac6b31eee21269e8
+  report:
+    path: 05_modeling_report.html
+    sha256: f90a50337dc713185585e4f92f2ab9357b54f92f2513fb2d62a598229f0daf7d
+exports:
+  Tu: 10
+  OW: 6
+  LT: 1
+  PW: 1
+  event_type_count: 125
+  prediction_name: Battery_Active_Power_any-to-80_100
+  model_family: cnn1d
+  trainable: true
+  decision_threshold: 0.0004507263656705618
+  best_val_recall: 0.0
+  test_precision: 0.0
+  test_recall: 0.0
+  test_f1: 0.0
+metrics:
+  execution_time: 48.316504689000794
+  n_train: 1297
+  n_val: 279
+  n_test: 279
+  positive_ratio_train: 0.0015420200462606013
+  tp: 0
+  tn: 279
+  fp: 0
+  fn: 0
+provenance:
+  generated_at: '2026-03-31T00:32:08.837360+00:00'
+  parent_phase: f04_targets
+  parent_variant: v405
+mlflow_registration:
+  experiment_name: F05_Battery_Active_Power_any-to-80_100
+  run_name: Battery_Active_Power_any-to-80_100__v505
+  metrics:
+    val_recall: 0.0
+    test_precision: 0.0
+    test_recall: 0.0
+    test_f1: 0.0
+    test_tp: 0
+    test_tn: 279
+    test_fp: 0
+    test_fn: 0
+  params:
+    batch_size: 128
+    learning_rate: 0.0005
+    n_layers: 2
+    units: 64
+    dropout: 0.0
+    embed_dim: 64
+    filters: 128
+    kernel_size: 3
+    model_family: cnn1d
+  artifacts:
+  - /workspace/executions/f05_modeling/v505/05_modeling_model.h5
+  - /workspace/executions/f05_modeling/v505/05_modeling_history.json
+  - /workspace/executions/f05_modeling/v505/05_modeling_trials_summary.json
+# tamper Tue Mar 31 02:32:11 CEST 2026
