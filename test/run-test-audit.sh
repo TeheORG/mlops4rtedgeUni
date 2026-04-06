@@ -117,13 +117,18 @@ echo "[STEP 3] Modify parent outputs.yaml -> must break child register"
 run_expect_ok make variant6 VARIANT=v605 PARENT=v505
 run_expect_ok make script6 VARIANT=v606
 
+PARENT_OUTPUTS="executions/f05_modeling/v505/outputs.yaml"
+PARENT_OUTPUTS_BAK=$(mktemp)
+cp "$PARENT_OUTPUTS" "$PARENT_OUTPUTS_BAK"
+
 echo "[INFO] Tampering outputs.yaml of parent v505"
-echo "# tamper $(date)" >> executions/f05_modeling/v505/outputs.yaml
+echo "# tamper $(date)" >> "$PARENT_OUTPUTS"
 
 run_expect_fail make register6 VARIANT=v605
 
 echo "[INFO] Reverting outputs.yaml"
-git checkout -- executions/f05_modeling/v505/outputs.yaml
+cp "$PARENT_OUTPUTS_BAK" "$PARENT_OUTPUTS"
+rm -f "$PARENT_OUTPUTS_BAK"
 
 echo "[STEP 3b] Register should now work"
 
