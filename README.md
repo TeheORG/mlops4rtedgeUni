@@ -1,10 +1,25 @@
 # MLOps4RT-Edge
 
-MLOps4RT-Edge is a reproducible, phase-based pipeline for building edge-ready machine learning workflows from raw time-series data to on-device validation.
+![Python 3.11](https://img.shields.io/badge/python-3.11-blue)
+![Platforms macOS Linux Windows](https://img.shields.io/badge/platforms-macOS%20%7C%20Linux%20%7C%20Windows-success)
+![Repository scope code only](https://img.shields.io/badge/repository-code--only-informational)
+![Artifacts DVC backend](https://img.shields.io/badge/artifacts-DVC%20backend-orange)
+
+MLOps4RT-Edge is a reproducible, phase-based MLOps pipeline for edge machine learning workflows, from raw time-series data to quantized models and on-device validation.
+
+It is intended for teams that need a structured and traceable path from data preparation to embedded deployment experiments, while keeping binary artifacts and execution state outside the public code repository.
 
 This README is written for users who want to run the pipeline with their own data, generate their own execution artifacts, and store those artifacts in their own project storage backends.
 
 If you want to work on the pipeline code itself, see [DEVELOPERS.md](DEVELOPERS.md).
+
+## At A Glance
+
+1. Eight-phase pipeline from exploration to edge system validation.
+2. Setup-driven project configuration for Git, DVC, and MLflow backends.
+3. Cross-platform workflow for macOS, Linux, and Windows.
+4. Public repository kept code-only by design.
+5. Intended for project workspaces that keep executions and artifacts outside this repo.
 
 ## Project Status
 
