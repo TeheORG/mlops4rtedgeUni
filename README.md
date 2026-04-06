@@ -6,6 +6,16 @@ This README is written for users who want to run the pipeline with their own dat
 
 If you want to work on the pipeline code itself, see [DEVELOPERS.md](DEVELOPERS.md).
 
+## Project Status
+
+This project is intended to be published as a reusable public pipeline codebase.
+
+Current status:
+
+1. The repository is maintained as a code-only public repository.
+2. Generated executions, local DVC state, MLflow state, and project artifacts are intentionally excluded from Git.
+3. Users are expected to run the pipeline in their own project workspace and connect it to their own DVC and MLflow backends.
+
 ## What This Project Does
 
 The pipeline is organized into eight phases:
@@ -48,6 +58,26 @@ Optional but commonly needed:
 1. Docker for containerized phases such as F06 and embedded build flows.
 2. A supported edge platform toolchain and hardware for F07 and F08.
 3. DVC and MLflow backends, configured through the project setup.
+
+## Platform Compatibility
+
+The pipeline is designed to be cross-platform at the project level and should be usable from macOS, Linux, and Windows.
+
+What is platform-independent:
+
+1. The phase model.
+2. The Makefile-based workflow.
+3. Setup-driven DVC and MLflow configuration.
+4. Variant creation, validation, traceability, and registration logic.
+
+What may still vary by operating system in practice:
+
+1. Serial port names, such as `/dev/ttyUSB0` on Linux-like systems and `COMx` on Windows.
+2. Serial port permissions on systems that protect device access.
+3. Docker path handling, especially on Windows shells.
+4. Vendor-specific toolchain installation details for embedded targets.
+
+These are operational differences, not pipeline design differences.
 
 ## Quick Start
 
@@ -257,10 +287,7 @@ Check:
 3. That your user has permission to access the port.
 4. That Docker and board toolchains are installed if the selected phase requires them.
 
-For Linux-specific serial port notes, see [README-Linux.md](README-Linux.md).
-
 ## Additional References
 
 1. [DEVELOPERS.md](DEVELOPERS.md) for contributors and maintainers.
-2. [README-Linux.md](README-Linux.md) for Linux-specific operational notes.
-3. [setup/local.yaml](setup/local.yaml) and [setup/remote.yaml](setup/remote.yaml) as setup templates.
+2. [setup/local.yaml](setup/local.yaml) and [setup/remote.yaml](setup/remote.yaml) as setup templates.

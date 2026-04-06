@@ -174,7 +174,13 @@ For F07 and F08, keep in mind:
 1. Docker is used in some embedded build flows.
 2. Edge templates live under [edge/](edge).
 3. Serial ports, permissions, platform naming, and runtime logs differ across operating systems.
-4. Linux-specific notes are documented in [README-Linux.md](README-Linux.md).
+4. These differences should stay operational and isolated; the pipeline design itself should remain platform-neutral.
+
+In practice, the main OS-specific concerns are:
+
+1. Serial device naming and permissions.
+2. Docker path translation, especially on Windows shells.
+3. Edge toolchain installation details.
 
 ## Documentation Expectations
 
@@ -183,7 +189,7 @@ When you change user-visible workflow behavior, update:
 1. [README.md](README.md) for pipeline users.
 2. [DEVELOPERS.md](DEVELOPERS.md) for maintainers.
 3. Setup templates when backends or publishing expectations change.
-4. Linux notes when OS-specific behavior changes.
+4. Cross-platform operational notes in the main documentation when OS-specific behavior changes.
 
 ## Release And Contribution Checklist
 
