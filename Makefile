@@ -790,7 +790,7 @@ register5: check-variant-format
 	@test -n "$(VARIANT)" || (echo "[ERROR] Usage: make register5 VARIANT=v5XX"; exit 1)
 
 	@echo "==> Checking MLflow setup (from .mlops4ofp/setup.yaml)"
-	@MLFLOW_ENABLED=$$($(PYTHON) -c 'import pathlib,yaml; p=pathlib.Path(".mlops4ofp/setup.yaml"); cfg=(yaml.safe_load(p.read_text()) if p.exists() else {}); print("1" if isinstance(cfg,dict) and cfg.get("mlflow",{}).get("enabled",False) else "0")'; \
+	@MLFLOW_ENABLED=$$($(PYTHON) -c 'import pathlib,yaml; p=pathlib.Path(".mlops4ofp/setup.yaml"); cfg=(yaml.safe_load(p.read_text()) if p.exists() else {}); print("1" if isinstance(cfg,dict) and cfg.get("mlflow",{}).get("enabled",False) else "0")') ; \
 	if [ "$$MLFLOW_ENABLED" = "1" ]; then \
 		echo "==> MLflow enabled: registering run for $(PHASE5):$(VARIANT)"; \
 		VAR_DIR="$(VARIANTS_DIR5)/$(VARIANT)"; \
@@ -802,6 +802,39 @@ register5: check-variant-format
 if data is None: print(f"[ERROR] outputs.yaml not found at {outs_path}") or sys.exit(1); reg=(data.get("mlflow_registration") if isinstance(data,dict) else None); \
 if not reg: print("[WARN] No '\''mlflow_registration'\'' block in outputs.yaml — skipping MLflow registration") or sys.exit(0); experiment_name=(reg.get("experiment_name") or f"F05_{variant}"); metrics=reg.get("metrics",{}); params=reg.get("params",{}); artifacts=reg.get("artifacts",[]); subprocess.run(["mlflow","experiments","create","--experiment-name",experiment_name], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL); exps=json.loads(subprocess.check_output(["mlflow","experiments","list","--format","json"])); exp_id=next((e.get("experiment_id") for e in exps if e.get("name")==experiment_name), None); \
 if not exp_id: print(f"[ERROR] Could not obtain experiment_id for {experiment_name}") or sys.exit(1); run=json.loads(subprocess.check_output(["mlflow","runs","create","--experiment-id",exp_id,"--format","json"])); run_id=run["info"]["run_id"]; [subprocess.run(["mlflow","runs","log-param","--run-id",run_id,"--key",str(k),"--value",str(v)]) for k,v in params.items()]; [subprocess.run(["mlflow","runs","log-metric","--run-id",run_id,"--key",str(k),"--value",str(v)]) for k,v in metrics.items()]; [subprocess.run(["mlflow","runs","log-artifact","--run-id",run_id,"--local-path",a]) for a in artifacts if os.path.exists(a)]; data["mlflow"]={"run_id":run_id,"experiment_id":exp_id,"experiment_name":experiment_name}; outs_path.write_text(yaml.safe_dump(data, sort_keys=False)); print(f"[OK] MLflow run created: {run_id} (experiment: {experiment_name})")'; \
+		TMP_SCRIPT=$$(mktemp mlflow_register_XXXX.py); \
+		echo 'import os,subprocess,yaml,json,pathlib,sys' > $$TMP_SCRIPT; \
+		echo 'variant=os.environ.get("VARIANT")' >> $$TMP_SCRIPT; \
+		echo 'phase=os.environ.get("PHASE5","f05_modeling")' >> $$TMP_SCRIPT; \
+		echo 'outs_path=pathlib.Path(f"executions/{phase}/{variant}/outputs.yaml")' >> $$TMP_SCRIPT; \
+		echo 'data=(yaml.safe_load(outs_path.read_text()) if outs_path.exists() else None)' >> $$TMP_SCRIPT; \
+		echo 'if data is None:' >> $$TMP_SCRIPT; \
+		echo '    print(f"[ERROR] outputs.yaml not found at {outs_path}")' >> $$TMP_SCRIPT; \
+		echo '    sys.exit(1)' >> $$TMP_SCRIPT; \
+		echo 'reg=(data.get("mlflow_registration") if isinstance(data,dict) else None)' >> $$TMP_SCRIPT; \
+		echo 'if not reg:' >> $$TMP_SCRIPT; \
+		echo '    print("[WARN] No '\''mlflow_registration'\'' block in outputs.yaml — skipping MLflow registration")' >> $$TMP_SCRIPT; \
+		echo '    sys.exit(0)' >> $$TMP_SCRIPT; \
+		echo 'experiment_name=(reg.get("experiment_name") or f"F05_{variant}")' >> $$TMP_SCRIPT; \
+		echo 'metrics=reg.get("metrics",{})' >> $$TMP_SCRIPT; \
+		echo 'params=reg.get("params",{})' >> $$TMP_SCRIPT; \
+		echo 'artifacts=reg.get("artifacts",[])' >> $$TMP_SCRIPT; \
+		echo 'subprocess.run(["mlflow","experiments","create","--experiment-name",experiment_name], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)' >> $$TMP_SCRIPT; \
+		echo 'exps=json.loads(subprocess.check_output(["mlflow","experiments","list","--format","json"]))' >> $$TMP_SCRIPT; \
+		echo 'exp_id=next((e.get("experiment_id") for e in exps if e.get("name")==experiment_name), None)' >> $$TMP_SCRIPT; \
+		echo 'if not exp_id:' >> $$TMP_SCRIPT; \
+		echo '    print(f"[ERROR] Could not obtain experiment_id for {experiment_name}")' >> $$TMP_SCRIPT; \
+		echo '    sys.exit(1)' >> $$TMP_SCRIPT; \
+		echo 'run=json.loads(subprocess.check_output(["mlflow","runs","create","--experiment-id",exp_id,"--format","json"]))' >> $$TMP_SCRIPT; \
+		echo 'run_id=run["info"]["run_id"]' >> $$TMP_SCRIPT; \
+		echo '[subprocess.run(["mlflow","runs","log-param","--run-id",run_id,"--key",str(k),"--value",str(v)]) for k,v in params.items()]' >> $$TMP_SCRIPT; \
+		echo '[subprocess.run(["mlflow","runs","log-metric","--run-id",run_id,"--key",str(k),"--value",str(v)]) for k,v in metrics.items()]' >> $$TMP_SCRIPT; \
+		echo '[subprocess.run(["mlflow","runs","log-artifact","--run-id",run_id,"--local-path",a]) for a in artifacts if os.path.exists(a)]' >> $$TMP_SCRIPT; \
+		echo 'data["mlflow"]={"run_id":run_id,"experiment_id":exp_id,"experiment_name":experiment_name}' >> $$TMP_SCRIPT; \
+		echo 'outs_path.write_text(yaml.safe_dump(data, sort_keys=False))' >> $$TMP_SCRIPT; \
+		echo 'print(f"[OK] MLflow run created: {run_id} (experiment: {experiment_name})")' >> $$TMP_SCRIPT; \
+		VARIANT="$(VARIANT)" PHASE5="$(PHASE5)" $(PYTHON) $$TMP_SCRIPT; \
+		rm -f $$TMP_SCRIPT; \
 	else \
 		echo "[INFO] MLflow disabled in setup — skipping MLflow registration"; \
 	fi
