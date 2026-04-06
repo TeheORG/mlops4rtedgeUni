@@ -207,20 +207,24 @@ register-generic: check-variant-format
 	$(PYTHON) -m scripts.core.traceability validate-variant \
 		--phase $(PHASE) \
 		--variant $(VARIANT) || exit 1; \
+	MODE=$$($(PYTHON) -c "import yaml, pathlib; cfg=yaml.safe_load(pathlib.Path('.mlops4ofp/setup.yaml').read_text()); print(cfg.get('git',{}).get('mode','none'))"); \
 	echo "==> Registering DVC artifacts"; \
 	for ext in $(DVC_EXTS); do \
 		$(DVC) add "$(VARIANTS_DIR)/$(VARIANT)"/*.$$ext 2>/dev/null || true; \
 	done; \
-	echo "==> Adding files to Git"; \
-	git add "$(VARIANTS_DIR)/$(VARIANT)" 2>/dev/null || true; \
-	git add "$(VARIANTS_DIR)/$(VARIANT)"/*.dvc 2>/dev/null || true; \
-	git add "$(VARIANTS_DIR)/variants.yaml" 2>/dev/null || true; \
-	git add dvc.yaml dvc.lock 2>/dev/null || true; \
-	echo "==> Commit"; \
-	git commit -m "register $(PHASE):$(VARIANT)" || true; \
-	echo "==> Push (if configured)"; \
-	MODE=$$($(PYTHON) -c "import yaml, pathlib; cfg=yaml.safe_load(pathlib.Path('.mlops4ofp/setup.yaml').read_text()); print(cfg.get('git',{}).get('mode','none'))"); \
-	if [ "$$MODE" = "custom" ]; then git push register HEAD:main || true; fi; \
+	if [ "$$MODE" = "custom" ]; then \
+		echo "==> Adding files to Git"; \
+		git add "$(VARIANTS_DIR)/$(VARIANT)" 2>/dev/null || true; \
+		git add "$(VARIANTS_DIR)/$(VARIANT)"/*.dvc 2>/dev/null || true; \
+		git add "$(VARIANTS_DIR)/variants.yaml" 2>/dev/null || true; \
+		git add dvc.yaml dvc.lock 2>/dev/null || true; \
+		echo "==> Commit"; \
+		git commit -m "register $(PHASE):$(VARIANT)" || true; \
+		echo "==> Push (if configured)"; \
+		git push register HEAD:main || true; \
+	else \
+		echo "==> Skipping Git add/commit in git.mode=$$MODE"; \
+	fi; \
 	echo "==> DVC push"; \
 	$(DVC) push -r storage || true; \
 	echo "[OK] Registered $(PHASE):$(VARIANT)"

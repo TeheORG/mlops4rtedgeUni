@@ -32,6 +32,16 @@ executions-*/
 # DVC local config
 .dvc/config.local
 
+# Pipeline code repo: local DVC state and cache must not be versioned here
+.dvc/
+.dvc_storage/
+
+# Local experiment tracking
+mlruns/
+
+# Generated DVC refs from pipeline executions do not belong in the code repo
+executions/**/*.dvc
+
 # Jupyter
 .ipynb_checkpoints/
 
