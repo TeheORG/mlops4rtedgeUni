@@ -1,30 +1,266 @@
-## Scope Of This Repository
+# MLOps4RT-Edge
 
-This repository is the codebase of the pipeline and should contain code only.
+MLOps4RT-Edge is a reproducible, phase-based pipeline for building edge-ready machine learning workflows from raw time-series data to on-device validation.
 
-- Do version in Git: source code, configuration templates, documentation, tests, and project setup files.
-- Do not version in Git: local DVC state, DVC cache, MLflow local state, execution outputs, generated artifacts, or per-project DVC references produced under executions/.
+This README is written for users who want to run the pipeline with their own data, generate their own execution artifacts, and store those artifacts in their own project storage backends.
 
-## Separation Between Pipeline Repo And User Projects
+If you want to work on the pipeline code itself, see [DEVELOPERS.md](DEVELOPERS.md).
 
-For projects that use the pipeline:
+## What This Project Does
 
-- The Git repository configured in the project setup is the place where that project stores its own code and, if desired, its DVC references.
-- Binary artifacts must go to the DVC backend configured by that project setup, which may be local or remote.
+The pipeline is organized into eight phases:
 
-For this repository mlops4rtedge:
+1. Explore raw data.
+2. Build an events dataset.
+3. Build a windows dataset.
+4. Engineer prediction targets.
+5. Train models.
+6. Quantize and package models for edge deployment.
+7. Validate a model on edge hardware.
+8. Validate a multi-model system on edge hardware.
 
-- Keep only the reusable pipeline code.
-- Do not publish .dvc, .dvc_storage, mlruns, or executions/ contents here.
+Each phase creates a variant under a local executions workspace and can be validated, registered, and removed independently.
 
-powershell.exe -NoProfile -Command "[System.IO.Ports.SerialPort]::GetPortNames() | Sort-Object"
+## Repository Scope
 
+This public repository is the pipeline codebase only.
 
-bash build_image.sh (construir imagen en docker)
+- It does contain: source code, setup templates, tests, documentation, and automation.
+- It does not contain: your local DVC cache, your MLflow state, your execution outputs, or your project-specific DVC references.
 
+When you run the pipeline for your own project:
 
-añadidos: ensure_docker_image_exists  en mlops4rtedge\scripts\phases\f072_flashrun.py
-Ver si tiene que detectar sistema operativo para arm.
+- Your generated outputs are written to your local workspace under executions/.
+- Large binary artifacts must go to the DVC backend configured by your project setup.
+- Your project Git repository, if used, is the repository defined in your setup, not this public code repository.
 
+## Prerequisites
 
-auto_detect_port actualizado para que funcione en windows y linux + describe_serial_ports (para prints)
+Minimum prerequisites:
+
+1. Python 3.11.
+2. GNU Make.
+3. Git.
+4. A working virtual environment can be created locally by the setup flow.
+
+Optional but commonly needed:
+
+1. Docker for containerized phases such as F06 and embedded build flows.
+2. A supported edge platform toolchain and hardware for F07 and F08.
+3. DVC and MLflow backends, configured through the project setup.
+
+## Quick Start
+
+### 1. Clone the pipeline code
+
+```bash
+git clone https://github.com/STRAST-UPM/mlops4rtedge.git
+cd mlops4rtedge
+```
+
+### 2. Choose a setup mode
+
+For a fully local project workspace:
+
+```bash
+make setup SETUP_CFG=setup/local.yaml
+make check-setup
+```
+
+For a project that should publish to its own remote services, start from the remote template:
+
+```bash
+cp setup/remote.yaml .mlops4ofp.remote.yaml
+# edit the file with your own Git, DVC, and MLflow endpoints
+make setup SETUP_CFG=.mlops4ofp.remote.yaml
+make check-setup
+```
+
+The local setup template uses:
+
+- local DVC storage at ./.dvc_storage
+- local MLflow tracking at file:./mlruns
+- no Git publishing from pipeline register commands
+
+## Recommended Usage Model
+
+For project work, use this repository as the pipeline engine and keep your data and executions in your own working copy or project repository.
+
+Recommended pattern:
+
+1. Clone this repository.
+2. Run setup with either local or remote configuration.
+3. Place your raw dataset in data/.
+4. Create and execute variants phase by phase.
+5. Store binary artifacts in the DVC backend configured by your project.
+6. Keep any project-specific execution history in your own project environment.
+
+## Common Commands
+
+Show the built-in help:
+
+```bash
+make help
+```
+
+Set up the environment:
+
+```bash
+make setup SETUP_CFG=setup/local.yaml
+make check-setup
+```
+
+Reset the local project environment:
+
+```bash
+make clean-setup
+```
+
+Remove all variants from a phase:
+
+```bash
+make remove-phase-all PHASE=f05_modeling VARIANTS_DIR=executions/f05_modeling
+```
+
+## Phase-by-Phase Example
+
+### F01: Explore raw data
+
+```bash
+make variant1 VARIANT=v001 RAW=./data/raw.csv CLEANING=basic NAN_VALUES='[-999999]'
+make script1 VARIANT=v001
+make check1 VARIANT=v001
+make register1 VARIANT=v001
+```
+
+### F02: Build events dataset
+
+```bash
+make variant2 VARIANT=v201 PARENT=v001 STRATEGY=levels BANDS='[0.1, 0.2, 0.3]' NAN_MODE=discard
+make script2 VARIANT=v201
+make check2 VARIANT=v201
+make register2 VARIANT=v201
+```
+
+### F03: Build windows dataset
+
+```bash
+make variant3 VARIANT=v301 PARENT=v201 OW=600 LT=100 PW=100 STRATEGY=synchro NAN_MODE=discard
+make script3 VARIANT=v301
+make check3 VARIANT=v301
+make register3 VARIANT=v301
+```
+
+### F04: Create prediction targets
+
+```bash
+make variant4 VARIANT=v401 PARENT=v301 NAME=battery_overheat OPERATOR=OR EVENTS='["Battery_Active_Power_80_100-to-100_120"]'
+make script4 VARIANT=v401
+make check4 VARIANT=v401
+make register4 VARIANT=v401
+```
+
+### F05: Train models
+
+```bash
+make variant5 VARIANT=v501 PARENT=v401 MODEL_FAMILY=dense_bow IMBALANCE_STRATEGY=none
+make script5 VARIANT=v501
+make check5 VARIANT=v501
+make register5 VARIANT=v501
+```
+
+Common F05 overrides include batch size, epochs, learning rate, embedding size, hidden units, dropout, AutoML, and evaluation split.
+
+### F06: Quantize and package for edge
+
+```bash
+make variant6 VARIANT=v601 PARENT=v501 DEPLOY_TARGET=esp32 REQUIRE_INT8=true
+make script6 VARIANT=v601
+make check6 VARIANT=v601
+make register6 VARIANT=v601
+```
+
+F06 uses Docker for reproducible packaging in the default flow.
+
+### F07: Validate a model on edge hardware
+
+```bash
+make variant7 VARIANT=v701 PARENT=v601 PLATFORM=esp32 MTI_MS=100000
+make script7 VARIANT=v701
+make check7 VARIANT=v701
+make register7 VARIANT=v701
+```
+
+You can also run F07 step by step:
+
+```bash
+make script7-prepare-build VARIANT=v701
+make script7-flash-run VARIANT=v701
+make script7-post VARIANT=v701
+```
+
+### F08: Validate a multi-model edge system
+
+```bash
+make variant8 VARIANT=v801 PARENTS=v700,v703 PLATFORM=esp32 MTI_MS=100
+make script8 VARIANT=v801
+make check8 VARIANT=v801
+make register8 VARIANT=v801
+```
+
+F08 also supports manual and ILP-based selection modes.
+
+## Where Outputs Go
+
+During execution, the pipeline writes generated files to your local workspace under executions/.
+
+Examples of generated content:
+
+1. params.yaml and outputs.yaml for each variant.
+2. Reports, catalogs, metrics, and calibration datasets.
+3. Model binaries and quantized artifacts.
+4. Edge build outputs and runtime logs for hardware phases.
+
+These files are local project outputs and are intentionally not versioned in this public repository.
+
+## DVC, MLflow, and Git Responsibilities
+
+The intended split is:
+
+1. Git in this public repository stores the reusable pipeline code only.
+2. DVC stores large binary artifacts generated by your project.
+3. MLflow stores experiment tracking data for your project.
+4. If your project uses its own Git repository, that repository is configured through your setup file.
+
+## Troubleshooting
+
+### Setup validation fails
+
+Run:
+
+```bash
+make check-setup
+```
+
+Then inspect your setup file, Python version, DVC backend, and MLflow endpoint.
+
+### A phase fails after a parent changes
+
+The pipeline tracks parent-child relationships across variants. Re-run the affected phase after fixing the parent or create a new variant that references the updated parent.
+
+### Edge execution fails on serial or flash steps
+
+Check:
+
+1. That the target board is connected.
+2. That the serial port is correct.
+3. That your user has permission to access the port.
+4. That Docker and board toolchains are installed if the selected phase requires them.
+
+For Linux-specific serial port notes, see [README-Linux.md](README-Linux.md).
+
+## Additional References
+
+1. [DEVELOPERS.md](DEVELOPERS.md) for contributors and maintainers.
+2. [README-Linux.md](README-Linux.md) for Linux-specific operational notes.
+3. [setup/local.yaml](setup/local.yaml) and [setup/remote.yaml](setup/remote.yaml) as setup templates.
