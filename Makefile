@@ -1,29 +1,26 @@
 SHELL := /bin/bash
 
 ifeq ($(OS),Windows_NT)
-PYTHON_LOCAL ?= python
+  PYTHON_LOCAL ?= python
 else
-PYTHON_LOCAL ?= python3.11
+  PYTHON_LOCAL ?= python3.11
 endif
 
 
 ifeq ($(shell command -v $(PYTHON_LOCAL) 2>/dev/null),)
-$(error python3.11 not found. Please install it before running make setup)
+  $(error python3.11 not found. Please install it before running make setup)
 endif
 
 $(info [INFO] Using local Python interpreter: $(PYTHON_LOCAL))
 
-# Optional: load user/local environment variables automatically.
-# Keep this before .mlops4ofp/env.sh if you want setup-generated values
-# to have priority, or move it below to let .env override them.
 ifneq ("$(wildcard .env)","")
-include .env
-export
+  include .env
+  export
 endif
 
 ifneq ("$(wildcard .mlops4ofp/env.sh)","")
-include .mlops4ofp/env.sh
-export
+  include .mlops4ofp/env.sh
+  export
 endif
 
 ############################################
@@ -233,8 +230,10 @@ register-generic: check-variant-format
 		git commit -m "register $(PHASE):$(VARIANT)" || true; \
 		echo "==> Push (if configured)"; \
 		git push "$$PUBLISH_REMOTE" "HEAD:$$PUBLISH_BRANCH" || true; \
+	elif [ "$$MODE" = "none" ]; then \
+		echo "[INFO] Local-only mode: skipping git add/commit/push"; \
 	else \
-		echo "==> Skipping Git add/commit in git.mode=$$MODE"; \
+		echo "[ERROR] Invalid or unconfigured git mode: $$MODE"; exit 1; \
 	fi; \
 	echo "==> DVC push"; \
 	$(DVC) push -r storage || true; \
@@ -261,17 +260,17 @@ remove-generic: check-variant-format
 	fi; \
 	echo "==> Updating variant registry"; \
 	$(PYTHON) -m scripts.core.params_manager delete --phase $(PHASE) --variant $(VARIANT); \
-	echo "==> Adding deletion changes to Git"; \
-	git add "$(VARIANTS_DIR)" 2>/dev/null || true; \
-	git add dvc.yaml dvc.lock 2>/dev/null || true; \
-	git commit -m "remove variant: $(PHASE) $(VARIANT)" || true; \
 	MODE=$$($(PYTHON) -c "import yaml, pathlib; cfg=yaml.safe_load(pathlib.Path('.mlops4ofp/setup.yaml').read_text()); print(cfg.get('git',{}).get('mode','none'))"); \
 	PUBLISH_REMOTE=$$($(PYTHON) -c "import yaml, pathlib; cfg=yaml.safe_load(pathlib.Path('.mlops4ofp/setup.yaml').read_text()); print(cfg.get('git',{}).get('publish_remote_name','publish'))"); \
 	PUBLISH_BRANCH=$$($(PYTHON) -c "import yaml, pathlib; cfg=yaml.safe_load(pathlib.Path('.mlops4ofp/setup.yaml').read_text()); print(cfg.get('git',{}).get('branch','main'))"); \
 	if [ "$$MODE" = "custom" ]; then \
+		echo "==> Adding deletion changes to Git"; \
+		git add "$(VARIANTS_DIR)" 2>/dev/null || true; \
+		git add dvc.yaml dvc.lock 2>/dev/null || true; \
+		git commit -m "remove variant: $(PHASE) $(VARIANT)" || true; \
 		git push "$$PUBLISH_REMOTE" "HEAD:$$PUBLISH_BRANCH" || echo "[WARN] git push $$PUBLISH_REMOTE HEAD:$$PUBLISH_BRANCH failed"; \
 	elif [ "$$MODE" = "none" ]; then \
-		echo "[INFO] Local-only mode"; \
+		echo "[INFO] Local-only mode: skipping git add/commit/push"; \
 	else \
 		echo "[ERROR] Invalid or unconfigured git mode"; exit 1; \
 	fi; \
