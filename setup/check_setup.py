@@ -12,6 +12,14 @@ ENV_FILE = ROOT / ".mlops4ofp" / "env.sh"
 PIPELINE_REF_FILE = ROOT / ".mlops4ofp" / "pipeline_ref.yaml"  # NUEVO
 
 
+def venv_python_path():
+    return VENV / "Scripts" / "python.exe" if sys.platform == 'win32' else VENV / "bin" / "python"
+
+
+def venv_pip_path():
+    return VENV / "Scripts" / "pip.exe" if sys.platform == 'win32' else VENV / "bin" / "pip"
+
+
 # --------------------------------------------------
 # Utilidades
 # --------------------------------------------------
@@ -88,7 +96,7 @@ def check_dvc(cfg):
     dvc_cfg = cfg.get("dvc", {})
     backend = dvc_cfg.get("backend")
 
-    remotes = run(["dvc", "remote", "list"])
+    remotes = run([str(venv_python_path()), "-m", "dvc", "remote", "list"])
     if "storage" not in remotes:
         fail("No existe remoto DVC 'storage'")
 
@@ -108,7 +116,7 @@ def check_dvc(cfg):
         ok("DVC local: ruta accesible y escribible")
 
     elif backend == "dagshub":
-        cfg_local = run(["dvc", "config", "--local", "--list"], check=False)
+        cfg_local = run([str(venv_python_path()), "-m", "dvc", "config", "--local", "--list"], check=False)
 
         if not cfg_local:
             fail("No se pudo leer configuración local de DVC")
