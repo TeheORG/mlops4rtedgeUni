@@ -13,6 +13,14 @@ endif
 
 $(info [INFO] Using local Python interpreter: $(PYTHON_LOCAL))
 
+# Optional: load user/local environment variables automatically.
+# Keep this before .mlops4ofp/env.sh if you want setup-generated values
+# to have priority, or move it below to let .env override them.
+ifneq ("$(wildcard .env)","")
+include .env
+export
+endif
+
 ifneq ("$(wildcard .mlops4ofp/env.sh)","")
 include .mlops4ofp/env.sh
 export
@@ -70,38 +78,39 @@ clean-setup:
 	@echo "==> Removing MLflow associated with the project (if exists)"
 	@$(PYTHON_LOCAL) -c 'import yaml,pathlib,subprocess,os,shutil,json,sys;cfg_path=pathlib.Path(".mlops4ofp/setup.yaml");sys.exit(0) if not cfg_path.exists() else None;cfg=yaml.safe_load(cfg_path.read_text());ml=cfg.get("mlflow",{});sys.exit(0) if not ml.get("enabled",False) else None;uri=ml.get("tracking_uri","");(print(f"[INFO] Removing local MLflow at {path}") or shutil.rmtree(path)) if uri.startswith("file:") and os.path.exists(path:=uri.replace("file:","")) else (print("[INFO] Remote MLflow detected: removing project experiments (prefix F05_)") or [print(f"[INFO] Removing remote experiment {exp.get(\"name\",\"\")}") or subprocess.run(["mlflow","experiments","delete","--experiment-id",exp.get("experiment_id")],check=False) for exp in (experiments:=json.loads(subprocess.check_output(["mlflow","experiments","list","--format","json"]))) if exp.get("name","").startswith("F05_") and exp.get("experiment_id")] if True else None) if uri else None' 2>/dev/null || true
 	@echo "==> Removing complete ML project environment"
-	@rm -rf .mlops4ofp .dvc .dvc_storage local_dvc_store .venv executions
+# 	@rm -rf .mlops4ofp .dvc .dvc_storage local_dvc_store .venv executions
+	@rm -rf .mlops4ofp .dvc .dvc_storage local_dvc_store executions
 	@echo "[OK] ML project reinitialized. Run 'make setup' to rebuild base structure."
 
 
 ifeq ($(OS),Windows_NT)
-PYTHON := .venv/Scripts/python.exe
-DVC := .venv/Scripts/dvc.exe
-JUPYTER := .venv/Scripts/jupyter.exe
-
-# Docker on Git Bash can rewrite container paths like /workspace into
-# C:/Program Files/Git/workspace. Use //-prefixed container paths to avoid
-# MSYS path conversion and keep a valid container workdir.
-DOCKER_HOST_PWD := $(shell pwd -W 2>/dev/null)
-ifeq ($(strip $(DOCKER_HOST_PWD)),)
-DOCKER_HOST_PWD := $(PWD)
-endif
-DOCKER_WORKSPACE_PATH := //workspace
-DOCKER_PROJECT_PATH := //project
+  PYTHON := .venv/Scripts/python.exe
+  DVC := .venv/Scripts/dvc.exe
+  JUPYTER := .venv/Scripts/jupyter.exe
+ 
+  # Docker on Git Bash can rewrite container paths like /workspace into
+  # C:/Program Files/Git/workspace. Use //-prefixed container paths to avoid
+  # MSYS path conversion and keep a valid container workdir.
+  DOCKER_HOST_PWD := $(shell pwd -W 2>/dev/null)
+  ifeq ($(strip $(DOCKER_HOST_PWD)),)
+    DOCKER_HOST_PWD := $(PWD)
+  endif
+  DOCKER_WORKSPACE_PATH := //workspace
+  DOCKER_PROJECT_PATH := //project
 else
-ifneq ("$(wildcard .venv/bin/python3)","")
-PYTHON := .venv/bin/python3
-DVC := .venv/bin/dvc
-JUPYTER := .venv/bin/jupyter
-else
-PYTHON := python3
-DVC := dvc
-JUPYTER := jupyter
-endif
-
-DOCKER_HOST_PWD := $(PWD)
-DOCKER_WORKSPACE_PATH := /workspace
-DOCKER_PROJECT_PATH := /project
+  MLOPS_VENV_PATH ?= .venv
+  ifneq ("$(wildcard $(MLOPS_VENV_PATH)/bin/python3)","")
+    PYTHON := $(MLOPS_VENV_PATH)/bin/python3
+    DVC := $(MLOPS_VENV_PATH)/bin/dvc
+    JUPYTER := $(MLOPS_VENV_PATH)/bin/jupyter
+  else
+    PYTHON := python3
+    DVC := dvc
+    JUPYTER := jupyter
+  endif
+  DOCKER_HOST_PWD := $(PWD)
+  DOCKER_WORKSPACE_PATH := /workspace
+  DOCKER_PROJECT_PATH := /project
 endif
 
 $(info [INFO] Using Python interpreter in venv: $(PYTHON))
@@ -208,6 +217,8 @@ register-generic: check-variant-format
 		--phase $(PHASE) \
 		--variant $(VARIANT) || exit 1; \
 	MODE=$$($(PYTHON) -c "import yaml, pathlib; cfg=yaml.safe_load(pathlib.Path('.mlops4ofp/setup.yaml').read_text()); print(cfg.get('git',{}).get('mode','none'))"); \
+	PUBLISH_REMOTE=$$($(PYTHON) -c "import yaml, pathlib; cfg=yaml.safe_load(pathlib.Path('.mlops4ofp/setup.yaml').read_text()); print(cfg.get('git',{}).get('publish_remote_name','publish'))"); \
+	PUBLISH_BRANCH=$$($(PYTHON) -c "import yaml, pathlib; cfg=yaml.safe_load(pathlib.Path('.mlops4ofp/setup.yaml').read_text()); print(cfg.get('git',{}).get('branch','main'))"); \
 	echo "==> Registering DVC artifacts"; \
 	for ext in $(DVC_EXTS); do \
 		$(DVC) add "$(VARIANTS_DIR)/$(VARIANT)"/*.$$ext 2>/dev/null || true; \
@@ -221,7 +232,7 @@ register-generic: check-variant-format
 		echo "==> Commit"; \
 		git commit -m "register $(PHASE):$(VARIANT)" || true; \
 		echo "==> Push (if configured)"; \
-		git push register HEAD:main || true; \
+		git push "$$PUBLISH_REMOTE" "HEAD:$$PUBLISH_BRANCH" || true; \
 	else \
 		echo "==> Skipping Git add/commit in git.mode=$$MODE"; \
 	fi; \
@@ -255,8 +266,10 @@ remove-generic: check-variant-format
 	git add dvc.yaml dvc.lock 2>/dev/null || true; \
 	git commit -m "remove variant: $(PHASE) $(VARIANT)" || true; \
 	MODE=$$($(PYTHON) -c "import yaml, pathlib; cfg=yaml.safe_load(pathlib.Path('.mlops4ofp/setup.yaml').read_text()); print(cfg.get('git',{}).get('mode','none'))"); \
+	PUBLISH_REMOTE=$$($(PYTHON) -c "import yaml, pathlib; cfg=yaml.safe_load(pathlib.Path('.mlops4ofp/setup.yaml').read_text()); print(cfg.get('git',{}).get('publish_remote_name','publish'))"); \
+	PUBLISH_BRANCH=$$($(PYTHON) -c "import yaml, pathlib; cfg=yaml.safe_load(pathlib.Path('.mlops4ofp/setup.yaml').read_text()); print(cfg.get('git',{}).get('branch','main'))"); \
 	if [ "$$MODE" = "custom" ]; then \
-		git push register HEAD:main || echo "[WARN] git push register failed"; \
+		git push "$$PUBLISH_REMOTE" "HEAD:$$PUBLISH_BRANCH" || echo "[WARN] git push $$PUBLISH_REMOTE HEAD:$$PUBLISH_BRANCH failed"; \
 	elif [ "$$MODE" = "none" ]; then \
 		echo "[INFO] Local-only mode"; \
 	else \

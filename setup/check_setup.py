@@ -6,6 +6,7 @@ import os
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
+VENV = Path(os.environ.get("MLOPS_VENV_PATH", ROOT / ".venv"))
 CFG_FILE = ROOT / ".mlops4ofp" / "setup.yaml"
 ENV_FILE = ROOT / ".mlops4ofp" / "env.sh"
 PIPELINE_REF_FILE = ROOT / ".mlops4ofp" / "pipeline_ref.yaml"  # NUEVO
@@ -25,10 +26,9 @@ def ok(msg):
 
 
 def check_venv():
-    venv = ROOT / ".venv"
-    if not venv.exists():
-        fail(".venv no existe (setup incompleto)")
-    ok("Entorno virtual .venv presente")
+    if not VENV.exists():
+        fail(f"{VENV} no existe (setup incompleto)")
+    ok(f"Entorno virtual {VENV} presente")
 
 
 def run(cmd, check=True):
