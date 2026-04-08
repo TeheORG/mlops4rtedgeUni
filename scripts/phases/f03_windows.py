@@ -108,6 +108,7 @@ def main():
     PW = params["PW"]
     window_strategy = params["window_strategy"]
     nan_mode = params["nan_mode"]
+    BATCH = 10_000
 
     # --------------------------------------------------------
     # Validaciones básicas
@@ -195,60 +196,98 @@ def main():
     windows_total = 0
     windows_written = 0
 
-    n = len(times)
-    t0 = times[0]
+    # =================================================================
+    # FAST PATH: SYNCHRO
+    # =================================================================
+    if window_strategy == "synchro":
+        n = len(times)
+        t0 = times[0]
 
-    i_ow_0 = bisect_left(times, t0)
-    i_ow_1 = bisect_left(times, t0 + OW_span)
-    i_pw_0 = bisect_left(times, t0 + PW_start)
-    i_pw_1 = bisect_left(times, t0 + PW_start + PW_span)
+        i_ow_0 = bisect_left(times, t0)
+        i_ow_1 = bisect_left(times, t0 + OW_span)
+        i_pw_0 = bisect_left(times, t0 + PW_start)
+        i_pw_1 = bisect_left(times, t0 + PW_start + PW_span)
 
-    while t0 + total_span <= times[-1]:
+        while t0 + total_span <= times[-1]:
+            windows_total += 1
 
-        windows_total += 1
+            if i_ow_0 != i_ow_1 or i_pw_0 != i_pw_1:
+                if nan_mode == "discard":
+                    if (
+                        has_nan_in_range(nan_prefix, i_ow_0, i_ow_1)
+                        or has_nan_in_range(nan_prefix, i_pw_0, i_pw_1)
+                    ):
+                        pass
+                    else:
+                        ow = events_flat[offsets[i_ow_0]:offsets[i_ow_1]]
+                        pw = events_flat[offsets[i_pw_0]:offsets[i_pw_1]]
+                        if len(ow) or len(pw):
+                            rows.append({"OW_events": ow, "PW_events": pw})
+                            windows_written += 1
+                else:
+                    ow = events_flat[offsets[i_ow_0]:offsets[i_ow_1]]
+                    pw = events_flat[offsets[i_pw_0]:offsets[i_pw_1]]
+                    if len(ow) or len(pw):
+                        rows.append({"OW_events": ow, "PW_events": pw})
+                        windows_written += 1
 
-        ow_event_count = range_event_count(offsets, i_ow_0, i_ow_1)
-        pw_event_count = range_event_count(offsets, i_pw_0, i_pw_1)
+            if len(rows) >= BATCH:
+                flush_rows(writer, rows, schema)
 
-        # No escribir pares completamente vacios: puede haber filas temporales
-        # dentro del rango pero sin eventos reales asociados.
-        if ow_event_count > 0 or pw_event_count > 0:
+            t0 += Tu
+            ow_start = t0
+            ow_end = t0 + OW_span
+            pw_start = t0 + PW_start
+            pw_end = pw_start + PW_span
+
+            while i_ow_0 < n and times[i_ow_0] < ow_start:
+                i_ow_0 += 1
+            while i_ow_1 < n and times[i_ow_1] < ow_end:
+                i_ow_1 += 1
+            while i_pw_0 < n and times[i_pw_0] < pw_start:
+                i_pw_0 += 1
+            while i_pw_1 < n and times[i_pw_1] < pw_end:
+                i_pw_1 += 1
+
+    # =================================================================
+    # ASYNOW
+    # =================================================================
+    elif window_strategy == "asynOW":
+        active_bins = np.unique(((times[lengths > 0] - times[0]) // Tu).astype(np.int64))
+
+        for b in active_bins:
+            t0 = times[0] + b * Tu
+            if t0 + total_span > times[-1]:
+                continue
+
+            windows_total += 1
+
+            i_ow_0 = bisect_left(times, t0)
+            i_ow_1 = bisect_left(times, t0 + OW_span)
+            if i_ow_0 == i_ow_1:
+                continue
+
+            i_pw_0 = bisect_left(times, t0 + PW_start)
+            i_pw_1 = bisect_left(times, t0 + PW_start + PW_span)
 
             if nan_mode == "discard":
                 if (
                     has_nan_in_range(nan_prefix, i_ow_0, i_ow_1)
                     or has_nan_in_range(nan_prefix, i_pw_0, i_pw_1)
                 ):
-                    pass
-                else:
-                    ow = events_flat[offsets[i_ow_0]:offsets[i_ow_1]]
-                    pw = events_flat[offsets[i_pw_0]:offsets[i_pw_1]]
-                    rows.append({"OW_events": ow, "PW_events": pw})
-                    windows_written += 1
-            else:
-                ow = events_flat[offsets[i_ow_0]:offsets[i_ow_1]]
-                pw = events_flat[offsets[i_pw_0]:offsets[i_pw_1]]
+                    continue
+
+            ow = events_flat[offsets[i_ow_0]:offsets[i_ow_1]]
+            pw = events_flat[offsets[i_pw_0]:offsets[i_pw_1]]
+            if len(ow) or len(pw):
                 rows.append({"OW_events": ow, "PW_events": pw})
                 windows_written += 1
 
-        if len(rows) >= 10_000:
-            flush_rows(writer, rows, schema)
+            if len(rows) >= BATCH:
+                flush_rows(writer, rows, schema)
 
-        t0 += Tu
-
-        ow_start = t0
-        ow_end = t0 + OW_span
-        pw_start = t0 + PW_start
-        pw_end = pw_start + PW_span
-
-        while i_ow_0 < n and times[i_ow_0] < ow_start:
-            i_ow_0 += 1
-        while i_ow_1 < n and times[i_ow_1] < ow_end:
-            i_ow_1 += 1
-        while i_pw_0 < n and times[i_pw_0] < pw_start:
-            i_pw_0 += 1
-        while i_pw_1 < n and times[i_pw_1] < pw_end:
-            i_pw_1 += 1
+    else:
+        raise ValueError(f"Estrategia desconocida: {window_strategy}")
 
     flush_rows(writer, rows, schema)
     writer.close()
