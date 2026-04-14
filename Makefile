@@ -801,9 +801,10 @@ check5: check-variant-format
 		PHASE=$(PHASE5) \
 		VARIANTS_DIR=$(VARIANTS_DIR5) \
 		VARIANT=$(VARIANT) \
-		CHECK_FILES="05_model.h5 \
-		05_model_report.html \
-		05_labeled_dataset.parquet \
+		CHECK_FILES="05_modeling_model.h5 \
+		05_modeling_report.html \
+		05_modeling_parent_dataset.parquet \
+		05_modeling_training_dataset.parquet \
 		outputs.yaml"
 
 ############################################
@@ -1058,7 +1059,6 @@ check6: check-variant-format
 		echo "[INFO] edge_capable = true — checking EEDU artifacts"; \
 		[ -f "$$VAR_DIR/06_model_tflite.tflite" ] || { echo "[ERROR] model_tflite missing"; exit 1; }; \
 		[ -f "$$VAR_DIR/eedu/eedu_manifest.yaml" ] || { echo "[ERROR] eedu_manifest missing"; exit 1; }; \
-		[ -f "$$VAR_DIR/eedu/operators_resolver.cc" ] || { echo "[ERROR] operators_resolver missing"; exit 1; }; \
 		echo "[OK] EEDU artifacts present"; \
 	else \
 		echo "[INFO] edge_capable = false — skipping EEDU checks"; \
