@@ -616,5 +616,4 @@ def main():
 
 
 if __name__ == "__main__":
-# test change
-# test change
+    main()

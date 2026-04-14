@@ -117,6 +117,21 @@ def run_and_log_result(
     return process.returncode, "".join(lines)
 
 
+def get_host_user_spec() -> str:
+    """Devuelve UID:GID del proceso host para ejecutar Docker sin root."""
+    return f"{os.getuid()}:{os.getgid()}"
+
+
+def get_serial_device_gid(port: str | None) -> str | None:
+    """Devuelve el GID del dispositivo serie para group-add en Docker."""
+    if not port:
+        return None
+    try:
+        return str(os.stat(port).st_gid)
+    except OSError:
+        return None
+
+
 def build_idf_command(
     idf_args: list[str],
     esp_project_dir: Path,
@@ -140,6 +155,7 @@ def build_idf_command(
 
     cmd = [
         "docker", "run", "--rm", "-i",
+        "--user", get_host_user_spec(),
         "-v", f"{esp_project_dir.resolve()}:/project",
         "-w", "/project",
         "--entrypoint", "/bin/bash",
@@ -156,6 +172,9 @@ def build_idf_command(
 
     if port:
         cmd.extend(["--device", f"{port}:{port}"])
+        serial_gid = get_serial_device_gid(port)
+        if serial_gid:
+            cmd.extend(["--group-add", serial_gid])
 
     cmd.extend([IDF_DOCKER_IMAGE, "-lc", shell_cmd])
     return cmd
@@ -185,10 +204,13 @@ def run_idf_and_log(
 
 def can_map_docker_device(port: str, image_name: str) -> tuple[bool, str]:
     """Valida que Docker puede mapear el dispositivo serie indicado."""
+    serial_gid = get_serial_device_gid(port)
     probe = subprocess.run(
         [
             "docker", "run", "--rm",
+            "--user", get_host_user_spec(),
             "--device", f"{port}:{port}",
+            *(["--group-add", serial_gid] if serial_gid else []),
             "--entrypoint", "/bin/bash",
             image_name,
             "-lc", f"test -e {shlex.quote(port)}",

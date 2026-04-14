@@ -788,6 +788,14 @@ script5: check-variant-format ensure-f56-docker-image
 		$(F56_DOCKER_IMAGE) \
 		bash -lc "python -m $(SCRIPT5_MODULE) --variant $(VARIANT)"
 
+
+script5-a: check-variant-format
+	$(MAKE) script-run-generic \
+		PHASE=$(PHASE5) \
+		SCRIPT_MODULE=$(SCRIPT5_MODULE) \
+		VARIANT=$(VARIANT)
+
+
 check5: check-variant-format
 	$(MAKE) check-results-generic \
 		PHASE=$(PHASE5) \
@@ -1014,6 +1022,13 @@ script6: check-variant-format ensure-f56-docker-image
 		$(F56_DOCKER_IMAGE) \
 		bash -lc "python -m $(SCRIPT6_MODULE) --variant $(VARIANT)"
 
+script6-a: check-variant-format
+	$(MAKE) script-run-generic \
+		PHASE=$(PHASE6) \
+		SCRIPT_MODULE=$(SCRIPT6_MODULE) \
+		VARIANT=$(VARIANT)
+
+
 ############################################
 # Check results (custom, stronger than generic)
 ############################################
@@ -1224,9 +1239,8 @@ script7-post:
 ############################################
 # Full execution (robust)
 ############################################
-
 script7:
-	@EDGE_CAPABLE="$$($(PYTHON) -c 'import yaml; from pathlib import Path; v="$(VARIANT)"; p=Path("executions")/"f07_modval"/v/"params.yaml"; d=(yaml.safe_load(p.read_text()) or {}) if p.exists() else {}; parent=d.get("parent"); o=(Path("executions")/"f06_packaging"/str(parent)/"outputs.yaml") if parent else None; e=((yaml.safe_load(o.read_text()) or {}).get("exports", {})) if (o and o.exists()) else {}; print("true" if bool(e.get("edge_capable", False)) else "false")')"; \
+	@EDGE_CAPABLE="$$($(PYTHON) -c 'import yaml; from pathlib import Path; v="$(VARIANT)"; p=Path("executions")/"f07_modval"/v/"params.yaml"; d=(yaml.safe_load(p.read_text()) or {}) if p.exists() else {}; parent=d.get("parent"); o=(Path("executions")/"f06_quant"/str(parent)/"outputs.yaml") if parent else None; e=((yaml.safe_load(o.read_text()) or {}).get("exports", {})) if (o and o.exists()) else {}; print("true" if bool(e.get("edge_capable", False)) else "false")')"; \
 	if [ "$$EDGE_CAPABLE" = "false" ]; then \
 		echo "[INFO] Parent not edge_capable -> running post only"; \
 		$(PYTHON) -m $(SCRIPT7_POST) --variant $(VARIANT); \
