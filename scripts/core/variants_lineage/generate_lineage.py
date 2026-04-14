@@ -2,7 +2,35 @@
 import os
 import yaml
 import json
+import re
 from config import BASE_DIR, PHASES, PHASE_COLORS, CSS_STYLES, DST_HTML_DIR, OUTPUT_FILENAME
+
+VARIANT_ID_REGEX = re.compile(r"^v(?P<phase>\d)_(?P<seq>\d{4})$")
+
+
+def _phase_code(phase_name):
+    m = re.match(r"^f(\d{2})(?:_|$)", phase_name)
+    return str(int(m.group(1))) if m else None
+
+
+def _list_phase_variants(phase_name):
+    phase_dir = os.path.join(BASE_DIR, phase_name)
+    if not os.path.isdir(phase_dir):
+        return []
+
+    code = _phase_code(phase_name)
+    variants = []
+    for entry in sorted(os.listdir(phase_dir)):
+        entry_path = os.path.join(phase_dir, entry)
+        if not os.path.isdir(entry_path):
+            continue
+        m = VARIANT_ID_REGEX.fullmatch(entry)
+        if not m:
+            continue
+        if code and m.group("phase") != code:
+            continue
+        variants.append(entry)
+    return variants
 
 def load_yaml(filepath):
     if not os.path.exists(filepath):
@@ -107,17 +135,15 @@ def build_html_dashboard():
 
     for i, phase in enumerate(PHASES):
         phase_name = phase["name"]
-        ctrl_variants = phase.get("ctrl_variants", "variants.yaml")
-        variants_file = os.path.join(BASE_DIR, phase_name, ctrl_variants)
-        variants_data = load_yaml(variants_file)
+        variant_ids = _list_phase_variants(phase_name)
         
         colors = PHASE_COLORS.get(phase_name, PHASE_COLORS["default"])
         
         column_html = f'<div class="phase-column" id="col_{phase_name}" style="border-top-color: {colors["border"]}">'
         column_html += f'<div class="phase-title">{phase_name}</div>'
 
-        if 'variants' in variants_data:
-            for variant_id, _ in variants_data['variants'].items():
+        if variant_ids:
+            for variant_id in variant_ids:
                 node_id = f"{phase_name}_{variant_id}"
                 
                 card_style = f"background-color: {colors['bg']}; border-color: {colors['border']}; color: {colors['text']};"

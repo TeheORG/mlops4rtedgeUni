@@ -12,6 +12,7 @@ import hashlib
 # ===============================================================
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
+VARIANT_ID_REGEX = re.compile(r"^v(?P<phase>\d)_(?P<seq>\d{4})$")
 
 
 # ===============================================================
@@ -20,6 +21,51 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 def load_schema():
     return load_traceability_schema()
+
+
+def _extract_phase_code(phase_name: str) -> str | None:
+    m = re.match(r"^f(\d{2})(?:_|$)", phase_name)
+    return str(int(m.group(1))) if m else None
+
+
+def validate_variant_id_for_phase(variant: str, phase: str, field_name: str = "VARIANT") -> None:
+    m = VARIANT_ID_REGEX.fullmatch(str(variant).strip())
+    if not m:
+        raise ValueError(
+            f"Formato inválido para {field_name}: {variant}. Debe ser vY_XXXX (ej. v1_0001)"
+        )
+
+    phase_code = _extract_phase_code(phase)
+    if phase_code and m.group("phase") != phase_code:
+        raise ValueError(
+            f"{field_name}={variant} no corresponde a la fase {phase} (se esperaba prefijo v{phase_code}_)"
+        )
+
+
+def normalize_variant_id_for_phase(raw_variant: str, phase: str, field_name: str = "VARIANT") -> str:
+    raw = str(raw_variant).strip()
+    phase_code = _extract_phase_code(phase)
+    if not phase_code:
+        raise ValueError(f"No se pudo inferir fase para normalizar {field_name}: {phase}")
+
+    # Canonical form: vY_XXXX
+    m = VARIANT_ID_REGEX.fullmatch(raw)
+    if m:
+        if m.group("phase") != phase_code:
+            raise ValueError(
+                f"{field_name}={raw} no corresponde a la fase {phase} (se esperaba prefijo v{phase_code}_)"
+            )
+        return f"v{m.group('phase')}_{m.group('seq')}"
+
+    # Shorthand form: vNNNN | vNNN | vNN | vN | NNNN | NNN | NN | N
+    short = re.fullmatch(r"v?([0-9]{1,4})", raw)
+    if short:
+        num = int(short.group(1))
+        return f"v{phase_code}_{num:04d}"
+
+    raise ValueError(
+        f"Formato inválido para {field_name}: {raw}. Usa vY_XXXX o abreviado vNNNN/NNNN"
+    )
 
 
 # ===============================================================
@@ -149,6 +195,11 @@ def validate_type(value, rule, key):
         if value not in rule["allowed"]:
             raise ValueError(f"{key} debe ser uno de {rule['allowed']}")
 
+    # regex for strings
+    if "regex" in rule and isinstance(value, str):
+        if not re.fullmatch(rule["regex"], value):
+            raise ValueError(f"{key} no cumple regex {rule['regex']}")
+
     # simple numeric check
     if "check" in rule and isinstance(value, (int, float)):
         cond = rule["check"]
@@ -240,6 +291,11 @@ def resolve_params(phase, provided, parent_params=None):
 
         # 4️⃣ error si required
         elif required:
+            if inherited:
+                raise ValueError(
+                    f"Falta parámetro obligatorio heredado: {key}. "
+                    f"Verifica que la variante padre tenga outputs.yaml generado."
+                )
             raise ValueError(f"Falta parámetro obligatorio: {key}")
 
         else:
@@ -286,9 +342,6 @@ def parse_set_args(raw_set_args: str):
 # ============================
 # AUDIT SUPPORT (PARENT HASHES)
 # ============================
-
-import hashlib
-from pathlib import Path
 
 
 def _sha256_file(path: Path) -> str:
@@ -337,23 +390,8 @@ class ParamsManager:
         self.phase_dir = PROJECT_ROOT / "executions" / phase
         self.phase_dir.mkdir(parents=True, exist_ok=True)
 
-        self.registry_file = self.phase_dir / "variants.yaml"
-        if not self.registry_file.exists():
-            yaml.safe_dump({"variants": {}}, self.registry_file.open("w"))
-
         self._current_variant = None
         self._current_variant_dir = None
-
-
-    # -----------------------------------------------------------
-    # Registry
-    # -----------------------------------------------------------
-
-    def _load_registry(self):
-        return yaml.safe_load(self.registry_file.read_text()) or {"variants": {}}
-
-    def _save_registry(self, data):
-        yaml.safe_dump(data, self.registry_file.open("w"))
 
 
     # -----------------------------------------------------------
@@ -361,14 +399,7 @@ class ParamsManager:
     # -----------------------------------------------------------
 
     def create_variant(self, variant: str, extra_params=None):
-
-        if not re.match(r"^v[0-9]{3}$", variant):
-            raise ValueError("Formato de variante inválido (usar vNNN)")
-
-        registry = self._load_registry()
-
-        if variant in registry["variants"]:
-            raise RuntimeError(f"La variante {variant} ya existe")
+        variant = normalize_variant_id_for_phase(variant, self.phase, "VARIANT")
 
         variant_dir = self.phase_dir / variant
 
@@ -387,6 +418,7 @@ class ParamsManager:
         phase_schema = schema["phases"][self.phase]
         parameters_schema = phase_schema.get("parameters", {})
         parent_required = phase_schema.get("parent_required", True)
+        parent_phase = infer_parent_phase(schema, self.phase)
 
         global_schema = schema.get("global", {})
         parent_rule = global_schema.get("PARENT")
@@ -411,16 +443,13 @@ class ParamsManager:
 
                 # PARENT se trata como parámetro global, no de fase
                 if key == "PARENT":
-                    if not parent_rule:
-                        # fallback muy básico si no hay regla global definida
-                        if not re.fullmatch(r"v[0-9]{3}", raw_value.strip()):
-                            raise ValueError("PARENT debe ser vNNN")
-                        parent_variant = raw_value.strip()
-                    else:
-                        # usar las mismas reglas de tipos y regex que en global.PARENT
-                        val = parse_value_by_rule(raw_value, parent_rule, "PARENT")
-                        validate_type(val, parent_rule, "PARENT")
-                        parent_variant = val
+                    if not parent_phase:
+                        raise ValueError(f"La fase {self.phase} no admite PARENT")
+
+                    parent_variant = normalize_variant_id_for_phase(raw_value, parent_phase, "PARENT")
+
+                    if parent_rule:
+                        validate_type(parent_variant, parent_rule, "PARENT")
                     continue
 
                 # Soporte para sintaxis anidada: deployment.target=esp32
@@ -482,7 +511,7 @@ class ParamsManager:
 
         if parent_required and not parent_variant:
             raise ValueError(
-                f"La fase {self.phase} requiere PARENT=vNNN (variante de la fase anterior)"
+                f"La fase {self.phase} requiere PARENT=vY_XXXX (variante de la fase anterior)"
             )
 
         if not parent_required and parent_variant is None:
@@ -575,16 +604,15 @@ class ParamsManager:
             sort_keys=False
         )
 
-        # -----------------------------------------------------------
-        # Registro
-        # -----------------------------------------------------------
-
-        registry["variants"][variant] = {
-            "created_at": datetime.now(timezone.utc).isoformat(),
-            "params_path": str(params_path.relative_to(PROJECT_ROOT))
-        }
-
-        self._save_registry(registry)
+        metadata_path = variant_dir / "metadata.yaml"
+        yaml.safe_dump(
+            {
+                "created_at": datetime.now(timezone.utc).isoformat(),
+                "params_path": str(params_path.relative_to(PROJECT_ROOT)),
+            },
+            metadata_path.open("w"),
+            sort_keys=False,
+        )
 
         print(f"[OK] Variante creada: {self.phase}:{variant}")
 
@@ -593,17 +621,12 @@ class ParamsManager:
     # -----------------------------------------------------------
 
     def delete_variant(self, variant: str):
-
-        registry = self._load_registry()
-        if variant not in registry["variants"]:
+        validate_variant_id_for_phase(variant, self.phase)
+        variant_dir = self.phase_dir / variant
+        if not variant_dir.exists():
             raise ValueError("Variante inexistente")
 
-        variant_dir = self.phase_dir / variant
-        if variant_dir.exists():
-            shutil.rmtree(variant_dir)
-
-        del registry["variants"][variant]
-        self._save_registry(registry)
+        shutil.rmtree(variant_dir)
 
         print(f"[OK] Variante eliminada: {variant}")
 
@@ -674,36 +697,3 @@ if __name__ == "__main__":
 
     else:
         parser.print_help()
-
-
-# ============================
-# AUDIT SUPPORT (PARENT HASHES)
-# ============================
-
-
-def _sha256_file(path: Path) -> str:
-    h = hashlib.sha256()
-    with open(path, "rb") as f:
-        h.update(f.read())
-    return h.hexdigest()
-
-
-def compute_parent_hashes(phase: str, params: dict) -> dict:
-    parents = []
-
-    if "parent" in params:
-        parents = [params["parent"]]
-    elif "parents" in params:
-        parents = params["parents"]
-
-    hashes = {}
-
-    schema = load_schema()
-    for p in parents:
-        parent_phase = infer_parent_phase(schema, phase)
-        parent_outputs = Path("executions") / parent_phase / p / "outputs.yaml"
-
-        if parent_outputs.exists():
-            hashes[p] = _sha256_file(parent_outputs)
-
-    return hashes

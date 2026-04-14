@@ -2,6 +2,7 @@ import json
 import subprocess
 import argparse
 import sys
+import re
 from pathlib import Path
 from datetime import datetime, timezone
 from typing import List, Dict, Any
@@ -18,6 +19,7 @@ import hashlib
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 EXECUTIONS_DIR = PROJECT_ROOT / "executions"
 PIPELINE_REF_PATH = PROJECT_ROOT / ".mlops4ofp" / "pipeline_ref.yaml"
+VARIANT_ID_REGEX = re.compile(r"^v(?P<phase>\d)_(?P<seq>\d{4})$")
 
 
 # ============================================================
@@ -189,12 +191,48 @@ def _validate_basic_type(value, rule, context):
 # CARGA DE VARIANTES
 # ============================================================
 
+def _extract_phase_code(phase: str) -> str | None:
+    m = re.match(r"^f(\d{2})(?:_|$)", phase)
+    return str(int(m.group(1))) if m else None
+
+
+def _is_variant_id_for_phase(variant: str, phase: str | None = None) -> bool:
+    m = VARIANT_ID_REGEX.fullmatch(variant)
+    if not m:
+        return False
+    if not phase:
+        return True
+    phase_code = _extract_phase_code(phase)
+    if not phase_code:
+        return True
+    return m.group("phase") == phase_code
+
+
+def _iter_variant_dirs_for_phase(phase: str):
+    phase_dir = EXECUTIONS_DIR / phase
+    if not phase_dir.exists() or not phase_dir.is_dir():
+        return
+
+    for child in sorted(phase_dir.iterdir()):
+        if child.is_dir() and _is_variant_id_for_phase(child.name, phase):
+            yield child.name, child
+
+
+def _load_variant_metadata(variant_dir: Path) -> Dict[str, Any]:
+    meta_path = variant_dir / "metadata.yaml"
+    if not meta_path.exists():
+        return {}
+    data = yaml.safe_load(meta_path.read_text())
+    return data if isinstance(data, dict) else {}
+
 def load_variants_for_phase(phase: str) -> Dict[str, Any]:
-    reg = EXECUTIONS_DIR / phase / "variants.yaml"
-    if not reg.exists():
-        return {"variants": {}}
-    with reg.open("r", encoding="utf-8") as f:
-        return yaml.safe_load(f) or {"variants": {}}
+    data: Dict[str, Any] = {"variants": {}}
+    for variant_name, variant_dir in _iter_variant_dirs_for_phase(phase):
+        meta = _load_variant_metadata(variant_dir)
+        if "params_path" not in meta:
+            meta["params_path"] = str((variant_dir / "params.yaml").relative_to(PROJECT_ROOT))
+        data["variants"][variant_name] = meta
+    return data
 
 
 def load_all_variants() -> Dict[str, Dict[str, Any]]:
@@ -206,10 +244,15 @@ def load_all_variants() -> Dict[str, Dict[str, Any]]:
     for ph in EXECUTIONS_DIR.iterdir():
         if not ph.is_dir():
             continue
-        reg = ph / "variants.yaml"
-        if reg.exists():
-            data = yaml.safe_load(reg.read_text()) or {"variants": {}}
-            result[ph.name] = data.get("variants", {})
+        phase_name = ph.name
+        phase_variants: Dict[str, Any] = {}
+        for variant_name, variant_dir in _iter_variant_dirs_for_phase(phase_name):
+            meta = _load_variant_metadata(variant_dir)
+            if "params_path" not in meta:
+                meta["params_path"] = str((variant_dir / "params.yaml").relative_to(PROJECT_ROOT))
+            phase_variants[variant_name] = meta
+        if phase_variants:
+            result[phase_name] = phase_variants
 
     return result
 
@@ -219,11 +262,11 @@ def load_all_variants() -> Dict[str, Dict[str, Any]]:
 # ============================================================
 
 def validate_variant_exists(phase: str, variant: str):
-    reg = load_variants_for_phase(phase)
-    if variant not in reg.get("variants", {}):
+    variant_dir = EXECUTIONS_DIR / phase / variant
+    if not variant_dir.exists() or not variant_dir.is_dir() or not _is_variant_id_for_phase(variant, phase):
         raise ValueError(
             f"La variante {variant} no existe en la fase {phase}.\n"
-            f"Archivo: executions/{phase}/variants.yaml"
+            f"Ruta esperada: executions/{phase}/{variant}"
         )
     return True
 
@@ -233,16 +276,36 @@ def validate_variant_exists(phase: str, variant: str):
 # ============================================================
 
 def find_children(phase: str, variant: str) -> List[str]:
-    allv = load_all_variants()
     children = []
 
-    for ph, variants in allv.items():
-        for vname, meta in variants.items():
-            if (
-                meta.get("parent_phase") == phase
-                and meta.get("parent_variant") == variant
-            ):
-                children.append(f"{ph}:{vname}")
+    for phase_dir in EXECUTIONS_DIR.iterdir():
+        if not phase_dir.is_dir():
+            continue
+        child_phase = phase_dir.name
+        for child_variant, child_dir in _iter_variant_dirs_for_phase(child_phase):
+            params_path = child_dir / "params.yaml"
+            if not params_path.exists():
+                continue
+
+            params_data = yaml.safe_load(params_path.read_text()) or {}
+            candidate_parents: list[str] = []
+
+            direct_parent = params_data.get("parent")
+            if isinstance(direct_parent, str):
+                candidate_parents.append(direct_parent)
+
+            top_level_parents = params_data.get("parents")
+            if isinstance(top_level_parents, list):
+                candidate_parents.extend([str(p) for p in top_level_parents if p is not None])
+
+            parameters = params_data.get("parameters")
+            if isinstance(parameters, dict):
+                nested_parents = parameters.get("parents")
+                if isinstance(nested_parents, list):
+                    candidate_parents.extend([str(p) for p in nested_parents if p is not None])
+
+            if variant in candidate_parents:
+                children.append(f"{child_phase}:{child_variant}")
 
     return children
 

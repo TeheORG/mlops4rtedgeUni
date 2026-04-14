@@ -121,12 +121,59 @@ $(info [INFO] Using Python interpreter in venv: $(PYTHON))
 ############################################
 
 check-variant-format:
-	@test -n "$(VARIANT)" || (echo "[ERROR] You must specify VARIANT=vNNN"; exit 1)
-	@if ! echo $(VARIANT) | grep -Eq '^v[0-9]{3}$$'; then \
+	@test -n "$(VARIANT)" || (echo "[ERROR] You must specify VARIANT=vY_XXXX"; exit 1)
+	@if ! echo $(VARIANT) | grep -Eq '^(v[0-9]_[0-9]{4}|v?[0-9]{1,4})$$'; then \
 	    echo "[ERROR] Incorrect format for VARIANT: $(VARIANT)"; \
-	    echo "        It must be vNNN (e.g., v001, v023, v120)"; \
+	    echo "        Allowed forms: vY_XXXX, vNNNN, vNNN, vNN, vN, NNNN, NNN, NN, N"; \
+	    echo "        Example for phase f01_*: v1_0001, v0001, v001, v01, v1, 1"; \
 	    exit 1; \
 	fi
+
+# Normalize VARIANT to canonical format vY_XXXX, where Y is inferred from PHASE (f0Y_*).
+# Accepted inputs:
+#   - canonical: vY_XXXX
+#   - shorthand: vNNNN | vNNN | vNN | vN | NNNN | NNN | NN | N
+NORMALIZE_VARIANT = bash -eu -c 'phase="$$1"; variant="$$2"; \
+if [[ "$$phase" =~ ^f([0-9]{2})(_|$$) ]]; then \
+	phase_digit=$$((10\#$${BASH_REMATCH[1]})); \
+else \
+	echo "[ERROR] PHASE is required to normalize VARIANT" >&2; exit 1; \
+fi; \
+if [[ "$$variant" =~ ^v([0-9])_([0-9]{4})$$ ]]; then \
+	if [[ "$${BASH_REMATCH[1]}" != "$$phase_digit" ]]; then \
+		echo "[ERROR] Incorrect phase marker in VARIANT=$$variant for PHASE=$$phase; expected v$${phase_digit}_XXXX" >&2; exit 1; \
+	fi; \
+	echo "v$${BASH_REMATCH[1]}_$${BASH_REMATCH[2]}"; \
+	exit 0; \
+fi; \
+if [[ "$$variant" =~ ^v?([0-9]{1,4})$$ ]]; then \
+	num=$$((10\#$${BASH_REMATCH[1]})); \
+	printf "v%s_%04d\n" "$$phase_digit" "$$num"; \
+	exit 0; \
+fi; \
+echo "[ERROR] Incorrect format for VARIANT: $$variant. Use vY_XXXX or shorthand vNNNN/NNNN" >&2; exit 1' _ "$(PHASE)" "$(VARIANT)"
+
+# Normalize VARIANT for an explicit phase value. Used by targets such as script5
+# that do not define PHASE as a make variable.
+NORMALIZE_VARIANT_FOR_PHASE = bash -eu -c 'phase="$$1"; variant="$$2"; \
+if [[ "$$phase" =~ ^f([0-9]{2})(_|$$) ]]; then \
+	phase_digit=$$((10\#$${BASH_REMATCH[1]})); \
+else \
+	echo "[ERROR] PHASE is required to normalize VARIANT" >&2; exit 1; \
+fi; \
+if [[ "$$variant" =~ ^v([0-9])_([0-9]{4})$$ ]]; then \
+	if [[ "$${BASH_REMATCH[1]}" != "$$phase_digit" ]]; then \
+		echo "[ERROR] Incorrect phase marker in VARIANT=$$variant for PHASE=$$phase; expected v$$phase_digit_XXXX" >&2; exit 1; \
+	fi; \
+	echo "v$${BASH_REMATCH[1]}_$${BASH_REMATCH[2]}"; \
+	exit 0; \
+fi; \
+if [[ "$$variant" =~ ^v?([0-9]{1,4})$$ ]]; then \
+	num=$$((10\#$${BASH_REMATCH[1]})); \
+	printf "v%s_%04d\n" "$$phase_digit" "$$num"; \
+	exit 0; \
+fi; \
+echo "[ERROR] Incorrect format for VARIANT: $$variant. Use vY_XXXX or shorthand vNNNN/NNNN" >&2; exit 1' _
 
 ############################################
 # Internal helpers (inline Python, no extra script)
@@ -186,21 +233,26 @@ endef
 
 
 script-run-generic: check-variant-format
-	@echo "==> Running script PHASE $(PHASE) for variant $(VARIANT)"
-	@if [ -n "$(SCRIPT_MODULE)" ]; then \
-		$(PYTHON) -m $(SCRIPT_MODULE) --variant $(VARIANT); \
+	@set -eu; \
+	VARIANT_NORM="$$($(NORMALIZE_VARIANT))"; \
+	echo "==> Running script PHASE $(PHASE) for variant $$VARIANT_NORM"; \
+	if [ -n "$(SCRIPT_MODULE)" ]; then \
+		$(PYTHON) -m $(SCRIPT_MODULE) --variant $$VARIANT_NORM; \
 	else \
-		$(PYTHON) $(SCRIPT) --variant $(VARIANT); \
+		$(PYTHON) $(SCRIPT) --variant $$VARIANT_NORM; \
 	fi
 
 variant-generic: check-variant-format
 	@set -eu; \
-	echo "==> Creando variante $(PHASE):$(VARIANT)"; \
+	VARIANT_NORM="$$($(NORMALIZE_VARIANT))"; \
+	echo "==> Creando variante $(PHASE):$$VARIANT_NORM"; \
 	$(PYTHON) -m scripts.core.params_manager create \
 		--phase $(PHASE) \
-		--variant $(VARIANT) \
+		--variant $$VARIANT_NORM \
 		--set-args "$(strip $(EXTRA_FLAGS))"; \
-	echo "[OK] Variante creada: $(PHASE):$(VARIANT)";
+	echo "[OK] Variante creada: $(PHASE):$$VARIANT_NORM"; \
+	echo "==> Regenerating lineage dashboard"; \
+	$(MAKE) generate_lineage || true
 
 ############################################
 # Register variant
@@ -208,26 +260,26 @@ variant-generic: check-variant-format
 
 register-generic: check-variant-format
 	@set -eu; \
-	echo "==> Registering $(PHASE):$(VARIANT)"; \
+	VARIANT_NORM="$$($(NORMALIZE_VARIANT))"; \
+	echo "==> Registering $(PHASE):$$VARIANT_NORM"; \
 	echo "==> Validating + auditing variant"; \
 	$(PYTHON) -m scripts.core.traceability validate-variant \
 		--phase $(PHASE) \
-		--variant $(VARIANT) || exit 1; \
+		--variant $$VARIANT_NORM || exit 1; \
 	MODE=$$($(PYTHON) -c "import yaml, pathlib; cfg=yaml.safe_load(pathlib.Path('.mlops4ofp/setup.yaml').read_text()); print(cfg.get('git',{}).get('mode','none'))"); \
 	PUBLISH_REMOTE=$$($(PYTHON) -c "import yaml, pathlib; cfg=yaml.safe_load(pathlib.Path('.mlops4ofp/setup.yaml').read_text()); print(cfg.get('git',{}).get('publish_remote_name','publish'))"); \
 	PUBLISH_BRANCH=$$($(PYTHON) -c "import yaml, pathlib; cfg=yaml.safe_load(pathlib.Path('.mlops4ofp/setup.yaml').read_text()); print(cfg.get('git',{}).get('branch','main'))"); \
 	echo "==> Registering DVC artifacts"; \
 	for ext in $(DVC_EXTS); do \
-		$(DVC) add "$(VARIANTS_DIR)/$(VARIANT)"/*.$$ext 2>/dev/null || true; \
+		$(DVC) add "$(VARIANTS_DIR)/$$VARIANT_NORM"/*.$$ext 2>/dev/null || true; \
 	done; \
 	if [ "$$MODE" = "custom" ]; then \
 		echo "==> Adding files to Git"; \
-		git add "$(VARIANTS_DIR)/$(VARIANT)" 2>/dev/null || true; \
-		git add "$(VARIANTS_DIR)/$(VARIANT)"/*.dvc 2>/dev/null || true; \
-		git add "$(VARIANTS_DIR)/variants.yaml" 2>/dev/null || true; \
+		git add "$(VARIANTS_DIR)/$$VARIANT_NORM" 2>/dev/null || true; \
+		git add "$(VARIANTS_DIR)/$$VARIANT_NORM"/*.dvc 2>/dev/null || true; \
 		git add dvc.yaml dvc.lock 2>/dev/null || true; \
 		echo "==> Commit"; \
-		git commit -m "register $(PHASE):$(VARIANT)" || true; \
+		git commit -m "register $(PHASE):$$VARIANT_NORM" || true; \
 		echo "==> Push (if configured)"; \
 		git push "$$PUBLISH_REMOTE" "HEAD:$$PUBLISH_BRANCH" || true; \
 	elif [ "$$MODE" = "none" ]; then \
@@ -237,7 +289,7 @@ register-generic: check-variant-format
 	fi; \
 	echo "==> DVC push"; \
 	$(DVC) push -r storage || true; \
-	echo "[OK] Registered $(PHASE):$(VARIANT)"
+	echo "[OK] Registered $(PHASE):$$VARIANT_NORM"
 
 ############################################
 # Remove variant
@@ -245,9 +297,10 @@ register-generic: check-variant-format
 
 remove-generic: check-variant-format
 	@set -eu; \
-	echo "==> Checking if variant $(PHASE):$(VARIANT) has children…"; \
-	$(PYTHON) -m scripts.core.traceability can-delete --phase $(PHASE) --variant $(VARIANT); \
-	VAR_DIR="$(VARIANTS_DIR)/$(VARIANT)"; \
+	VARIANT_NORM="$$($(NORMALIZE_VARIANT))"; \
+	echo "==> Checking if variant $(PHASE):$$VARIANT_NORM has children…"; \
+	$(PYTHON) -m scripts.core.traceability can-delete --phase $(PHASE) --variant $$VARIANT_NORM; \
+	VAR_DIR="$(VARIANTS_DIR)/$$VARIANT_NORM"; \
 	if [ -d "$$VAR_DIR" ]; then \
 		echo "==> Removing associated DVC artifacts (if any)"; \
 		for f in "$$VAR_DIR"/*.dvc; do \
@@ -258,8 +311,6 @@ remove-generic: check-variant-format
 		echo "==> Removing complete variant folder"; \
 		rm -rf "$$VAR_DIR"; \
 	fi; \
-	echo "==> Updating variant registry"; \
-	$(PYTHON) -m scripts.core.params_manager delete --phase $(PHASE) --variant $(VARIANT); \
 	MODE=$$($(PYTHON) -c "import yaml, pathlib; cfg=yaml.safe_load(pathlib.Path('.mlops4ofp/setup.yaml').read_text()); print(cfg.get('git',{}).get('mode','none'))"); \
 	PUBLISH_REMOTE=$$($(PYTHON) -c "import yaml, pathlib; cfg=yaml.safe_load(pathlib.Path('.mlops4ofp/setup.yaml').read_text()); print(cfg.get('git',{}).get('publish_remote_name','publish'))"); \
 	PUBLISH_BRANCH=$$($(PYTHON) -c "import yaml, pathlib; cfg=yaml.safe_load(pathlib.Path('.mlops4ofp/setup.yaml').read_text()); print(cfg.get('git',{}).get('branch','main'))"); \
@@ -267,7 +318,7 @@ remove-generic: check-variant-format
 		echo "==> Adding deletion changes to Git"; \
 		git add "$(VARIANTS_DIR)" 2>/dev/null || true; \
 		git add dvc.yaml dvc.lock 2>/dev/null || true; \
-		git commit -m "remove variant: $(PHASE) $(VARIANT)" || true; \
+		git commit -m "remove variant: $(PHASE) $$VARIANT_NORM" || true; \
 		git push "$$PUBLISH_REMOTE" "HEAD:$$PUBLISH_BRANCH" || echo "[WARN] git push $$PUBLISH_REMOTE HEAD:$$PUBLISH_BRANCH failed"; \
 	elif [ "$$MODE" = "none" ]; then \
 		echo "[INFO] Local-only mode: skipping git add/commit/push"; \
@@ -276,7 +327,7 @@ remove-generic: check-variant-format
 	fi; \
 	echo "==> Push DVC to propagate deletion"; \
 	$(DVC) push -r storage || echo "[WARN] dvc push failed"; \
-	echo "[OK] Variant $(PHASE):$(VARIANT) completely removed."; \
+	echo "[OK] Variant $(PHASE):$$VARIANT_NORM completely removed."; \
 	echo "==> Regenerating lineage dashboard"; \
 	$(MAKE) generate_lineage || true
 
@@ -290,10 +341,11 @@ check-results-generic: check-variant-format
 	@test -n "$(VARIANT)" || (echo "[ERROR] VARIANT not defined"; exit 1)
 	@test -n "$(CHECK_FILES)" || (echo "[ERROR] CHECK_FILES not defined"; exit 1)
 
-	@echo "===== CHECKING $(PHASE) results ($(VARIANT)) ====="
-	@MISSING=0; \
+	@VARIANT_NORM="$$($(NORMALIZE_VARIANT))"; \
+	echo "===== CHECKING $(PHASE) results ($$VARIANT_NORM) ====="; \
+	MISSING=0; \
 	for f in $(CHECK_FILES); do \
-		FILE="$(VARIANTS_DIR)/$(VARIANT)/$$f"; \
+		FILE="$(VARIANTS_DIR)/$$VARIANT_NORM/$$f"; \
 		if [ -f "$$FILE" ]; then \
 			echo "[OK] $$f"; \
 		else \
@@ -315,7 +367,7 @@ remove-phase-all:
 	@echo "==> Removing ALL variants of phase $(PHASE) (SAFE mode: only if no children dependencies)"
 	@test -d "$(VARIANTS_DIR)" || \
 	  (echo "[INFO] $(VARIANTS_DIR) does not exist. Nothing to delete."; exit 0)
-	@for v in $$(ls $(VARIANTS_DIR) | grep '^v[0-9]\{3\}$$'); do \
+	@for v in $$(ls $(VARIANTS_DIR) | grep '^v[0-9]_[0-9]\{4\}$$'); do \
 	  echo "----> Removing $(PHASE):$$v"; \
 	  $(MAKE) remove-generic PHASE=$(PHASE) VARIANTS_DIR=$(VARIANTS_DIR) VARIANT=$$v || exit 1; \
 	done
@@ -394,7 +446,7 @@ SCRIPT2_MODULE = scripts.phases.f02_events
 VARIANTS_DIR2 = executions/$(PHASE2)
 
 variant2: check-variant-format
-	@test -n "$(PARENT)"   || (echo "[ERROR] You must specify PARENT=vNNN (parent F01 variant)"; exit 1)
+	@test -n "$(PARENT)"   || (echo "[ERROR] You must specify PARENT=vY_XXXX (parent F01 variant)"; exit 1)
 	@test -n "$(STRATEGY)" || (echo "[ERROR] You must specify STRATEGY=levels|transitions|both"; exit 1)
 	@test -n "$(BANDS)"    || (echo "[ERROR] You must specify BANDS=[...percentages...]"; exit 1)
 	@test -n "$(NAN_MODE)" || (echo "[ERROR] You must specify NAN_MODE=keep|discard"; exit 1)
@@ -781,12 +833,13 @@ variant5: check-variant-format
 		EXTRA_FLAGS="$(EXTRA_FLAGS)"
 
 script5: check-variant-format ensure-f56-docker-image
-	@echo "==> Running F05 in Docker ($(F56_DOCKER_IMAGE)) for $(VARIANT)"
-	@docker run --rm --platform $(F56_DOCKER_PLATFORM) \
+	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE5) $(VARIANT))"; \
+	echo "==> Running F05 in Docker ($(F56_DOCKER_IMAGE)) for $$VARIANT_NORM"; \
+	docker run --rm --platform $(F56_DOCKER_PLATFORM) \
 		-v "$(DOCKER_HOST_PWD):$(DOCKER_WORKSPACE_PATH)" \
 		-w $(DOCKER_WORKSPACE_PATH) \
 		$(F56_DOCKER_IMAGE) \
-		bash -lc "python -m $(SCRIPT5_MODULE) --variant $(VARIANT)"
+		bash -lc "python -m $(SCRIPT5_MODULE) --variant $$VARIANT_NORM"
 
 
 script5-a: check-variant-format
@@ -1016,12 +1069,13 @@ variant6: check-variant-format
 ############################################
 
 script6: check-variant-format ensure-f56-docker-image
-	@echo "==> Running F06 in Docker ($(F56_DOCKER_IMAGE)) for $(VARIANT)"
-	@docker run --rm --platform $(F56_DOCKER_PLATFORM) \
+	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE6) $(VARIANT))"; \
+	echo "==> Running F06 in Docker ($(F56_DOCKER_IMAGE)) for $$VARIANT_NORM"; \
+	docker run --rm --platform $(F56_DOCKER_PLATFORM) \
 		-v "$(DOCKER_HOST_PWD):$(DOCKER_WORKSPACE_PATH)" \
 		-w $(DOCKER_WORKSPACE_PATH) \
 		$(F56_DOCKER_IMAGE) \
-		bash -lc "python -m $(SCRIPT6_MODULE) --variant $(VARIANT)"
+		bash -lc "python -m $(SCRIPT6_MODULE) --variant $$VARIANT_NORM"
 
 script6-a: check-variant-format
 	$(MAKE) script-run-generic \
@@ -1035,11 +1089,13 @@ script6-a: check-variant-format
 ############################################
 
 check6: check-variant-format
-	@echo "==> Checking F06 results for variant $(VARIANT)"
+	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE6) $(VARIANT))"; \
+	echo "==> Checking F06 results for variant $$VARIANT_NORM"; \
 
 	@test -n "$(VARIANT)" || (echo "[ERROR] Usage: make check6 VARIANT=v6XX"; exit 1)
 
-	@VAR_DIR="$(VARIANTS_DIR6)/$(VARIANT)"; \
+	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE6) $(VARIANT))"; \
+	VAR_DIR="$(VARIANTS_DIR6)/$$VARIANT_NORM"; \
 	if [ ! -d "$$VAR_DIR" ]; then \
 		echo "[ERROR] Variant directory not found: $$VAR_DIR"; exit 1; \
 	fi; \
@@ -1063,7 +1119,7 @@ check6: check-variant-format
 	else \
 		echo "[INFO] edge_capable = false — skipping EEDU checks"; \
 	fi; \
-	echo "[SUCCESS] F06 check passed for $(VARIANT)"
+	echo "[SUCCESS] F06 check passed for $$VARIANT_NORM"
 
 ############################################
 # Register (conditional publish)
@@ -1072,9 +1128,11 @@ check6: check-variant-format
 register6: check-variant-format
 	@test -n "$(VARIANT)" || (echo "[ERROR] Usage: make register6 VARIANT=v6XX"; exit 1)
 
-	@echo "==> Registering F06 variant $(VARIANT)"
+	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE6) $(VARIANT))"; \
+	echo "==> Registering F06 variant $$VARIANT_NORM"
 
-	@VAR_DIR="$(VARIANTS_DIR6)/$(VARIANT)"; \
+	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE6) $(VARIANT))"; \
+	VAR_DIR="$(VARIANTS_DIR6)/$$VARIANT_NORM"; \
 	EDGE_CAPABLE=$$($(PYTHON) -c "import os,yaml; d=yaml.safe_load(open(os.path.join('$$VAR_DIR','outputs.yaml'))); print('1' if d.get('exports',{}).get('edge_capable') else '0')"); \
 	if [ "$$EDGE_CAPABLE" = "1" ]; then \
 		echo "[INFO] edge_capable = true — registering full EEDU"; \
@@ -1083,7 +1141,7 @@ register6: check-variant-format
 			VARIANTS_DIR=$(VARIANTS_DIR6) \
 			DVC_EXTS="parquet h5 tflite" \
 			GIT_ONLY_EXTS="yaml html cc" \
-			VARIANT=$(VARIANT); \
+			VARIANT=$$VARIANT_NORM; \
 	else \
 		echo "[INFO] edge_capable = false — registering non-edge artifacts only"; \
 		$(MAKE) register-generic \
@@ -1091,10 +1149,11 @@ register6: check-variant-format
 			VARIANTS_DIR=$(VARIANTS_DIR6) \
 			DVC_EXTS="parquet h5" \
 			GIT_ONLY_EXTS="yaml html" \
-			VARIANT=$(VARIANT); \
+			VARIANT=$$VARIANT_NORM; \
 	fi
 
-	@echo "[SUCCESS] Register6 completed for $(VARIANT)"
+	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE6) $(VARIANT))"; \
+	echo "[SUCCESS] Register6 completed for $$VARIANT_NORM"
 
 ############################################
 # Remove
@@ -1218,36 +1277,41 @@ endif
 ############################################
 
 script7-prepare-build:
-	$(PYTHON) -m $(SCRIPT7_PREP) --variant $(VARIANT)
+	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE7) $(VARIANT))"; \
+	$(PYTHON) -m $(SCRIPT7_PREP) --variant $$VARIANT_NORM
 
 script7-build-only:
+	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE7) $(VARIANT))"; \
 	$(PYTHON) -m $(SCRIPT7_RUN) \
-		--variant $(VARIANT) \
+		--variant $$VARIANT_NORM \
 		--build-only
 
 script7-flash-run:
+	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE7) $(VARIANT))"; \
 	$(PYTHON) -m $(SCRIPT7_RUN) \
-		--variant $(VARIANT) \
+		--variant $$VARIANT_NORM \
 		$(if $(PORT),--port $(PORT),) \
 		$(if $(MODE),--mode $(MODE),) \
 		$(if $(BAUD),--baud $(BAUD),) \
 		$(if $(DRAIN_SECONDS),--drain-seconds $(DRAIN_SECONDS),)
 
 script7-post:
-	$(PYTHON) -m $(SCRIPT7_POST) --variant $(VARIANT)
+	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE7) $(VARIANT))"; \
+	$(PYTHON) -m $(SCRIPT7_POST) --variant $$VARIANT_NORM
 
 ############################################
 # Full execution (robust)
 ############################################
 script7:
-	@EDGE_CAPABLE="$$($(PYTHON) -c 'import yaml; from pathlib import Path; v="$(VARIANT)"; p=Path("executions")/"f07_modval"/v/"params.yaml"; d=(yaml.safe_load(p.read_text()) or {}) if p.exists() else {}; parent=d.get("parent"); o=(Path("executions")/"f06_quant"/str(parent)/"outputs.yaml") if parent else None; e=((yaml.safe_load(o.read_text()) or {}).get("exports", {})) if (o and o.exists()) else {}; print("true" if bool(e.get("edge_capable", False)) else "false")')"; \
+	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE7) $(VARIANT))"; \
+	EDGE_CAPABLE="$$($(PYTHON) -c 'import yaml, sys; from pathlib import Path; v=sys.argv[1]; p=Path("executions")/"f07_modval"/v/"params.yaml"; d=(yaml.safe_load(p.read_text()) or {}) if p.exists() else {}; parent=d.get("parent"); o=(Path("executions")/"f06_quant"/str(parent)/"outputs.yaml") if parent else None; e=((yaml.safe_load(o.read_text()) or {}).get("exports", {})) if (o and o.exists()) else {}; print("true" if bool(e.get("edge_capable", False)) else "false")' "$$VARIANT_NORM")"; \
 	if [ "$$EDGE_CAPABLE" = "false" ]; then \
 		echo "[INFO] Parent not edge_capable -> running post only"; \
-		$(PYTHON) -m $(SCRIPT7_POST) --variant $(VARIANT); \
+		$(PYTHON) -m $(SCRIPT7_POST) --variant $$VARIANT_NORM; \
 	else \
-		$(PYTHON) -m $(SCRIPT7_PREP) --variant $(VARIANT); \
+		$(PYTHON) -m $(SCRIPT7_PREP) --variant $$VARIANT_NORM; \
 		set +e; \
-		$(PYTHON) -m $(SCRIPT7_RUN) --variant $(VARIANT) \
+		$(PYTHON) -m $(SCRIPT7_RUN) --variant $$VARIANT_NORM \
 			$(if $(PORT),--port $(PORT),) \
 			$(if $(MODE),--mode $(MODE),) \
 			$(if $(BAUD),--baud $(BAUD),) \
@@ -1256,7 +1320,7 @@ script7:
 		if [ $$rc -ne 0 ]; then \
 			echo "[INFO] flash-run returned $$rc -> continuing with post"; \
 		fi; \
-		$(PYTHON) -m $(SCRIPT7_POST) --variant $(VARIANT); \
+		$(PYTHON) -m $(SCRIPT7_POST) --variant $$VARIANT_NORM; \
 	fi
 
 ############################################
@@ -1264,20 +1328,24 @@ script7:
 ############################################
 
 check7: check-variant-format
+	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE7) $(VARIANT))"; \
+	echo "==> Checking F07 results for variant $$VARIANT_NORM"; \
+
 	@test -n "$(VARIANT)" || (echo "[ERROR] Usage: make check7 VARIANT=v7XX"; exit 1)
 
-	@VAR_DIR="$(VARIANTS_DIR7)/$(VARIANT)"; \
+	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE7) $(VARIANT))"; \
+	VAR_DIR="$(VARIANTS_DIR7)/$$VARIANT_NORM"; \
 	[ -d "$$VAR_DIR" ] || { echo "[ERROR] Variant dir missing"; exit 1; }; \
 	[ -f "$$VAR_DIR/outputs.yaml" ] || { echo "[ERROR] outputs.yaml missing"; exit 1; }; \
 	EDGE_CAPABLE="$$(VAR_DIR="$$VAR_DIR" $(PYTHON) -c 'import os,yaml; from pathlib import Path; p = Path(os.environ["VAR_DIR"]) / "outputs.yaml"; d = yaml.safe_load(p.read_text()) or {}; print("true" if d.get("exports",{}).get("edge_capable") else "false")')"; \
 	if [ "$$EDGE_CAPABLE" = "false" ]; then \
-		echo "[SUCCESS] F07 check passed (edge skipped)"; \
+		echo "[SUCCESS] F07 check passed for $$VARIANT_NORM (edge skipped)"; \
 	else \
 		[ -f "$$VAR_DIR/07_edge_run_config.yaml" ] || exit 1; \
 		[ -f "$$VAR_DIR/metrics_models.csv" ] || exit 1; \
 		[ -f "$$VAR_DIR/metrics_system_timing.csv" ] || exit 1; \
 		[ -f "$$VAR_DIR/07_esp_monitor_log.txt" ] || exit 1; \
-		echo "[SUCCESS] F07 check passed"; \
+		echo "[SUCCESS] F07 check passed for $$VARIANT_NORM"; \
 	fi
 
 ############################################
@@ -1391,103 +1459,75 @@ variant8: check-variant-format
 	@echo "[INFO] PARENTS=$(PARENTS)"
 	@echo "[INFO] PLATFORM=$(PLATFORM)"
 	@echo "[INFO] MTI_MS=$(MTI_MS)"
-
-	@$(eval EXTRA_FLAGS := )
-	@$(eval EXTRA_FLAGS += parents=$(PARENTS))
-	@$(eval EXTRA_FLAGS += platform=$(PLATFORM))
-	@$(eval EXTRA_FLAGS += MTI_MS=$(MTI_MS))
-
-# --- selection mode ---
-ifeq ($(SELECTION_MODE),)
-	@echo "[INFO] SELECTION_MODE default=manual"
-	@$(eval EXTRA_FLAGS += selection_mode=manual)
-else
-	@$(eval EXTRA_FLAGS += selection_mode=$(SELECTION_MODE))
-endif
-
-# --- optional parameters ---
-ifneq ($(OBJECTIVE),)
-	@$(eval EXTRA_FLAGS += objective=$(OBJECTIVE))
-endif
-
-ifneq ($(TIME_SCALE),)
-	@$(eval EXTRA_FLAGS += time_scale_factor=$(TIME_SCALE))
-endif
-
-ifneq ($(MAX_ROWS),)
-	@$(eval EXTRA_FLAGS += max_rows=$(MAX_ROWS))
-endif
-
-ifneq ($(MEMORY_BUDGET_BYTES),)
-	@$(eval EXTRA_FLAGS += memory_budget_bytes=$(MEMORY_BUDGET_BYTES))
-endif
-
-ifneq ($(MAX_MODELS),)
-	@$(eval EXTRA_FLAGS += max_models=$(MAX_MODELS))
-endif
-
-ifneq ($(MIN_QUALITY_SCORE),)
-	@$(eval EXTRA_FLAGS += min_quality_score=$(MIN_QUALITY_SCORE))
-endif
-
-ifneq ($(MIN_PRECISION),)
-	@$(eval EXTRA_FLAGS += min_precision=$(MIN_PRECISION))
-endif
-
-ifneq ($(MIN_RECALL),)
-	@$(eval EXTRA_FLAGS += min_recall=$(MIN_RECALL))
-endif
-
-	@$(MAKE) variant-generic \
+	@set -eu; \
+	PARENTS_NORM="$$( $(PYTHON) -c 'import sys, yaml; from scripts.core.params_manager import normalize_variant_id_for_phase; phase=sys.argv[1]; raw=sys.argv[2].strip(); value=yaml.safe_load(raw) if raw else None; assert value is not None; value = [item.strip() for item in raw.split(",") if item.strip()] if isinstance(value, str) and "," in raw and not raw.startswith("[") else ([value] if isinstance(value, str) else value); assert isinstance(value, list); normalized=[normalize_variant_id_for_phase(str(item), phase, "PARENTS") for item in value]; print("[" + ", ".join(normalized) + "]")' "$(PHASE7)" "$(PARENTS)")"; \
+	SELECTION_MODE_VAL="$(if $(strip $(SELECTION_MODE)),$(SELECTION_MODE),manual)"; \
+	EXTRA_FLAGS="parents=$$PARENTS_NORM platform=$(PLATFORM) MTI_MS=$(MTI_MS) selection_mode=$$SELECTION_MODE_VAL"; \
+	$(if $(strip $(OBJECTIVE)),EXTRA_FLAGS="$$EXTRA_FLAGS objective=$(OBJECTIVE)"; ) \
+	$(if $(strip $(TIME_SCALE)),EXTRA_FLAGS="$$EXTRA_FLAGS time_scale_factor=$(TIME_SCALE)"; ) \
+	$(if $(strip $(MAX_ROWS)),EXTRA_FLAGS="$$EXTRA_FLAGS max_rows=$(MAX_ROWS)"; ) \
+	$(if $(strip $(MEMORY_BUDGET_BYTES)),EXTRA_FLAGS="$$EXTRA_FLAGS memory_budget_bytes=$(MEMORY_BUDGET_BYTES)"; ) \
+	$(if $(strip $(MAX_MODELS)),EXTRA_FLAGS="$$EXTRA_FLAGS max_models=$(MAX_MODELS)"; ) \
+	$(if $(strip $(MIN_QUALITY_SCORE)),EXTRA_FLAGS="$$EXTRA_FLAGS min_quality_score=$(MIN_QUALITY_SCORE)"; ) \
+	$(if $(strip $(MIN_PRECISION)),EXTRA_FLAGS="$$EXTRA_FLAGS min_precision=$(MIN_PRECISION)"; ) \
+	$(if $(strip $(MIN_RECALL)),EXTRA_FLAGS="$$EXTRA_FLAGS min_recall=$(MIN_RECALL)"; ) \
+	echo "[INFO] Normalized parents: $$PARENTS_NORM"; \
+	$(MAKE) variant-generic \
 		PHASE=$(PHASE8) \
 		VARIANTS_DIR=$(VARIANTS_DIR8) \
 		VARIANT=$(VARIANT) \
-		EXTRA_FLAGS="$(EXTRA_FLAGS)"
+		EXTRA_FLAGS="$$EXTRA_FLAGS"
 
 ############################################
 # Subphases
 ############################################
 
 script8-select-config:
-	$(PYTHON) -m scripts.phases.f081_selectconfig --variant $(VARIANT)
+	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE8) $(VARIANT))"; \
+	$(PYTHON) -m scripts.phases.f081_selectconfig --variant $$VARIANT_NORM
 
 script8-prepare-build:
-	$(PYTHON) -m scripts.phases.f082_preparebuild --variant $(VARIANT)
+	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE8) $(VARIANT))"; \
+	$(PYTHON) -m scripts.phases.f082_preparebuild --variant $$VARIANT_NORM
 
 script8-build-only:
-	@echo "[INFO] Build-only for $(VARIANT)"
+	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE8) $(VARIANT))"; \
+	echo "[INFO] Build-only for $$VARIANT_NORM"; \
 	@docker run --rm -i \
-		-v "$(DOCKER_HOST_PWD)/executions/$(PHASE8)/$(VARIANT)/esp32_project:$(DOCKER_PROJECT_PATH)" \
+		-v "$(DOCKER_HOST_PWD)/executions/$(PHASE8)/$$VARIANT_NORM/esp32_project:$(DOCKER_PROJECT_PATH)" \
 		-w $(DOCKER_PROJECT_PATH) \
 		--entrypoint /bin/bash \
 		mlops4ofp-idf:6.0 \
 		-lc "source /opt/esp/idf/export.sh >/dev/null 2>&1 && idf.py build"
 
 script8-flash-run:
+	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE8) $(VARIANT))"; \
 	$(PYTHON) -m scripts.phases.f083_flashrun \
-		--variant $(VARIANT) \
+		--variant $$VARIANT_NORM \
 		$(if $(PORT),--port $(PORT),) \
 		$(if $(MODE),--mode $(MODE),) \
 		$(if $(BAUD),--baud $(BAUD),) \
 		$(if $(DRAIN_SECONDS),--drain-seconds $(DRAIN_SECONDS),)
 
 script8-post:
-	$(PYTHON) -m scripts.phases.f084_post --variant $(VARIANT)
+	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE8) $(VARIANT))"; \
+	$(PYTHON) -m scripts.phases.f084_post --variant $$VARIANT_NORM
 
 ############################################
 # Full execution
 ############################################
 
 script8:
-	@$(PYTHON) -m scripts.phases.f081_selectconfig --variant $(VARIANT); \
-	CONFIG_EDGE_CAPABLE="$$($(PYTHON) -c 'import yaml; from pathlib import Path; v="$(VARIANT)"; p=Path("executions")/"f08_sysval"/v/"08_selected_configuration.yaml"; d=(yaml.safe_load(p.read_text()) or {}) if p.exists() else {}; print("true" if bool(d.get("configuration_edge_capable", False)) else "false")')"; \
+	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE8) $(VARIANT))"; \
+	$(PYTHON) -m scripts.phases.f081_selectconfig --variant $$VARIANT_NORM; \
+	CONFIG_EDGE_CAPABLE="$$($(PYTHON) -c 'import yaml, sys; from pathlib import Path; v=sys.argv[1]; p=Path("executions")/"f08_sysval"/v/"08_selected_configuration.yaml"; d=(yaml.safe_load(p.read_text()) or {}) if p.exists() else {}; print("true" if bool(d.get("configuration_edge_capable", False)) else "false")' "$$VARIANT_NORM")"; \
 	if [ "$$CONFIG_EDGE_CAPABLE" = "false" ]; then \
 		echo "[INFO] configuration not edge_capable -> post only"; \
-		$(PYTHON) -m scripts.phases.f084_post --variant $(VARIANT); \
+		$(PYTHON) -m scripts.phases.f084_post --variant $$VARIANT_NORM; \
 	else \
-		$(PYTHON) -m scripts.phases.f082_preparebuild --variant $(VARIANT); \
+		$(PYTHON) -m scripts.phases.f082_preparebuild --variant $$VARIANT_NORM; \
 		set +e; \
-		$(PYTHON) -m scripts.phases.f083_flashrun --variant $(VARIANT) \
+		$(PYTHON) -m scripts.phases.f083_flashrun --variant $$VARIANT_NORM \
 			$(if $(PORT),--port $(PORT),) \
 			$(if $(MODE),--mode $(MODE),) \
 			$(if $(BAUD),--baud $(BAUD),) \
@@ -1496,7 +1536,7 @@ script8:
 		if [ $$rc -ne 0 ]; then \
 			echo "[INFO] flash-run returned $$rc -> continuing"; \
 		fi; \
-		$(PYTHON) -m scripts.phases.f084_post --variant $(VARIANT); \
+		$(PYTHON) -m scripts.phases.f084_post --variant $$VARIANT_NORM; \
 	fi
 
 ############################################
@@ -1506,11 +1546,12 @@ script8:
 check8: check-variant-format
 	@test -n "$(VARIANT)" || (echo "[ERROR] Usage: make check8 VARIANT=v8XX"; exit 1)
 
-	@VAR_DIR="$(VARIANTS_DIR8)/$(VARIANT)"; \
+	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE8) $(VARIANT))"; \
+	VAR_DIR="$(VARIANTS_DIR8)/$$VARIANT_NORM"; \
 	[ -d "$$VAR_DIR" ] || exit 1; \
 	[ -f "$$VAR_DIR/outputs.yaml" ] || exit 1; \
 	[ -f "$$VAR_DIR/08_selected_configuration.yaml" ] || exit 1; \
-	echo "[SUCCESS] F08 basic check passed"
+	echo "[SUCCESS] F08 basic check passed for $$VARIANT_NORM"
 
 ############################################
 # Register
@@ -1519,22 +1560,24 @@ check8: check-variant-format
 register8: check-variant-format
 	@test -n "$(VARIANT)" || (echo "[ERROR] Usage: make register8 VARIANT=v8XX"; exit 1)
 
+	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE8) $(VARIANT))"; \
 	$(MAKE) register-generic \
 		PHASE=$(PHASE8) \
 		VARIANTS_DIR=$(VARIANTS_DIR8) \
 		DVC_EXTS="csv json" \
 		GIT_ONLY_EXTS="yaml txt html" \
-		VARIANT=$(VARIANT)
+		VARIANT=$$VARIANT_NORM
 
 ############################################
 # Remove
 ############################################
 
 remove8: check-variant-format
+	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE8) $(VARIANT))"; \
 	$(MAKE) remove-generic \
 		PHASE=$(PHASE8) \
 		VARIANTS_DIR=$(VARIANTS_DIR8) \
-		VARIANT=$(VARIANT)
+		VARIANT=$$VARIANT_NORM
 
 remove8-all:
 	$(MAKE) remove-phase-all \

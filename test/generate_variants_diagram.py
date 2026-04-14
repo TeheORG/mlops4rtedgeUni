@@ -25,6 +25,7 @@ import yaml
 
 
 PHASE_RE = re.compile(r"^f(?P<num>\d{2})_.+$")
+VARIANT_RE = re.compile(r"^v(?P<num>\d)_(?P<seq>\d{4})$")
 EXCLUDED_PARAM_KEYS = {"variant", "parent", "parents", "parent_variant"}
 
 
@@ -147,6 +148,27 @@ def phase_sort_key(phase_name: str) -> tuple[int, str]:
 	return (int(m.group("num")), phase_name)
 
 
+def list_phase_variants(phase_dir: Path) -> list[Path]:
+	phase_match = PHASE_RE.match(phase_dir.name)
+	if not phase_match:
+		return []
+
+	phase_num = phase_match.group("num")
+	phase_num = str(int(phase_num))
+	variants: list[Path] = []
+	for child in phase_dir.iterdir():
+		if not child.is_dir():
+			continue
+		m = VARIANT_RE.fullmatch(child.name)
+		if not m:
+			continue
+		if m.group("num") != phase_num:
+			continue
+		variants.append(child)
+	variants.sort(key=lambda p: variant_sort_key(p.name))
+	return variants
+
+
 def variant_sort_key(variant_name: str) -> tuple[int, str]:
 	m = re.search(r"(\d+)$", variant_name)
 	if not m:
@@ -204,16 +226,15 @@ def build_graph_from_index(
 
 	for phase_dir in phase_dirs(executions_root):
 		phase_name = phase_dir.name
-		variants_yaml = load_yaml(phase_dir / "variants.yaml")
-		variants_map = variants_yaml.get("variants")
-		if not isinstance(variants_map, dict):
+		variant_dirs = list_phase_variants(phase_dir)
+		if not variant_dirs:
 			continue
 
 		phase_to_variants[phase_name] = []
 
-		for variant_name, meta in variants_map.items():
-			if not isinstance(variant_name, str):
-				continue
+		for variant_dir in variant_dirs:
+			variant_name = variant_dir.name
+			meta = load_yaml(variant_dir / "metadata.yaml")
 
 			phase_to_variants[phase_name].append(variant_name)
 			known_variants.add(variant_name)
@@ -225,14 +246,14 @@ def build_graph_from_index(
 					params_path = executions_root.parent / rel_path
 
 			if params_path is None:
-				params_path = phase_dir / variant_name / "params.yaml"
+				params_path = variant_dir / "params.yaml"
 
 			params = load_yaml(params_path)
 			parents = extract_parents(params)
 			for parent in parents:
 				edges.append((parent, variant_name))
 
-			outputs_path = phase_dir / variant_name / "outputs.yaml"
+			outputs_path = variant_dir / "outputs.yaml"
 			outputs = load_yaml(outputs_path)
 			created_at = meta.get("created_at") if isinstance(meta, dict) else None
 
@@ -892,7 +913,7 @@ def parse_args() -> argparse.Namespace:
 		default="index",
 		help=(
 			"Fuente para extraer parentesco: "
-			"index=usa variants.yaml + params.yaml; "
+			"index=usa metadata.yaml + params.yaml; "
 			"tree=escanea params.yaml dentro del arbol dado."
 		),
 	)

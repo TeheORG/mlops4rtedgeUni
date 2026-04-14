@@ -13,12 +13,12 @@ global:
   VARIANT:
     type: string
     required: true
-    regex: "^v[0-9]{3}$"
+    regex: "^v[0-9]_[0-9]{4}$"
 
   PARENT:
     type: string
     required: true
-    regex: "^v[0-9]{3}$"
+    regex: "^v[0-9]_[0-9]{4}$"
 
   supported_types:
     - string
@@ -245,7 +245,7 @@ phases:
         type: string
         required: true
         inherited: false
-        regex: "^v[0-9]{3}$"
+        regex: "^v[0-9]_[0-9]{4}$"
 
       Tu:
         type: integer
@@ -376,7 +376,7 @@ phases:
         type: string
         required: true
         inherited: false
-        regex: "^v[0-9]{3}$"
+        regex: "^v[0-9]_[0-9]{4}$"
 
       # Solo para trazabilidad estructural (heredados si no se redefinen)
       Tu:
@@ -516,7 +516,7 @@ phases:
         type: string
         required: true
         inherited: false
-        regex: "^v[0-9]{3}$"
+        regex: "^v[0-9]_[0-9]{4}$"
 
       # -------------------------------------------------
       # Geometría heredada
@@ -776,7 +776,7 @@ phases:
         type: string
         required: true
         inherited: false
-        regex: "^v[0-9]{3}$"
+        regex: "^v[0-9]_[0-9]{4}$"
 
       # -------------------------------------------------
       # Geometría heredada
@@ -1021,7 +1021,7 @@ phases:
         type: string
         required: true
         inherited: false
-        regex: "^v[0-9]{3}$"
+        regex: "^v[0-9]_[0-9]{4}$"
 
       # -------------------------------------------------
       # Geometría heredada desde F06

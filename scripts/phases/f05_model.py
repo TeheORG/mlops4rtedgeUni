@@ -707,7 +707,7 @@ def write_non_trainable_outputs(
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--variant", required=True, help="Variant id vNNN for F05")
+    parser.add_argument("--variant", required=True, help="Variant id vY_XXXX for F05")
     args = parser.parse_args()
 
     variant = args.variant

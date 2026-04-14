@@ -8,14 +8,14 @@ OUTPUT_FILENAME = "pipeline_lineage.html"
 # f02_events   f04_targets  f06_quant     f08_sysval
 
 PHASES = [
-    {"name": "f01_explore",  "ctrl_variants": "variants.yaml",  "parent_keys": []},
-    {"name": "f02_events",   "ctrl_variants": "variants.yaml",  "parent_keys": ["parent"]},
-    {"name": "f03_windows",  "ctrl_variants": "variants.yaml",  "parent_keys": ["parameters","parent_variant"]},
-    {"name": "f04_targets",  "ctrl_variants": "variants.yaml",  "parent_keys": ["parameters","parent_variant"]},
-    {"name": "f05_modeling", "ctrl_variants": "variants.yaml",  "parent_keys": ["parameters","parent_variant"]},
-    {"name": "f06_quant",    "ctrl_variants": "variants.yaml",  "parent_keys": ["parameters","parent_variant"]},
-    {"name": "f07_modval",   "ctrl_variants": "variants.yaml",  "parent_keys": ["parameters","parent_variant"]},
-    {"name": "f08_sysval",   "ctrl_variants": "variants.yaml",  "parent_keys": ["parameters","parents"]},
+    {"name": "f01_explore",  "parent_keys": []},
+    {"name": "f02_events",   "parent_keys": ["parent"]},
+    {"name": "f03_windows",  "parent_keys": ["parameters","parent_variant"]},
+    {"name": "f04_targets",  "parent_keys": ["parameters","parent_variant"]},
+    {"name": "f05_modeling", "parent_keys": ["parameters","parent_variant"]},
+    {"name": "f06_quant",    "parent_keys": ["parameters","parent_variant"]},
+    {"name": "f07_modval",   "parent_keys": ["parameters","parent_variant"]},
+    {"name": "f08_sysval",   "parent_keys": ["parameters","parents"]},
 ]
 
 PHASE_COLORS = {
