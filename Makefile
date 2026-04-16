@@ -110,6 +110,12 @@ else
   DOCKER_PROJECT_PATH := /project
 endif
 
+ifeq ($(OS),Windows_NT)
+	DOCKER_HOST_USER_ARGS :=
+else
+	DOCKER_HOST_USER_ARGS := --user $$(id -u):$$(id -g)
+endif
+
 $(info [INFO] Using Python interpreter in venv: $(PYTHON))
 
 ############################################
@@ -179,6 +185,12 @@ echo "[ERROR] Incorrect format for VARIANT: $$variant. Use vY_XXXX or shorthand 
 # Internal helpers (inline Python, no extra script)
 ############################################
 
+# Centralized lifecycle-state mapping (single point of change).
+LIFECYCLE_STATE_CREATED := VARIANT_CREATED
+LIFECYCLE_STATE_EXECUTION_RUNNING := EXECUTION_RUNNING
+LIFECYCLE_STATE_EXECUTION_COMPLETED := EXECUTION_COMPLETED
+LIFECYCLE_STATE_EXECUTION_FAILED := EXECUTION_FAILED
+
 # Resolve parent phase + parent(s) from params.yaml of a created variant.
 # Outputs shell assignments:
 #   PARENT_PHASE="f01_explore"
@@ -231,16 +243,88 @@ with out.open("w") as fh:
 PY
 endef
 
+# Update lifecycle state in metadata.yaml for a concrete phase/variant.
+# Usage:
+#   $(UPDATE_VARIANT_STATE) <phase> <variant> <state>
+UPDATE_VARIANT_STATE = $(PYTHON) -c 'import sys, yaml; from pathlib import Path; from datetime import datetime, timezone; phase, variant, state = sys.argv[1], sys.argv[2], sys.argv[3]; variant_dir = Path("executions") / phase / variant; meta_path = variant_dir / "metadata.yaml"; data = {}; \
+variant_dir.exists() or sys.exit(0); \
+data = yaml.safe_load(meta_path.read_text()) if meta_path.exists() else {}; \
+data = data if isinstance(data, dict) else {}; \
+data.setdefault("params_path", str((variant_dir / "params.yaml").as_posix())); \
+data.setdefault("created_at", datetime.now(timezone.utc).isoformat()); \
+data["lifecycle_state"] = state; \
+data["lifecycle_updated_at"] = datetime.now(timezone.utc).isoformat(); \
+data.setdefault("registred", "none"); \
+preferred = ["created_at", "params_path", "lifecycle_state", "lifecycle_updated_at", "verified", "verified_updated_at", "registred"]; \
+ordered = {k: data[k] for k in preferred if k in data}; \
+ordered.update({k: v for k, v in data.items() if k not in ordered}); \
+data = ordered; \
+meta_path.write_text(yaml.safe_dump(data, sort_keys=False))'
+
+# Update verification status in metadata.yaml for a concrete phase/variant.
+# Usage:
+#   $(UPDATE_VARIANT_VERIFIED) <phase> <variant> <true|false|none>
+UPDATE_VARIANT_VERIFIED = $(PYTHON) -c 'import sys, yaml; from pathlib import Path; from datetime import datetime, timezone; phase, variant, verified_raw = sys.argv[1], sys.argv[2], sys.argv[3].lower(); variant_dir = Path("executions") / phase / variant; meta_path = variant_dir / "metadata.yaml"; data = {}; \
+variant_dir.exists() or sys.exit(0); \
+data = yaml.safe_load(meta_path.read_text()) if meta_path.exists() else {}; \
+data = data if isinstance(data, dict) else {}; \
+data.setdefault("params_path", str((variant_dir / "params.yaml").as_posix())); \
+data.setdefault("created_at", datetime.now(timezone.utc).isoformat()); \
+verified_map = {"true": True, "false": False, "none": "none", "not_checked": "none", "no": "none", "no_hecho": "none"}; \
+data["verified"] = verified_map.get(verified_raw, "none"); \
+data["verified_updated_at"] = datetime.now(timezone.utc).isoformat(); \
+data.setdefault("registred", "none"); \
+preferred = ["created_at", "params_path", "lifecycle_state", "lifecycle_updated_at", "verified", "verified_updated_at", "registred"]; \
+ordered = {k: data[k] for k in preferred if k in data}; \
+ordered.update({k: v for k, v in data.items() if k not in ordered}); \
+data = ordered; \
+meta_path.write_text(yaml.safe_dump(data, sort_keys=False))'
+
+# Update registration status in metadata.yaml for a concrete phase/variant.
+# Usage:
+#   $(UPDATE_VARIANT_REGISTRED) <phase> <variant> <true|false|none>
+UPDATE_VARIANT_REGISTRED = $(PYTHON) -c 'import sys, yaml; from pathlib import Path; from datetime import datetime, timezone; phase, variant, registred_raw = sys.argv[1], sys.argv[2], sys.argv[3].lower(); variant_dir = Path("executions") / phase / variant; meta_path = variant_dir / "metadata.yaml"; data = {}; \
+variant_dir.exists() or sys.exit(0); \
+data = yaml.safe_load(meta_path.read_text()) if meta_path.exists() else {}; \
+data = data if isinstance(data, dict) else {}; \
+data.setdefault("params_path", str((variant_dir / "params.yaml").as_posix())); \
+data.setdefault("created_at", datetime.now(timezone.utc).isoformat()); \
+data.setdefault("verified", "none"); \
+registred_map = {"true": True, "false": False, "none": "none", "not_checked": "none", "no": "none", "no_hecho": "none"}; \
+data["registred"] = registred_map.get(registred_raw, "none"); \
+preferred = ["created_at", "params_path", "lifecycle_state", "lifecycle_updated_at", "verified", "verified_updated_at", "registred"]; \
+ordered = {k: data[k] for k in preferred if k in data}; \
+ordered.update({k: v for k, v in data.items() if k not in ordered}); \
+data = ordered; \
+meta_path.write_text(yaml.safe_dump(data, sort_keys=False))'
+
 
 script-run-generic: check-variant-format
 	@set -eu; \
 	VARIANT_NORM="$$($(NORMALIZE_VARIANT))"; \
+	$(UPDATE_VARIANT_VERIFIED) $(PHASE) $$VARIANT_NORM none >/dev/null 2>&1 || true; \
+	$(UPDATE_VARIANT_STATE) $(PHASE) $$VARIANT_NORM $(LIFECYCLE_STATE_EXECUTION_RUNNING) >/dev/null 2>&1 || true; \
+	echo "==> Regenerating lineage dashboard"; \
+	$(MAKE) --no-print-directory generate_lineage || true; \
 	echo "==> Running script PHASE $(PHASE) for variant $$VARIANT_NORM"; \
 	if [ -n "$(SCRIPT_MODULE)" ]; then \
-		$(PYTHON) -m $(SCRIPT_MODULE) --variant $$VARIANT_NORM; \
+		$(PYTHON) -m $(SCRIPT_MODULE) --variant $$VARIANT_NORM || { \
+			$(UPDATE_VARIANT_STATE) $(PHASE) $$VARIANT_NORM $(LIFECYCLE_STATE_EXECUTION_FAILED) >/dev/null 2>&1 || true; \
+			echo "==> Regenerating lineage dashboard"; \
+			$(MAKE) --no-print-directory generate_lineage || true; \
+			exit 1; \
+		}; \
 	else \
-		$(PYTHON) $(SCRIPT) --variant $$VARIANT_NORM; \
-	fi
+		$(PYTHON) $(SCRIPT) --variant $$VARIANT_NORM || { \
+			$(UPDATE_VARIANT_STATE) $(PHASE) $$VARIANT_NORM $(LIFECYCLE_STATE_EXECUTION_FAILED) >/dev/null 2>&1 || true; \
+			echo "==> Regenerating lineage dashboard"; \
+			$(MAKE) --no-print-directory generate_lineage || true; \
+			exit 1; \
+		}; \
+	fi; \
+	$(UPDATE_VARIANT_STATE) $(PHASE) $$VARIANT_NORM $(LIFECYCLE_STATE_EXECUTION_COMPLETED) >/dev/null 2>&1 || true; \
+	echo "==> Regenerating lineage dashboard"; \
+	$(MAKE) --no-print-directory generate_lineage || true
 
 variant-generic: check-variant-format
 	@set -eu; \
@@ -250,9 +334,12 @@ variant-generic: check-variant-format
 		--phase $(PHASE) \
 		--variant $$VARIANT_NORM \
 		--set-args "$(strip $(EXTRA_FLAGS))"; \
+	$(UPDATE_VARIANT_REGISTRED) $(PHASE) $$VARIANT_NORM none >/dev/null 2>&1 || true; \
+	$(UPDATE_VARIANT_VERIFIED) $(PHASE) $$VARIANT_NORM none >/dev/null 2>&1 || true; \
+	$(UPDATE_VARIANT_STATE) $(PHASE) $$VARIANT_NORM $(LIFECYCLE_STATE_CREATED) >/dev/null 2>&1 || true; \
 	echo "[OK] Variante creada: $(PHASE):$$VARIANT_NORM"; \
 	echo "==> Regenerating lineage dashboard"; \
-	$(MAKE) generate_lineage || true
+	$(MAKE) --no-print-directory generate_lineage || true
 
 ############################################
 # Register variant
@@ -261,11 +348,14 @@ variant-generic: check-variant-format
 register-generic: check-variant-format
 	@set -eu; \
 	VARIANT_NORM="$$($(NORMALIZE_VARIANT))"; \
+	$(UPDATE_VARIANT_REGISTRED) $(PHASE) $$VARIANT_NORM none >/dev/null 2>&1 || true; \
+	echo "==> Regenerating lineage dashboard"; \
+	$(MAKE) --no-print-directory generate_lineage || true; \
 	echo "==> Registering $(PHASE):$$VARIANT_NORM"; \
 	echo "==> Validating + auditing variant"; \
 	$(PYTHON) -m scripts.core.traceability validate-variant \
 		--phase $(PHASE) \
-		--variant $$VARIANT_NORM || exit 1; \
+		--variant $$VARIANT_NORM || { $(UPDATE_VARIANT_REGISTRED) $(PHASE) $$VARIANT_NORM false >/dev/null 2>&1 || true; echo "==> Regenerating lineage dashboard"; $(MAKE) --no-print-directory generate_lineage || true; exit 1; }; \
 	MODE=$$($(PYTHON) -c "import yaml, pathlib; cfg=yaml.safe_load(pathlib.Path('.mlops4ofp/setup.yaml').read_text()); print(cfg.get('git',{}).get('mode','none'))"); \
 	PUBLISH_REMOTE=$$($(PYTHON) -c "import yaml, pathlib; cfg=yaml.safe_load(pathlib.Path('.mlops4ofp/setup.yaml').read_text()); print(cfg.get('git',{}).get('publish_remote_name','publish'))"); \
 	PUBLISH_BRANCH=$$($(PYTHON) -c "import yaml, pathlib; cfg=yaml.safe_load(pathlib.Path('.mlops4ofp/setup.yaml').read_text()); print(cfg.get('git',{}).get('branch','main'))"); \
@@ -285,11 +375,14 @@ register-generic: check-variant-format
 	elif [ "$$MODE" = "none" ]; then \
 		echo "[INFO] Local-only mode: skipping git add/commit/push"; \
 	else \
-		echo "[ERROR] Invalid or unconfigured git mode: $$MODE"; exit 1; \
+		echo "[ERROR] Invalid or unconfigured git mode: $$MODE"; $(UPDATE_VARIANT_REGISTRED) $(PHASE) $$VARIANT_NORM false >/dev/null 2>&1 || true; echo "==> Regenerating lineage dashboard"; $(MAKE) --no-print-directory generate_lineage || true; exit 1; \
 	fi; \
 	echo "==> DVC push"; \
 	$(DVC) push -r storage || true; \
-	echo "[OK] Registered $(PHASE):$$VARIANT_NORM"
+	$(UPDATE_VARIANT_REGISTRED) $(PHASE) $$VARIANT_NORM true >/dev/null 2>&1 || true; \
+	echo "[OK] Registered $(PHASE):$$VARIANT_NORM"; \
+	echo "==> Regenerating lineage dashboard"; \
+	$(MAKE) --no-print-directory generate_lineage || true
 
 ############################################
 # Remove variant
@@ -342,6 +435,9 @@ check-results-generic: check-variant-format
 	@test -n "$(CHECK_FILES)" || (echo "[ERROR] CHECK_FILES not defined"; exit 1)
 
 	@VARIANT_NORM="$$($(NORMALIZE_VARIANT))"; \
+	$(UPDATE_VARIANT_VERIFIED) $(PHASE) $$VARIANT_NORM none >/dev/null 2>&1 || true; \
+	echo "==> Regenerating lineage dashboard"; \
+	$(MAKE) --no-print-directory generate_lineage || true; \
 	echo "===== CHECKING $(PHASE) results ($$VARIANT_NORM) ====="; \
 	MISSING=0; \
 	for f in $(CHECK_FILES); do \
@@ -355,9 +451,15 @@ check-results-generic: check-variant-format
 	done; \
 	echo "================================"; \
 	if [ "$$MISSING" -eq 1 ]; then \
+		$(UPDATE_VARIANT_VERIFIED) $(PHASE) $$VARIANT_NORM false >/dev/null 2>&1 || true; \
+		echo "==> Regenerating lineage dashboard"; \
+		$(MAKE) --no-print-directory generate_lineage || true; \
 		echo "[ERROR] Some files missing"; \
 		exit 1; \
-	fi
+	fi; \
+	$(UPDATE_VARIANT_VERIFIED) $(PHASE) $$VARIANT_NORM true >/dev/null 2>&1 || true; \
+	echo "==> Regenerating lineage dashboard"; \
+	$(MAKE) --no-print-directory generate_lineage || true
 
 ############################################
 # Remove all variants from phase
@@ -834,12 +936,25 @@ variant5: check-variant-format
 
 script5: check-variant-format ensure-f56-docker-image
 	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE5) $(VARIANT))"; \
+	$(UPDATE_VARIANT_VERIFIED) $(PHASE5) $$VARIANT_NORM none >/dev/null 2>&1 || true; \
+	$(UPDATE_VARIANT_STATE) $(PHASE5) $$VARIANT_NORM $(LIFECYCLE_STATE_EXECUTION_RUNNING) >/dev/null 2>&1 || true; \
+	echo "==> Regenerating lineage dashboard"; \
+	$(MAKE) --no-print-directory generate_lineage || true; \
 	echo "==> Running F05 in Docker ($(F56_DOCKER_IMAGE)) for $$VARIANT_NORM"; \
 	docker run --rm --platform $(F56_DOCKER_PLATFORM) \
+		$(DOCKER_HOST_USER_ARGS) \
 		-v "$(DOCKER_HOST_PWD):$(DOCKER_WORKSPACE_PATH)" \
 		-w $(DOCKER_WORKSPACE_PATH) \
 		$(F56_DOCKER_IMAGE) \
-		bash -lc "python -m $(SCRIPT5_MODULE) --variant $$VARIANT_NORM"
+		bash -lc "python -m $(SCRIPT5_MODULE) --variant $$VARIANT_NORM" || { \
+			$(UPDATE_VARIANT_STATE) $(PHASE5) $$VARIANT_NORM $(LIFECYCLE_STATE_EXECUTION_FAILED) >/dev/null 2>&1 || true; \
+			echo "==> Regenerating lineage dashboard"; \
+			$(MAKE) --no-print-directory generate_lineage || true; \
+			exit 1; \
+		}; \
+	$(UPDATE_VARIANT_STATE) $(PHASE5) $$VARIANT_NORM $(LIFECYCLE_STATE_EXECUTION_COMPLETED) >/dev/null 2>&1 || true; \
+	echo "==> Regenerating lineage dashboard"; \
+	$(MAKE) --no-print-directory generate_lineage || true
 
 
 script5-a: check-variant-format
@@ -866,62 +981,62 @@ check5: check-variant-format
 
 register5: check-variant-format
 	@test -n "$(VARIANT)" || (echo "[ERROR] Usage: make register5 VARIANT=v5XX"; exit 1)
-
-	@echo "==> Checking MLflow setup (from .mlops4ofp/setup.yaml)"
-	@MLFLOW_ENABLED=$$($(PYTHON) -c 'import pathlib,yaml; p=pathlib.Path(".mlops4ofp/setup.yaml"); cfg=(yaml.safe_load(p.read_text()) if p.exists() else {}); print("1" if isinstance(cfg,dict) and cfg.get("mlflow",{}).get("enabled",False) else "0")') ; \
+	@set -eu; \
+	VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE5) $(VARIANT))"; \
+	echo "==> Checking MLflow setup (from .mlops4ofp/setup.yaml)"; \
+	MLFLOW_ENABLED=$$($(PYTHON) -c 'import pathlib,yaml; p=pathlib.Path(".mlops4ofp/setup.yaml"); cfg=(yaml.safe_load(p.read_text()) if p.exists() else {}); print("1" if isinstance(cfg,dict) and cfg.get("mlflow",{}).get("enabled",False) else "0")'); \
 	if [ "$$MLFLOW_ENABLED" = "1" ]; then \
-		echo "==> MLflow enabled: registering run for $(PHASE5):$(VARIANT)"; \
-		VAR_DIR="$(VARIANTS_DIR5)/$(VARIANT)"; \
+		echo "==> MLflow enabled: registering run for $(PHASE5):$$VARIANT_NORM"; \
+		VAR_DIR="$(VARIANTS_DIR5)/$$VARIANT_NORM"; \
 		OUTS="$$VAR_DIR/outputs.yaml"; \
 		if [ ! -f "$$OUTS" ]; then \
 			echo "[ERROR] outputs.yaml not found in $$VAR_DIR"; exit 1; \
 		fi; \
-		VARIANT="$(VARIANT)" PHASE5="$(PHASE5)" $(PYTHON) -c 'import os,subprocess,yaml,json,pathlib,sys; variant=os.environ.get("VARIANT"); phase=os.environ.get("PHASE5","f05_modeling"); outs_path=pathlib.Path(f"executions/{phase}/{variant}/outputs.yaml"); data=(yaml.safe_load(outs_path.read_text()) if outs_path.exists() else None); \
-if data is None: print(f"[ERROR] outputs.yaml not found at {outs_path}") or sys.exit(1); reg=(data.get("mlflow_registration") if isinstance(data,dict) else None); \
-if not reg: print("[WARN] No '\''mlflow_registration'\'' block in outputs.yaml — skipping MLflow registration") or sys.exit(0); experiment_name=(reg.get("experiment_name") or f"F05_{variant}"); metrics=reg.get("metrics",{}); params=reg.get("params",{}); artifacts=reg.get("artifacts",[]); subprocess.run(["mlflow","experiments","create","--experiment-name",experiment_name], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL); exps=json.loads(subprocess.check_output(["mlflow","experiments","list","--format","json"])); exp_id=next((e.get("experiment_id") for e in exps if e.get("name")==experiment_name), None); \
-if not exp_id: print(f"[ERROR] Could not obtain experiment_id for {experiment_name}") or sys.exit(1); run=json.loads(subprocess.check_output(["mlflow","runs","create","--experiment-id",exp_id,"--format","json"])); run_id=run["info"]["run_id"]; [subprocess.run(["mlflow","runs","log-param","--run-id",run_id,"--key",str(k),"--value",str(v)]) for k,v in params.items()]; [subprocess.run(["mlflow","runs","log-metric","--run-id",run_id,"--key",str(k),"--value",str(v)]) for k,v in metrics.items()]; [subprocess.run(["mlflow","runs","log-artifact","--run-id",run_id,"--local-path",a]) for a in artifacts if os.path.exists(a)]; data["mlflow"]={"run_id":run_id,"experiment_id":exp_id,"experiment_name":experiment_name}; outs_path.write_text(yaml.safe_dump(data, sort_keys=False)); print(f"[OK] MLflow run created: {run_id} (experiment: {experiment_name})")'; \
-		TMP_SCRIPT=$$(mktemp mlflow_register_XXXX.py); \
-		echo 'import os,subprocess,yaml,json,pathlib,sys' > $$TMP_SCRIPT; \
-		echo 'variant=os.environ.get("VARIANT")' >> $$TMP_SCRIPT; \
-		echo 'phase=os.environ.get("PHASE5","f05_modeling")' >> $$TMP_SCRIPT; \
-		echo 'outs_path=pathlib.Path(f"executions/{phase}/{variant}/outputs.yaml")' >> $$TMP_SCRIPT; \
-		echo 'data=(yaml.safe_load(outs_path.read_text()) if outs_path.exists() else None)' >> $$TMP_SCRIPT; \
-		echo 'if data is None:' >> $$TMP_SCRIPT; \
-		echo '    print(f"[ERROR] outputs.yaml not found at {outs_path}")' >> $$TMP_SCRIPT; \
-		echo '    sys.exit(1)' >> $$TMP_SCRIPT; \
-		echo 'reg=(data.get("mlflow_registration") if isinstance(data,dict) else None)' >> $$TMP_SCRIPT; \
-		echo 'if not reg:' >> $$TMP_SCRIPT; \
-		echo '    print("[WARN] No '\''mlflow_registration'\'' block in outputs.yaml — skipping MLflow registration")' >> $$TMP_SCRIPT; \
-		echo '    sys.exit(0)' >> $$TMP_SCRIPT; \
-		echo 'experiment_name=(reg.get("experiment_name") or f"F05_{variant}")' >> $$TMP_SCRIPT; \
-		echo 'metrics=reg.get("metrics",{})' >> $$TMP_SCRIPT; \
-		echo 'params=reg.get("params",{})' >> $$TMP_SCRIPT; \
-		echo 'artifacts=reg.get("artifacts",[])' >> $$TMP_SCRIPT; \
-		echo 'subprocess.run(["mlflow","experiments","create","--experiment-name",experiment_name], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)' >> $$TMP_SCRIPT; \
-		echo 'exps=json.loads(subprocess.check_output(["mlflow","experiments","list","--format","json"]))' >> $$TMP_SCRIPT; \
-		echo 'exp_id=next((e.get("experiment_id") for e in exps if e.get("name")==experiment_name), None)' >> $$TMP_SCRIPT; \
-		echo 'if not exp_id:' >> $$TMP_SCRIPT; \
-		echo '    print(f"[ERROR] Could not obtain experiment_id for {experiment_name}")' >> $$TMP_SCRIPT; \
-		echo '    sys.exit(1)' >> $$TMP_SCRIPT; \
-		echo 'run=json.loads(subprocess.check_output(["mlflow","runs","create","--experiment-id",exp_id,"--format","json"]))' >> $$TMP_SCRIPT; \
-		echo 'run_id=run["info"]["run_id"]' >> $$TMP_SCRIPT; \
-		echo '[subprocess.run(["mlflow","runs","log-param","--run-id",run_id,"--key",str(k),"--value",str(v)]) for k,v in params.items()]' >> $$TMP_SCRIPT; \
-		echo '[subprocess.run(["mlflow","runs","log-metric","--run-id",run_id,"--key",str(k),"--value",str(v)]) for k,v in metrics.items()]' >> $$TMP_SCRIPT; \
-		echo '[subprocess.run(["mlflow","runs","log-artifact","--run-id",run_id,"--local-path",a]) for a in artifacts if os.path.exists(a)]' >> $$TMP_SCRIPT; \
-		echo 'data["mlflow"]={"run_id":run_id,"experiment_id":exp_id,"experiment_name":experiment_name}' >> $$TMP_SCRIPT; \
-		echo 'outs_path.write_text(yaml.safe_dump(data, sort_keys=False))' >> $$TMP_SCRIPT; \
-		echo 'print(f"[OK] MLflow run created: {run_id} (experiment: {experiment_name})")' >> $$TMP_SCRIPT; \
-		VARIANT="$(VARIANT)" PHASE5="$(PHASE5)" $(PYTHON) $$TMP_SCRIPT; \
-		rm -f $$TMP_SCRIPT; \
+		if ! command -v mlflow >/dev/null 2>&1; then \
+			echo "[INFO] MLflow CLI not found in local environment — skipping MLflow registration"; \
+		else \
+			TMP_SCRIPT=$$(mktemp mlflow_register_XXXX.py); \
+			echo 'import os,subprocess,yaml,json,pathlib,sys' > $$TMP_SCRIPT; \
+			echo 'variant=os.environ.get("VARIANT")' >> $$TMP_SCRIPT; \
+			echo 'phase=os.environ.get("PHASE5","f05_modeling")' >> $$TMP_SCRIPT; \
+			echo 'outs_path=pathlib.Path(f"executions/{phase}/{variant}/outputs.yaml")' >> $$TMP_SCRIPT; \
+			echo 'data=(yaml.safe_load(outs_path.read_text()) if outs_path.exists() else None)' >> $$TMP_SCRIPT; \
+			echo 'if data is None:' >> $$TMP_SCRIPT; \
+			echo '    print(f"[ERROR] outputs.yaml not found at {outs_path}")' >> $$TMP_SCRIPT; \
+			echo '    sys.exit(1)' >> $$TMP_SCRIPT; \
+			echo 'reg=(data.get("mlflow_registration") if isinstance(data,dict) else None)' >> $$TMP_SCRIPT; \
+			echo 'if not reg:' >> $$TMP_SCRIPT; \
+			echo '    print("[WARN] No '\''mlflow_registration'\'' block in outputs.yaml - skipping MLflow registration")' >> $$TMP_SCRIPT; \
+			echo '    sys.exit(0)' >> $$TMP_SCRIPT; \
+			echo 'experiment_name=(reg.get("experiment_name") or f"F05_{variant}")' >> $$TMP_SCRIPT; \
+			echo 'metrics=reg.get("metrics",{})' >> $$TMP_SCRIPT; \
+			echo 'params=reg.get("params",{})' >> $$TMP_SCRIPT; \
+			echo 'artifacts=reg.get("artifacts",[])' >> $$TMP_SCRIPT; \
+			echo 'subprocess.run(["mlflow","experiments","create","--experiment-name",experiment_name], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)' >> $$TMP_SCRIPT; \
+			echo 'exps=json.loads(subprocess.check_output(["mlflow","experiments","list","--format","json"]))' >> $$TMP_SCRIPT; \
+			echo 'exp_id=next((e.get("experiment_id") for e in exps if e.get("name")==experiment_name), None)' >> $$TMP_SCRIPT; \
+			echo 'if not exp_id:' >> $$TMP_SCRIPT; \
+			echo '    print(f"[ERROR] Could not obtain experiment_id for {experiment_name}")' >> $$TMP_SCRIPT; \
+			echo '    sys.exit(1)' >> $$TMP_SCRIPT; \
+			echo 'run=json.loads(subprocess.check_output(["mlflow","runs","create","--experiment-id",exp_id,"--format","json"]))' >> $$TMP_SCRIPT; \
+			echo 'run_id=run["info"]["run_id"]' >> $$TMP_SCRIPT; \
+			echo '[subprocess.run(["mlflow","runs","log-param","--run-id",run_id,"--key",str(k),"--value",str(v)]) for k,v in params.items()]' >> $$TMP_SCRIPT; \
+			echo '[subprocess.run(["mlflow","runs","log-metric","--run-id",run_id,"--key",str(k),"--value",str(v)]) for k,v in metrics.items()]' >> $$TMP_SCRIPT; \
+			echo '[subprocess.run(["mlflow","runs","log-artifact","--run-id",run_id,"--local-path",a]) for a in artifacts if os.path.exists(a)]' >> $$TMP_SCRIPT; \
+			echo 'data["mlflow"]={"run_id":run_id,"experiment_id":exp_id,"experiment_name":experiment_name}' >> $$TMP_SCRIPT; \
+			echo 'outs_path.write_text(yaml.safe_dump(data, sort_keys=False))' >> $$TMP_SCRIPT; \
+			echo 'print(f"[OK] MLflow run created: {run_id} (experiment: {experiment_name})")' >> $$TMP_SCRIPT; \
+			VARIANT="$$VARIANT_NORM" PHASE5="$(PHASE5)" $(PYTHON) $$TMP_SCRIPT; \
+			rm -f $$TMP_SCRIPT; \
+		fi; \
 	else \
-		echo "[INFO] MLflow disabled in setup — skipping MLflow registration"; \
-	fi
-
+		echo "[INFO] MLflow disabled in setup - skipping MLflow registration"; \
+	fi; \
 	$(MAKE) register-generic \
 		PHASE=$(PHASE5) \
 		VARIANTS_DIR=$(VARIANTS_DIR5) \
 		DVC_EXTS="h5 parquet" \
-		VARIANT=$(VARIANT)
+		VARIANT=$$VARIANT_NORM
 
 ############################################
 # ELIMINAR VARIANTES
@@ -1070,12 +1185,25 @@ variant6: check-variant-format
 
 script6: check-variant-format ensure-f56-docker-image
 	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE6) $(VARIANT))"; \
+	$(UPDATE_VARIANT_VERIFIED) $(PHASE6) $$VARIANT_NORM none >/dev/null 2>&1 || true; \
+	$(UPDATE_VARIANT_STATE) $(PHASE6) $$VARIANT_NORM $(LIFECYCLE_STATE_EXECUTION_RUNNING) >/dev/null 2>&1 || true; \
+	echo "==> Regenerating lineage dashboard"; \
+	$(MAKE) --no-print-directory generate_lineage || true; \
 	echo "==> Running F06 in Docker ($(F56_DOCKER_IMAGE)) for $$VARIANT_NORM"; \
 	docker run --rm --platform $(F56_DOCKER_PLATFORM) \
+		$(DOCKER_HOST_USER_ARGS) \
 		-v "$(DOCKER_HOST_PWD):$(DOCKER_WORKSPACE_PATH)" \
 		-w $(DOCKER_WORKSPACE_PATH) \
 		$(F56_DOCKER_IMAGE) \
-		bash -lc "python -m $(SCRIPT6_MODULE) --variant $$VARIANT_NORM"
+		bash -lc "python -m $(SCRIPT6_MODULE) --variant $$VARIANT_NORM" || { \
+			$(UPDATE_VARIANT_STATE) $(PHASE6) $$VARIANT_NORM $(LIFECYCLE_STATE_EXECUTION_FAILED) >/dev/null 2>&1 || true; \
+			echo "==> Regenerating lineage dashboard"; \
+			$(MAKE) --no-print-directory generate_lineage || true; \
+			exit 1; \
+		}; \
+	$(UPDATE_VARIANT_STATE) $(PHASE6) $$VARIANT_NORM $(LIFECYCLE_STATE_EXECUTION_COMPLETED) >/dev/null 2>&1 || true; \
+	echo "==> Regenerating lineage dashboard"; \
+	$(MAKE) --no-print-directory generate_lineage || true
 
 script6-a: check-variant-format
 	$(MAKE) script-run-generic \
@@ -1090,35 +1218,50 @@ script6-a: check-variant-format
 
 check6: check-variant-format
 	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE6) $(VARIANT))"; \
+	$(UPDATE_VARIANT_VERIFIED) $(PHASE6) $$VARIANT_NORM none >/dev/null 2>&1 || true; \
+	echo "==> Regenerating lineage dashboard"; \
+	$(MAKE) --no-print-directory generate_lineage || true; \
+	test -n "$(VARIANT)" || (echo "[ERROR] Usage: make check6 VARIANT=v6XX"; exit 1); \
 	echo "==> Checking F06 results for variant $$VARIANT_NORM"; \
-
-	@test -n "$(VARIANT)" || (echo "[ERROR] Usage: make check6 VARIANT=v6XX"; exit 1)
-
-	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE6) $(VARIANT))"; \
 	VAR_DIR="$(VARIANTS_DIR6)/$$VARIANT_NORM"; \
 	if [ ! -d "$$VAR_DIR" ]; then \
+		$(UPDATE_VARIANT_VERIFIED) $(PHASE6) $$VARIANT_NORM false >/dev/null 2>&1 || true; \
+		echo "==> Regenerating lineage dashboard"; \
+		$(MAKE) --no-print-directory generate_lineage || true; \
 		echo "[ERROR] Variant directory not found: $$VAR_DIR"; exit 1; \
 	fi; \
 	if [ ! -f "$$VAR_DIR/outputs.yaml" ]; then \
+		$(UPDATE_VARIANT_VERIFIED) $(PHASE6) $$VARIANT_NORM false >/dev/null 2>&1 || true; \
+		echo "==> Regenerating lineage dashboard"; \
+		$(MAKE) --no-print-directory generate_lineage || true; \
 		echo "[ERROR] outputs.yaml not found in $$VAR_DIR"; exit 1; \
 	fi; \
 	echo "[OK] outputs.yaml found"; \
 	if [ ! -f "$$VAR_DIR/06_calibration_dataset.parquet" ]; then \
+		$(UPDATE_VARIANT_VERIFIED) $(PHASE6) $$VARIANT_NORM false >/dev/null 2>&1 || true; \
+		echo "==> Regenerating lineage dashboard"; \
+		$(MAKE) --no-print-directory generate_lineage || true; \
 		echo "[ERROR] calibration dataset not found"; exit 1; \
 	fi; \
 	if [ ! -f "$$VAR_DIR/06_model_float.h5" ]; then \
+		$(UPDATE_VARIANT_VERIFIED) $(PHASE6) $$VARIANT_NORM false >/dev/null 2>&1 || true; \
+		echo "==> Regenerating lineage dashboard"; \
+		$(MAKE) --no-print-directory generate_lineage || true; \
 		echo "[ERROR] model_float not found"; exit 1; \
 	fi; \
 	echo "[OK] Base artifacts found"; \
 	EDGE_CAPABLE=$$($(PYTHON) -c "import os,yaml; d=yaml.safe_load(open(os.path.join('$$VAR_DIR','outputs.yaml'))); print('1' if d.get('exports',{}).get('edge_capable') else '0')"); \
 	if [ "$$EDGE_CAPABLE" = "1" ]; then \
 		echo "[INFO] edge_capable = true — checking EEDU artifacts"; \
-		[ -f "$$VAR_DIR/06_model_tflite.tflite" ] || { echo "[ERROR] model_tflite missing"; exit 1; }; \
-		[ -f "$$VAR_DIR/eedu/eedu_manifest.yaml" ] || { echo "[ERROR] eedu_manifest missing"; exit 1; }; \
+		[ -f "$$VAR_DIR/06_model_tflite.tflite" ] || { $(UPDATE_VARIANT_VERIFIED) $(PHASE6) $$VARIANT_NORM false >/dev/null 2>&1 || true; echo "==> Regenerating lineage dashboard"; $(MAKE) --no-print-directory generate_lineage || true; echo "[ERROR] model_tflite missing"; exit 1; }; \
+		[ -f "$$VAR_DIR/eedu/eedu_manifest.yaml" ] || { $(UPDATE_VARIANT_VERIFIED) $(PHASE6) $$VARIANT_NORM false >/dev/null 2>&1 || true; echo "==> Regenerating lineage dashboard"; $(MAKE) --no-print-directory generate_lineage || true; echo "[ERROR] eedu_manifest missing"; exit 1; }; \
 		echo "[OK] EEDU artifacts present"; \
 	else \
 		echo "[INFO] edge_capable = false — skipping EEDU checks"; \
 	fi; \
+	$(UPDATE_VARIANT_VERIFIED) $(PHASE6) $$VARIANT_NORM true >/dev/null 2>&1 || true; \
+	echo "==> Regenerating lineage dashboard"; \
+	$(MAKE) --no-print-directory generate_lineage || true; \
 	echo "[SUCCESS] F06 check passed for $$VARIANT_NORM"
 
 ############################################
@@ -1304,12 +1447,19 @@ script7-post:
 ############################################
 script7:
 	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE7) $(VARIANT))"; \
+	$(UPDATE_VARIANT_VERIFIED) $(PHASE7) $$VARIANT_NORM none >/dev/null 2>&1 || true; \
+	$(UPDATE_VARIANT_STATE) $(PHASE7) $$VARIANT_NORM $(LIFECYCLE_STATE_EXECUTION_RUNNING) >/dev/null 2>&1 || true; \
+	echo "==> Regenerating lineage dashboard"; \
+	$(MAKE) --no-print-directory generate_lineage || true; \
 	EDGE_CAPABLE="$$($(PYTHON) -c 'import yaml, sys; from pathlib import Path; v=sys.argv[1]; p=Path("executions")/"f07_modval"/v/"params.yaml"; d=(yaml.safe_load(p.read_text()) or {}) if p.exists() else {}; parent=d.get("parent"); o=(Path("executions")/"f06_quant"/str(parent)/"outputs.yaml") if parent else None; e=((yaml.safe_load(o.read_text()) or {}).get("exports", {})) if (o and o.exists()) else {}; print("true" if bool(e.get("edge_capable", False)) else "false")' "$$VARIANT_NORM")"; \
 	if [ "$$EDGE_CAPABLE" = "false" ]; then \
 		echo "[INFO] Parent not edge_capable -> running post only"; \
-		$(PYTHON) -m $(SCRIPT7_POST) --variant $$VARIANT_NORM; \
+		$(PYTHON) -m $(SCRIPT7_POST) --variant $$VARIANT_NORM || { $(UPDATE_VARIANT_STATE) $(PHASE7) $$VARIANT_NORM $(LIFECYCLE_STATE_EXECUTION_FAILED) >/dev/null 2>&1 || true; echo "==> Regenerating lineage dashboard"; $(MAKE) --no-print-directory generate_lineage || true; exit 1; }; \
+		$(UPDATE_VARIANT_STATE) $(PHASE7) $$VARIANT_NORM $(LIFECYCLE_STATE_EXECUTION_COMPLETED) >/dev/null 2>&1 || true; \
+		echo "==> Regenerating lineage dashboard"; \
+		$(MAKE) --no-print-directory generate_lineage || true; \
 	else \
-		$(PYTHON) -m $(SCRIPT7_PREP) --variant $$VARIANT_NORM; \
+		$(PYTHON) -m $(SCRIPT7_PREP) --variant $$VARIANT_NORM || { $(UPDATE_VARIANT_STATE) $(PHASE7) $$VARIANT_NORM $(LIFECYCLE_STATE_EXECUTION_FAILED) >/dev/null 2>&1 || true; echo "==> Regenerating lineage dashboard"; $(MAKE) --no-print-directory generate_lineage || true; exit 1; }; \
 		set +e; \
 		$(PYTHON) -m $(SCRIPT7_RUN) --variant $$VARIANT_NORM \
 			$(if $(PORT),--port $(PORT),) \
@@ -1320,7 +1470,10 @@ script7:
 		if [ $$rc -ne 0 ]; then \
 			echo "[INFO] flash-run returned $$rc -> continuing with post"; \
 		fi; \
-		$(PYTHON) -m $(SCRIPT7_POST) --variant $$VARIANT_NORM; \
+		$(PYTHON) -m $(SCRIPT7_POST) --variant $$VARIANT_NORM || { $(UPDATE_VARIANT_STATE) $(PHASE7) $$VARIANT_NORM $(LIFECYCLE_STATE_EXECUTION_FAILED) >/dev/null 2>&1 || true; echo "==> Regenerating lineage dashboard"; $(MAKE) --no-print-directory generate_lineage || true; exit 1; }; \
+		$(UPDATE_VARIANT_STATE) $(PHASE7) $$VARIANT_NORM $(LIFECYCLE_STATE_EXECUTION_COMPLETED) >/dev/null 2>&1 || true; \
+		echo "==> Regenerating lineage dashboard"; \
+		$(MAKE) --no-print-directory generate_lineage || true; \
 	fi
 
 ############################################
@@ -1329,23 +1482,26 @@ script7:
 
 check7: check-variant-format
 	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE7) $(VARIANT))"; \
+	test -n "$(VARIANT)" || (echo "[ERROR] Usage: make check7 VARIANT=v7XX"; exit 1); \
 	echo "==> Checking F07 results for variant $$VARIANT_NORM"; \
-
-	@test -n "$(VARIANT)" || (echo "[ERROR] Usage: make check7 VARIANT=v7XX"; exit 1)
-
-	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE7) $(VARIANT))"; \
 	VAR_DIR="$(VARIANTS_DIR7)/$$VARIANT_NORM"; \
-	[ -d "$$VAR_DIR" ] || { echo "[ERROR] Variant dir missing"; exit 1; }; \
-	[ -f "$$VAR_DIR/outputs.yaml" ] || { echo "[ERROR] outputs.yaml missing"; exit 1; }; \
+	[ -d "$$VAR_DIR" ] || { $(UPDATE_VARIANT_VERIFIED) $(PHASE7) $$VARIANT_NORM false >/dev/null 2>&1 || true; echo "==> Regenerating lineage dashboard"; $(MAKE) --no-print-directory generate_lineage || true; echo "[ERROR] Variant dir missing"; exit 1; }; \
+	[ -f "$$VAR_DIR/outputs.yaml" ] || { $(UPDATE_VARIANT_VERIFIED) $(PHASE7) $$VARIANT_NORM false >/dev/null 2>&1 || true; echo "==> Regenerating lineage dashboard"; $(MAKE) --no-print-directory generate_lineage || true; echo "[ERROR] outputs.yaml missing"; exit 1; }; \
 	EDGE_CAPABLE="$$(VAR_DIR="$$VAR_DIR" $(PYTHON) -c 'import os,yaml; from pathlib import Path; p = Path(os.environ["VAR_DIR"]) / "outputs.yaml"; d = yaml.safe_load(p.read_text()) or {}; print("true" if d.get("exports",{}).get("edge_capable") else "false")')"; \
 	if [ "$$EDGE_CAPABLE" = "false" ]; then \
 		echo "[SUCCESS] F07 check passed for $$VARIANT_NORM (edge skipped)"; \
+		$(UPDATE_VARIANT_VERIFIED) $(PHASE7) $$VARIANT_NORM true >/dev/null 2>&1 || true; \
+		echo "==> Regenerating lineage dashboard"; \
+		$(MAKE) --no-print-directory generate_lineage || true; \
 	else \
-		[ -f "$$VAR_DIR/07_edge_run_config.yaml" ] || exit 1; \
-		[ -f "$$VAR_DIR/metrics_models.csv" ] || exit 1; \
-		[ -f "$$VAR_DIR/metrics_system_timing.csv" ] || exit 1; \
-		[ -f "$$VAR_DIR/07_esp_monitor_log.txt" ] || exit 1; \
+		[ -f "$$VAR_DIR/07_edge_run_config.yaml" ] || { $(UPDATE_VARIANT_VERIFIED) $(PHASE7) $$VARIANT_NORM false >/dev/null 2>&1 || true; echo "==> Regenerating lineage dashboard"; $(MAKE) --no-print-directory generate_lineage || true; exit 1; }; \
+		[ -f "$$VAR_DIR/metrics_models.csv" ] || { $(UPDATE_VARIANT_VERIFIED) $(PHASE7) $$VARIANT_NORM false >/dev/null 2>&1 || true; echo "==> Regenerating lineage dashboard"; $(MAKE) --no-print-directory generate_lineage || true; exit 1; }; \
+		[ -f "$$VAR_DIR/metrics_system_timing.csv" ] || { $(UPDATE_VARIANT_VERIFIED) $(PHASE7) $$VARIANT_NORM false >/dev/null 2>&1 || true; echo "==> Regenerating lineage dashboard"; $(MAKE) --no-print-directory generate_lineage || true; exit 1; }; \
+		[ -f "$$VAR_DIR/07_esp_monitor_log.txt" ] || { $(UPDATE_VARIANT_VERIFIED) $(PHASE7) $$VARIANT_NORM false >/dev/null 2>&1 || true; echo "==> Regenerating lineage dashboard"; $(MAKE) --no-print-directory generate_lineage || true; exit 1; }; \
 		echo "[SUCCESS] F07 check passed for $$VARIANT_NORM"; \
+		$(UPDATE_VARIANT_VERIFIED) $(PHASE7) $$VARIANT_NORM true >/dev/null 2>&1 || true; \
+		echo "==> Regenerating lineage dashboard"; \
+		$(MAKE) --no-print-directory generate_lineage || true; \
 	fi
 
 ############################################
@@ -1519,13 +1675,20 @@ script8-post:
 
 script8:
 	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE8) $(VARIANT))"; \
-	$(PYTHON) -m scripts.phases.f081_selectconfig --variant $$VARIANT_NORM; \
+	$(UPDATE_VARIANT_VERIFIED) $(PHASE8) $$VARIANT_NORM none >/dev/null 2>&1 || true; \
+	$(UPDATE_VARIANT_STATE) $(PHASE8) $$VARIANT_NORM $(LIFECYCLE_STATE_EXECUTION_RUNNING) >/dev/null 2>&1 || true; \
+	echo "==> Regenerating lineage dashboard"; \
+	$(MAKE) --no-print-directory generate_lineage || true; \
+	$(PYTHON) -m scripts.phases.f081_selectconfig --variant $$VARIANT_NORM || { $(UPDATE_VARIANT_STATE) $(PHASE8) $$VARIANT_NORM $(LIFECYCLE_STATE_EXECUTION_FAILED) >/dev/null 2>&1 || true; echo "==> Regenerating lineage dashboard"; $(MAKE) --no-print-directory generate_lineage || true; exit 1; }; \
 	CONFIG_EDGE_CAPABLE="$$($(PYTHON) -c 'import yaml, sys; from pathlib import Path; v=sys.argv[1]; p=Path("executions")/"f08_sysval"/v/"08_selected_configuration.yaml"; d=(yaml.safe_load(p.read_text()) or {}) if p.exists() else {}; print("true" if bool(d.get("configuration_edge_capable", False)) else "false")' "$$VARIANT_NORM")"; \
 	if [ "$$CONFIG_EDGE_CAPABLE" = "false" ]; then \
 		echo "[INFO] configuration not edge_capable -> post only"; \
-		$(PYTHON) -m scripts.phases.f084_post --variant $$VARIANT_NORM; \
+		$(PYTHON) -m scripts.phases.f084_post --variant $$VARIANT_NORM || { $(UPDATE_VARIANT_STATE) $(PHASE8) $$VARIANT_NORM $(LIFECYCLE_STATE_EXECUTION_FAILED) >/dev/null 2>&1 || true; echo "==> Regenerating lineage dashboard"; $(MAKE) --no-print-directory generate_lineage || true; exit 1; }; \
+		$(UPDATE_VARIANT_STATE) $(PHASE8) $$VARIANT_NORM $(LIFECYCLE_STATE_EXECUTION_COMPLETED) >/dev/null 2>&1 || true; \
+		echo "==> Regenerating lineage dashboard"; \
+		$(MAKE) --no-print-directory generate_lineage || true; \
 	else \
-		$(PYTHON) -m scripts.phases.f082_preparebuild --variant $$VARIANT_NORM; \
+		$(PYTHON) -m scripts.phases.f082_preparebuild --variant $$VARIANT_NORM || { $(UPDATE_VARIANT_STATE) $(PHASE8) $$VARIANT_NORM $(LIFECYCLE_STATE_EXECUTION_FAILED) >/dev/null 2>&1 || true; echo "==> Regenerating lineage dashboard"; $(MAKE) --no-print-directory generate_lineage || true; exit 1; }; \
 		set +e; \
 		$(PYTHON) -m scripts.phases.f083_flashrun --variant $$VARIANT_NORM \
 			$(if $(PORT),--port $(PORT),) \
@@ -1536,7 +1699,10 @@ script8:
 		if [ $$rc -ne 0 ]; then \
 			echo "[INFO] flash-run returned $$rc -> continuing"; \
 		fi; \
-		$(PYTHON) -m scripts.phases.f084_post --variant $$VARIANT_NORM; \
+		$(PYTHON) -m scripts.phases.f084_post --variant $$VARIANT_NORM || { $(UPDATE_VARIANT_STATE) $(PHASE8) $$VARIANT_NORM $(LIFECYCLE_STATE_EXECUTION_FAILED) >/dev/null 2>&1 || true; echo "==> Regenerating lineage dashboard"; $(MAKE) --no-print-directory generate_lineage || true; exit 1; }; \
+		$(UPDATE_VARIANT_STATE) $(PHASE8) $$VARIANT_NORM $(LIFECYCLE_STATE_EXECUTION_COMPLETED) >/dev/null 2>&1 || true; \
+		echo "==> Regenerating lineage dashboard"; \
+		$(MAKE) --no-print-directory generate_lineage || true; \
 	fi
 
 ############################################
@@ -1544,14 +1710,16 @@ script8:
 ############################################
 
 check8: check-variant-format
-	@test -n "$(VARIANT)" || (echo "[ERROR] Usage: make check8 VARIANT=v8XX"; exit 1)
-
 	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE8) $(VARIANT))"; \
+	test -n "$(VARIANT)" || (echo "[ERROR] Usage: make check8 VARIANT=v8XX"; exit 1); \
 	VAR_DIR="$(VARIANTS_DIR8)/$$VARIANT_NORM"; \
-	[ -d "$$VAR_DIR" ] || exit 1; \
-	[ -f "$$VAR_DIR/outputs.yaml" ] || exit 1; \
-	[ -f "$$VAR_DIR/08_selected_configuration.yaml" ] || exit 1; \
-	echo "[SUCCESS] F08 basic check passed for $$VARIANT_NORM"
+	[ -d "$$VAR_DIR" ] || { $(UPDATE_VARIANT_VERIFIED) $(PHASE8) $$VARIANT_NORM false >/dev/null 2>&1 || true; echo "==> Regenerating lineage dashboard"; $(MAKE) --no-print-directory generate_lineage || true; exit 1; }; \
+	[ -f "$$VAR_DIR/outputs.yaml" ] || { $(UPDATE_VARIANT_VERIFIED) $(PHASE8) $$VARIANT_NORM false >/dev/null 2>&1 || true; echo "==> Regenerating lineage dashboard"; $(MAKE) --no-print-directory generate_lineage || true; exit 1; }; \
+	[ -f "$$VAR_DIR/08_selected_configuration.yaml" ] || { $(UPDATE_VARIANT_VERIFIED) $(PHASE8) $$VARIANT_NORM false >/dev/null 2>&1 || true; echo "==> Regenerating lineage dashboard"; $(MAKE) --no-print-directory generate_lineage || true; exit 1; }; \
+	echo "[SUCCESS] F08 basic check passed for $$VARIANT_NORM"; \
+	$(UPDATE_VARIANT_VERIFIED) $(PHASE8) $$VARIANT_NORM true >/dev/null 2>&1 || true; \
+	echo "==> Regenerating lineage dashboard"; \
+	$(MAKE) --no-print-directory generate_lineage || true
 
 ############################################
 # Register

@@ -1,4 +1,5 @@
 # generate_html.py
+import html
 import os
 import yaml
 import json
@@ -6,6 +7,20 @@ import re
 from config import BASE_DIR, PHASES, PHASE_COLORS, CSS_STYLES, DST_HTML_DIR, OUTPUT_FILENAME
 
 VARIANT_ID_REGEX = re.compile(r"^v(?P<phase>\d)_(?P<seq>\d{4})$")
+
+LIFECYCLE_STATE_ICONS = {
+    "VARIANT_CREATED": "🆕",
+    "EXECUTION_RUNNING": "⏳",
+    "EXECUTION_COMPLETED": "✅",
+    "EXECUTION_FAILED": "❌",
+}
+
+LIFECYCLE_STATE_LABELS = {
+    "VARIANT_CREATED": "Created",
+    "EXECUTION_RUNNING": "Running",
+    "EXECUTION_COMPLETED": "Completed",
+    "EXECUTION_FAILED": "Failed",
+}
 
 
 def _phase_code(phase_name):
@@ -37,6 +52,93 @@ def load_yaml(filepath):
         return {}
     with open(filepath, 'r') as file:
         return yaml.safe_load(file) or {}
+
+
+def _normalize_metadata_specs(metadata_specs):
+    if not metadata_specs:
+        return ["metadata.yaml"]
+    if isinstance(metadata_specs, str):
+        return [metadata_specs]
+    if isinstance(metadata_specs, (list, tuple)):
+        return [str(item) for item in metadata_specs if isinstance(item, str) and item.strip()]
+    return ["metadata.yaml"]
+
+
+def _candidate_metadata_paths(phase_name, variant_id, metadata_specs):
+    candidates = []
+    seen = set()
+    for spec in _normalize_metadata_specs(metadata_specs):
+        variant_dir = os.path.join(BASE_DIR, phase_name, variant_id)
+        alt_paths = [os.path.join(variant_dir, spec)]
+        if alt_paths[0].endswith(".yml"):
+            alt_paths.append(alt_paths[0][:-4] + ".yaml")
+        elif alt_paths[0].endswith(".yaml"):
+            alt_paths.append(alt_paths[0][:-5] + ".yml")
+        # Backward compatibility: also look for a shared phase-level file.
+        phase_base = os.path.join(BASE_DIR, phase_name, spec)
+        alt_paths.extend([phase_base])
+        if phase_base.endswith(".yml"):
+            alt_paths.append(phase_base[:-4] + ".yaml")
+        elif phase_base.endswith(".yaml"):
+            alt_paths.append(phase_base[:-5] + ".yml")
+        for path in alt_paths:
+            if path not in seen:
+                seen.add(path)
+                candidates.append(path)
+    return candidates
+
+
+def _load_phase_metadata(phase_name, variant_id, metadata_specs):
+    candidates = _candidate_metadata_paths(phase_name, variant_id, metadata_specs)
+    for path in candidates:
+        if os.path.exists(path):
+            return load_yaml(path), path
+    return {}, candidates[0] if candidates else ""
+
+
+def _state_slug(value):
+    if value is None:
+        return "none"
+    return re.sub(r"[^a-z0-9]+", "-", str(value).lower()).strip("-") or "none"
+
+
+def _display_state(value):
+    if value is None:
+        return "None"
+    if isinstance(value, bool):
+        return "True" if value else "False"
+    return str(value)
+
+
+def _lifecycle_state_text(lifecycle_state):
+    label = LIFECYCLE_STATE_LABELS.get(lifecycle_state, _display_state(lifecycle_state).replace("_", " "))
+    icon = LIFECYCLE_STATE_ICONS.get(lifecycle_state, "•")
+    return icon, label
+
+
+def _status_value_class(value):
+    if value is True:
+        return "true"
+    if value is False:
+        return "false"
+    return "none"
+
+
+def _verified_badge(value):
+    status_class = _status_value_class(value)
+    icon = {"true": "✓", "false": "✗", "none": "○"}[status_class]
+    return f'<span class="status-badge verified-badge verified-{status_class}" title="verified: {_display_state(value)}">{icon}</span>'
+
+
+def _registred_badge(value):
+    status_class = _status_value_class(value)
+    return f'<span class="status-badge registred-badge registred-{status_class}" title="registred: {_display_state(value)}">R</span>'
+
+
+def _lifecycle_badge(lifecycle_state):
+    status_class = _state_slug(lifecycle_state)
+    icon, label = _lifecycle_state_text(lifecycle_state)
+    return f'<span class="status-badge lifecycle-badge lifecycle-{status_class}" title="lifecycle_state: {_display_state(lifecycle_state)}">{icon}</span>'
 
 
 def _as_parent_path(parent_key_spec):
@@ -147,12 +249,41 @@ def build_html_dashboard():
                 node_id = f"{phase_name}_{variant_id}"
                 
                 card_style = f"background-color: {colors['bg']}; border-color: {colors['border']}; color: {colors['text']};"
-                # Añadidos eventos onmouseenter y onmouseleave
-                column_html += f'<div class="variant-card" id="{node_id}" style="{card_style}" onclick="showConfig(\'{node_id}\')" onmouseenter="highlightLines(\'{node_id}\')" onmouseleave="resetLines()">{variant_id}</div>'
-                
                 params_path = os.path.join(BASE_DIR, phase_name, variant_id, "params.yaml")
                 params = load_yaml(params_path)
-                configs_data[node_id] = params
+                metadata, metadata_path = _load_phase_metadata(phase_name, variant_id, phase.get("metadata", []))
+
+                lifecycle_state = metadata.get("lifecycle_state")
+                verified = metadata.get("verified", "none")
+                registred = metadata.get("registred", "none")
+
+                configs_data[node_id] = {
+                    "params_path": params_path,
+                    "metadata_path": metadata_path,
+                    "params": params,
+                    "metadata": metadata,
+                }
+
+                lifecycle_badge = _lifecycle_badge(lifecycle_state)
+                verified_badge = _verified_badge(verified)
+                registred_badge = _registred_badge(registred)
+
+                column_html += f'''
+                    <div class="variant-card" id="{node_id}" style="{card_style}" onclick="showConfig('{node_id}')" onmouseenter="highlightLines('{node_id}')" onmouseleave="resetLines()">
+                        <div class="variant-card-head">
+                            <div class="variant-id">{html.escape(variant_id)}</div>
+                            <div class="variant-card-state-stack">
+                                <div class="variant-card-state-row">
+                                    {lifecycle_badge}
+                                </div>
+                                <div class="variant-card-statuses">
+                                    {verified_badge}
+                                    {registred_badge}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                '''
 
                 parents = _extract_parents(params, phase.get("parent_keys", []))
                 
@@ -206,7 +337,7 @@ def build_html_dashboard():
 
         <script>
             let lines = [];
-            const variantConfigs = {json.dumps(configs_data)};
+            const variantConfigs = {json.dumps(configs_data, ensure_ascii=False)};
 
             function showConfig(nodeId) {{
                 document.getElementById('config-panel').classList.add('open');
