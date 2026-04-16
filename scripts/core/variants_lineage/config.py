@@ -57,7 +57,7 @@ CSS_STYLES = """
     .phase-column { 
         display: flex; 
         flex-direction: column; 
-        gap: 30px; 
+        gap: 18px; 
         min-width: 220px; 
         flex-shrink: 0; /* EVITA QUE LAS CAJAS SE APLASTEN O DESAPAREZCAN */
         background: #fff; 
@@ -74,7 +74,7 @@ CSS_STYLES = """
     .variant-card {
         border-width: 2px; border-style: solid; border-radius: 8px; 
         /* CLAVE: Relleno mínimo arriba (6px), derecha (4px) y abajo (6px). Mantenemos 12px a la izq para el texto */
-        padding: 6px 4px 6px 12px; 
+        padding: 6px 4px 6px 26px; 
         cursor: pointer; transition: all 0.2s ease; font-weight: 600;
         position: relative; z-index: 2; 
         display: flex;
@@ -138,7 +138,7 @@ CSS_STYLES = """
         height: 1.4rem; 
         border-radius: 50%;
         padding: 0;
-        font-size: 0.6rem; 
+        font-size: 0.9rem; 
         line-height: 1;
         font-weight: 800;
         border: 1px solid transparent;
@@ -153,7 +153,7 @@ CSS_STYLES = """
         flex: 1 1 auto;
     }
 
-    .lifecycle-badge.lifecycle-variant-created { background: #e3f2fd; color: #1565C0; border-color: #90CAF9; }
+    .lifecycle-badge.lifecycle-variant-created { background: #FFFFFF; color: #1565C0; border-color: #90CAF9; }
     .lifecycle-badge.lifecycle-execution-running { background: #fff8e1; color: #8d6e63; border-color: #ffcc80; }
     .lifecycle-badge.lifecycle-execution-completed { background: #e8f5e9; color: #2E7D32; border-color: #A5D6A7; }
     .lifecycle-badge.lifecycle-execution-failed { background: #ffebee; color: #C62828; border-color: #EF9A9A; }

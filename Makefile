@@ -432,29 +432,19 @@ check-results-generic: check-variant-format
 	@test -n "$(PHASE)" || (echo "[ERROR] PHASE not defined"; exit 1)
 	@test -n "$(VARIANTS_DIR)" || (echo "[ERROR] VARIANTS_DIR not defined"; exit 1)
 	@test -n "$(VARIANT)" || (echo "[ERROR] VARIANT not defined"; exit 1)
-	@test -n "$(CHECK_FILES)" || (echo "[ERROR] CHECK_FILES not defined"; exit 1)
 
 	@VARIANT_NORM="$$($(NORMALIZE_VARIANT))"; \
 	$(UPDATE_VARIANT_VERIFIED) $(PHASE) $$VARIANT_NORM none >/dev/null 2>&1 || true; \
 	echo "==> Regenerating lineage dashboard"; \
 	$(MAKE) --no-print-directory generate_lineage || true; \
-	echo "===== CHECKING $(PHASE) results ($$VARIANT_NORM) ====="; \
-	MISSING=0; \
-	for f in $(CHECK_FILES); do \
-		FILE="$(VARIANTS_DIR)/$$VARIANT_NORM/$$f"; \
-		if [ -f "$$FILE" ]; then \
-			echo "[OK] $$f"; \
-		else \
-			echo "[FAIL] Missing $$f"; \
-			MISSING=1; \
-		fi; \
-	done; \
-	echo "================================"; \
-	if [ "$$MISSING" -eq 1 ]; then \
+	if ! $(PYTHON) -m scripts.core.phase_checker \
+		--spec makefile_check_phases.yml \
+		--phase $(PHASE) \
+		--variant-dir "$(VARIANTS_DIR)/$$VARIANT_NORM"; then \
 		$(UPDATE_VARIANT_VERIFIED) $(PHASE) $$VARIANT_NORM false >/dev/null 2>&1 || true; \
 		echo "==> Regenerating lineage dashboard"; \
 		$(MAKE) --no-print-directory generate_lineage || true; \
-		echo "[ERROR] Some files missing"; \
+		echo "[ERROR] Phase checker validation failed"; \
 		exit 1; \
 	fi; \
 	$(UPDATE_VARIANT_VERIFIED) $(PHASE) $$VARIANT_NORM true >/dev/null 2>&1 || true; \
@@ -1217,52 +1207,10 @@ script6-a: check-variant-format
 ############################################
 
 check6: check-variant-format
-	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE6) $(VARIANT))"; \
-	$(UPDATE_VARIANT_VERIFIED) $(PHASE6) $$VARIANT_NORM none >/dev/null 2>&1 || true; \
-	echo "==> Regenerating lineage dashboard"; \
-	$(MAKE) --no-print-directory generate_lineage || true; \
-	test -n "$(VARIANT)" || (echo "[ERROR] Usage: make check6 VARIANT=v6XX"; exit 1); \
-	echo "==> Checking F06 results for variant $$VARIANT_NORM"; \
-	VAR_DIR="$(VARIANTS_DIR6)/$$VARIANT_NORM"; \
-	if [ ! -d "$$VAR_DIR" ]; then \
-		$(UPDATE_VARIANT_VERIFIED) $(PHASE6) $$VARIANT_NORM false >/dev/null 2>&1 || true; \
-		echo "==> Regenerating lineage dashboard"; \
-		$(MAKE) --no-print-directory generate_lineage || true; \
-		echo "[ERROR] Variant directory not found: $$VAR_DIR"; exit 1; \
-	fi; \
-	if [ ! -f "$$VAR_DIR/outputs.yaml" ]; then \
-		$(UPDATE_VARIANT_VERIFIED) $(PHASE6) $$VARIANT_NORM false >/dev/null 2>&1 || true; \
-		echo "==> Regenerating lineage dashboard"; \
-		$(MAKE) --no-print-directory generate_lineage || true; \
-		echo "[ERROR] outputs.yaml not found in $$VAR_DIR"; exit 1; \
-	fi; \
-	echo "[OK] outputs.yaml found"; \
-	if [ ! -f "$$VAR_DIR/06_calibration_dataset.parquet" ]; then \
-		$(UPDATE_VARIANT_VERIFIED) $(PHASE6) $$VARIANT_NORM false >/dev/null 2>&1 || true; \
-		echo "==> Regenerating lineage dashboard"; \
-		$(MAKE) --no-print-directory generate_lineage || true; \
-		echo "[ERROR] calibration dataset not found"; exit 1; \
-	fi; \
-	if [ ! -f "$$VAR_DIR/06_model_float.h5" ]; then \
-		$(UPDATE_VARIANT_VERIFIED) $(PHASE6) $$VARIANT_NORM false >/dev/null 2>&1 || true; \
-		echo "==> Regenerating lineage dashboard"; \
-		$(MAKE) --no-print-directory generate_lineage || true; \
-		echo "[ERROR] model_float not found"; exit 1; \
-	fi; \
-	echo "[OK] Base artifacts found"; \
-	EDGE_CAPABLE=$$($(PYTHON) -c "import os,yaml; d=yaml.safe_load(open(os.path.join('$$VAR_DIR','outputs.yaml'))); print('1' if d.get('exports',{}).get('edge_capable') else '0')"); \
-	if [ "$$EDGE_CAPABLE" = "1" ]; then \
-		echo "[INFO] edge_capable = true — checking EEDU artifacts"; \
-		[ -f "$$VAR_DIR/06_model_tflite.tflite" ] || { $(UPDATE_VARIANT_VERIFIED) $(PHASE6) $$VARIANT_NORM false >/dev/null 2>&1 || true; echo "==> Regenerating lineage dashboard"; $(MAKE) --no-print-directory generate_lineage || true; echo "[ERROR] model_tflite missing"; exit 1; }; \
-		[ -f "$$VAR_DIR/eedu/eedu_manifest.yaml" ] || { $(UPDATE_VARIANT_VERIFIED) $(PHASE6) $$VARIANT_NORM false >/dev/null 2>&1 || true; echo "==> Regenerating lineage dashboard"; $(MAKE) --no-print-directory generate_lineage || true; echo "[ERROR] eedu_manifest missing"; exit 1; }; \
-		echo "[OK] EEDU artifacts present"; \
-	else \
-		echo "[INFO] edge_capable = false — skipping EEDU checks"; \
-	fi; \
-	$(UPDATE_VARIANT_VERIFIED) $(PHASE6) $$VARIANT_NORM true >/dev/null 2>&1 || true; \
-	echo "==> Regenerating lineage dashboard"; \
-	$(MAKE) --no-print-directory generate_lineage || true; \
-	echo "[SUCCESS] F06 check passed for $$VARIANT_NORM"
+	$(MAKE) check-results-generic \
+		PHASE=$(PHASE6) \
+		VARIANTS_DIR=$(VARIANTS_DIR6) \
+		VARIANT=$(VARIANT)
 
 ############################################
 # Register (conditional publish)
@@ -1481,28 +1429,10 @@ script7:
 ############################################
 
 check7: check-variant-format
-	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE7) $(VARIANT))"; \
-	test -n "$(VARIANT)" || (echo "[ERROR] Usage: make check7 VARIANT=v7XX"; exit 1); \
-	echo "==> Checking F07 results for variant $$VARIANT_NORM"; \
-	VAR_DIR="$(VARIANTS_DIR7)/$$VARIANT_NORM"; \
-	[ -d "$$VAR_DIR" ] || { $(UPDATE_VARIANT_VERIFIED) $(PHASE7) $$VARIANT_NORM false >/dev/null 2>&1 || true; echo "==> Regenerating lineage dashboard"; $(MAKE) --no-print-directory generate_lineage || true; echo "[ERROR] Variant dir missing"; exit 1; }; \
-	[ -f "$$VAR_DIR/outputs.yaml" ] || { $(UPDATE_VARIANT_VERIFIED) $(PHASE7) $$VARIANT_NORM false >/dev/null 2>&1 || true; echo "==> Regenerating lineage dashboard"; $(MAKE) --no-print-directory generate_lineage || true; echo "[ERROR] outputs.yaml missing"; exit 1; }; \
-	EDGE_CAPABLE="$$(VAR_DIR="$$VAR_DIR" $(PYTHON) -c 'import os,yaml; from pathlib import Path; p = Path(os.environ["VAR_DIR"]) / "outputs.yaml"; d = yaml.safe_load(p.read_text()) or {}; print("true" if d.get("exports",{}).get("edge_capable") else "false")')"; \
-	if [ "$$EDGE_CAPABLE" = "false" ]; then \
-		echo "[SUCCESS] F07 check passed for $$VARIANT_NORM (edge skipped)"; \
-		$(UPDATE_VARIANT_VERIFIED) $(PHASE7) $$VARIANT_NORM true >/dev/null 2>&1 || true; \
-		echo "==> Regenerating lineage dashboard"; \
-		$(MAKE) --no-print-directory generate_lineage || true; \
-	else \
-		[ -f "$$VAR_DIR/07_edge_run_config.yaml" ] || { $(UPDATE_VARIANT_VERIFIED) $(PHASE7) $$VARIANT_NORM false >/dev/null 2>&1 || true; echo "==> Regenerating lineage dashboard"; $(MAKE) --no-print-directory generate_lineage || true; exit 1; }; \
-		[ -f "$$VAR_DIR/metrics_models.csv" ] || { $(UPDATE_VARIANT_VERIFIED) $(PHASE7) $$VARIANT_NORM false >/dev/null 2>&1 || true; echo "==> Regenerating lineage dashboard"; $(MAKE) --no-print-directory generate_lineage || true; exit 1; }; \
-		[ -f "$$VAR_DIR/metrics_system_timing.csv" ] || { $(UPDATE_VARIANT_VERIFIED) $(PHASE7) $$VARIANT_NORM false >/dev/null 2>&1 || true; echo "==> Regenerating lineage dashboard"; $(MAKE) --no-print-directory generate_lineage || true; exit 1; }; \
-		[ -f "$$VAR_DIR/07_esp_monitor_log.txt" ] || { $(UPDATE_VARIANT_VERIFIED) $(PHASE7) $$VARIANT_NORM false >/dev/null 2>&1 || true; echo "==> Regenerating lineage dashboard"; $(MAKE) --no-print-directory generate_lineage || true; exit 1; }; \
-		echo "[SUCCESS] F07 check passed for $$VARIANT_NORM"; \
-		$(UPDATE_VARIANT_VERIFIED) $(PHASE7) $$VARIANT_NORM true >/dev/null 2>&1 || true; \
-		echo "==> Regenerating lineage dashboard"; \
-		$(MAKE) --no-print-directory generate_lineage || true; \
-	fi
+	$(MAKE) check-results-generic \
+		PHASE=$(PHASE7) \
+		VARIANTS_DIR=$(VARIANTS_DIR7) \
+		VARIANT=$(VARIANT)
 
 ############################################
 # Register
@@ -1710,16 +1640,10 @@ script8:
 ############################################
 
 check8: check-variant-format
-	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE8) $(VARIANT))"; \
-	test -n "$(VARIANT)" || (echo "[ERROR] Usage: make check8 VARIANT=v8XX"; exit 1); \
-	VAR_DIR="$(VARIANTS_DIR8)/$$VARIANT_NORM"; \
-	[ -d "$$VAR_DIR" ] || { $(UPDATE_VARIANT_VERIFIED) $(PHASE8) $$VARIANT_NORM false >/dev/null 2>&1 || true; echo "==> Regenerating lineage dashboard"; $(MAKE) --no-print-directory generate_lineage || true; exit 1; }; \
-	[ -f "$$VAR_DIR/outputs.yaml" ] || { $(UPDATE_VARIANT_VERIFIED) $(PHASE8) $$VARIANT_NORM false >/dev/null 2>&1 || true; echo "==> Regenerating lineage dashboard"; $(MAKE) --no-print-directory generate_lineage || true; exit 1; }; \
-	[ -f "$$VAR_DIR/08_selected_configuration.yaml" ] || { $(UPDATE_VARIANT_VERIFIED) $(PHASE8) $$VARIANT_NORM false >/dev/null 2>&1 || true; echo "==> Regenerating lineage dashboard"; $(MAKE) --no-print-directory generate_lineage || true; exit 1; }; \
-	echo "[SUCCESS] F08 basic check passed for $$VARIANT_NORM"; \
-	$(UPDATE_VARIANT_VERIFIED) $(PHASE8) $$VARIANT_NORM true >/dev/null 2>&1 || true; \
-	echo "==> Regenerating lineage dashboard"; \
-	$(MAKE) --no-print-directory generate_lineage || true
+	$(MAKE) check-results-generic \
+		PHASE=$(PHASE8) \
+		VARIANTS_DIR=$(VARIANTS_DIR8) \
+		VARIANT=$(VARIANT)
 
 ############################################
 # Register

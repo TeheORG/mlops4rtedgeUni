@@ -9,7 +9,8 @@ from config import BASE_DIR, PHASES, PHASE_COLORS, CSS_STYLES, DST_HTML_DIR, OUT
 VARIANT_ID_REGEX = re.compile(r"^v(?P<phase>\d)_(?P<seq>\d{4})$")
 
 LIFECYCLE_STATE_ICONS = {
-    "VARIANT_CREATED": "🆕",
+    # "VARIANT_CREATED": "🆕",
+    "VARIANT_CREATED": "🇻",
     "EXECUTION_RUNNING": "⏳",
     "EXECUTION_COMPLETED": "✅",
     "EXECUTION_FAILED": "❌",
@@ -126,7 +127,7 @@ def _status_value_class(value):
 
 def _verified_badge(value):
     status_class = _status_value_class(value)
-    icon = {"true": "✓", "false": "✗", "none": "○"}[status_class]
+    icon = {"true": "✓", "false": "✗", "none": "Ｏ"}[status_class]
     return f'<span class="status-badge verified-badge verified-{status_class}" title="verified: {_display_state(value)}">{icon}</span>'
 
 
