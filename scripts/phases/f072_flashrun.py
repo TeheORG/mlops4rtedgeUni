@@ -23,6 +23,7 @@ from scripts.core.artifacts import PROJECT_ROOT, get_variant_dir
 
 PHASE = "f07_modval"
 IDF_DOCKER_IMAGE = "mlops4ofp-idf:6.0"
+FLASH_RETRY_ATTEMPTS = 3
 
 
 # ============================================================
@@ -115,6 +116,39 @@ def run_and_log_result(
             raise
 
     return process.returncode, "".join(lines)
+
+
+def _tail_text(path: Path, max_lines: int = 80) -> str:
+    if not path.exists():
+        return ""
+    try:
+        lines = path.read_text(errors="replace").splitlines()
+    except OSError:
+        return ""
+    return "\n".join(lines[-max_lines:])
+
+
+def looks_like_connection_failure(log_path: Path, extra_text: str = "") -> bool:
+    text = f"{_tail_text(log_path)}\n{extra_text}".lower()
+    patterns = (
+        "failed to connect",
+        "timed out waiting for packet header",
+        "could not open port",
+        "ser_open",
+        "serial exception",
+        "uart",
+        "no serial data received",
+        "rst:0x",
+        "waiting for download",
+        "port is busy",
+        "device or resource busy",
+        "permission denied",
+        "write-flash failed",
+        "chip is",
+        "invalid head of packet",
+        "wrong boot mode",
+    )
+    return any(pattern in text for pattern in patterns)
 
 
 def get_host_user_spec() -> str:
@@ -263,6 +297,35 @@ def run_host_esptool_flash(port: str, esp_project_dir: Path, flash_log: Path) ->
     raise RuntimeError("[F07] Falló el flash con esptool en host")
 
 
+def flash_with_retry(
+    flash_fn,
+    flash_log: Path,
+    attempts: int = FLASH_RETRY_ATTEMPTS,
+):
+    last_error: RuntimeError | None = None
+
+    for attempt in range(1, attempts + 1):
+        try:
+            if flash_fn():
+                if attempt > 1:
+                    print(f"[F07] Flash recuperado en intento {attempt}/{attempts}")
+                return
+        except RuntimeError as exc:
+            last_error = exc
+            if attempt >= attempts or not looks_like_connection_failure(flash_log, str(exc)):
+                raise
+
+            wait_s = min(2.0 * attempt, 5.0)
+            print(
+                f"[F07] Fallo de conexión al flashear. Reintentando "
+                f"({attempt}/{attempts}) en {wait_s:.1f}s..."
+            )
+            time.sleep(wait_s)
+
+    if last_error is not None:
+        raise last_error
+
+
 def flash_portable(
     port: str,
     flash_log: Path,
@@ -273,30 +336,39 @@ def flash_portable(
 ):
     if sys.platform == "darwin":
         print("[F07] Flash en host (macOS)")
-        if run_host_esptool_flash(port, esp_project_dir, flash_log):
-            return
+        flash_with_retry(
+            lambda: run_host_esptool_flash(port, esp_project_dir, flash_log),
+            flash_log,
+        )
+        return
 
     docker_ok, docker_err = can_map_docker_device(port, IDF_DOCKER_IMAGE)
 
     if docker_ok:
         print("[F07] Flash vía Docker")
-        run_idf_and_log(
-            ["-p", port, "flash"],
-            flash_log,
-            esp_project_dir=esp_project_dir,
-            port=port,
-            docker_memory_limit=docker_memory_limit,
-            docker_memory_swap=docker_memory_swap,
-            docker_cpus=docker_cpus,
-        )
+        def docker_flash_once():
+            run_idf_and_log(
+                ["-p", port, "flash"],
+                flash_log,
+                esp_project_dir=esp_project_dir,
+                port=port,
+                docker_memory_limit=docker_memory_limit,
+                docker_memory_swap=docker_memory_swap,
+                docker_cpus=docker_cpus,
+            )
+
+        flash_with_retry(docker_flash_once, flash_log)
         return
 
     print("[F07] Docker no puede mapear el puerto serie; usando host")
     if docker_err:
         print(f"[F07] Detalle Docker: {docker_err}")
 
-    if run_host_esptool_flash(port, esp_project_dir, flash_log):
-        return
+    flash_with_retry(
+        lambda: run_host_esptool_flash(port, esp_project_dir, flash_log),
+        flash_log,
+    )
+    return
 
     raise RuntimeError(
         "[F07] No fue posible flashear de forma portable. "
