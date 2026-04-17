@@ -427,7 +427,7 @@ remove-generic: check-variant-format
 ############################################
 # Check results
 ############################################
-
+CHECK_FILE = "makefile_check_phases.yml"
 check-results-generic: check-variant-format
 	@test -n "$(PHASE)" || (echo "[ERROR] PHASE not defined"; exit 1)
 	@test -n "$(VARIANTS_DIR)" || (echo "[ERROR] VARIANTS_DIR not defined"; exit 1)
@@ -438,7 +438,7 @@ check-results-generic: check-variant-format
 	echo "==> Regenerating lineage dashboard"; \
 	$(MAKE) --no-print-directory generate_lineage || true; \
 	if ! $(PYTHON) -m scripts.core.phase_checker \
-		--spec makefile_check_phases.yml \
+		--spec $(CHECK_FILE) \
 		--phase $(PHASE) \
 		--variant-dir "$(VARIANTS_DIR)/$$VARIANT_NORM"; then \
 		$(UPDATE_VARIANT_VERIFIED) $(PHASE) $$VARIANT_NORM false >/dev/null 2>&1 || true; \
@@ -492,8 +492,7 @@ check1: check-variant-format
 	$(MAKE) check-results-generic \
 		PHASE=$(PHASE1) \
 		VARIANTS_DIR=$(VARIANTS_DIR1) \
-		VARIANT=$(VARIANT) \
-		CHECK_FILES="01_explore_dataset.parquet 01_explore_report.html outputs.yaml"
+		VARIANT=$(VARIANT)
 
 register1: check-variant-format
 	$(MAKE) register-generic \
@@ -563,8 +562,7 @@ check2: check-variant-format
 	$(MAKE) check-results-generic \
 		PHASE=$(PHASE2) \
 		VARIANTS_DIR=$(VARIANTS_DIR2) \
-		VARIANT=$(VARIANT) \
-		CHECK_FILES="02_events.parquet 02_events_catalog.json 02_events_report.html outputs.yaml"
+		VARIANT=$(VARIANT)
 
 register2: check-variant-format
 	$(MAKE) register-generic \
@@ -668,11 +666,7 @@ check3: check-variant-format
 	$(MAKE) check-results-generic \
 		PHASE=$(PHASE3) \
 		VARIANTS_DIR=$(VARIANTS_DIR3) \
-		VARIANT=$(VARIANT) \
-		CHECK_FILES="03_windows.parquet \
-		03_events_catalog.json \
-		03_windows_report.html \
-		outputs.yaml"
+		VARIANT=$(VARIANT)
 
 ############################################
 # Register
@@ -786,10 +780,7 @@ check4: check-variant-format
 	$(MAKE) check-results-generic \
 		PHASE=$(PHASE4) \
 		VARIANTS_DIR=$(VARIANTS_DIR4) \
-		VARIANT=$(VARIANT) \
-		CHECK_FILES="04_targets.parquet \
-		04_targets_report.html \
-		outputs.yaml"
+		VARIANT=$(VARIANT)
 
 ############################################
 # Register
@@ -958,12 +949,7 @@ check5: check-variant-format
 	$(MAKE) check-results-generic \
 		PHASE=$(PHASE5) \
 		VARIANTS_DIR=$(VARIANTS_DIR5) \
-		VARIANT=$(VARIANT) \
-		CHECK_FILES="05_modeling_model.h5 \
-		05_modeling_report.html \
-		05_modeling_parent_dataset.parquet \
-		05_modeling_training_dataset.parquet \
-		outputs.yaml"
+		VARIANT=$(VARIANT)
 
 ############################################
 # PUBLICAR + REGISTRO MLFLOW
