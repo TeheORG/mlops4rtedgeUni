@@ -307,21 +307,12 @@ script-run-generic: check-variant-format
 	echo "==> Regenerating lineage dashboard"; \
 	$(MAKE) --no-print-directory generate_lineage || true; \
 	echo "==> Running script PHASE $(PHASE) for variant $$VARIANT_NORM"; \
-	if [ -n "$(SCRIPT_MODULE)" ]; then \
-		$(PYTHON) -m $(SCRIPT_MODULE) --variant $$VARIANT_NORM || { \
-			$(UPDATE_VARIANT_STATE) $(PHASE) $$VARIANT_NORM $(LIFECYCLE_STATE_EXECUTION_FAILED) >/dev/null 2>&1 || true; \
-			echo "==> Regenerating lineage dashboard"; \
-			$(MAKE) --no-print-directory generate_lineage || true; \
-			exit 1; \
-		}; \
-	else \
-		$(PYTHON) $(SCRIPT) --variant $$VARIANT_NORM || { \
-			$(UPDATE_VARIANT_STATE) $(PHASE) $$VARIANT_NORM $(LIFECYCLE_STATE_EXECUTION_FAILED) >/dev/null 2>&1 || true; \
-			echo "==> Regenerating lineage dashboard"; \
-			$(MAKE) --no-print-directory generate_lineage || true; \
-			exit 1; \
-		}; \
-	fi; \
+	$(PYTHON) -m $(SCRIPT_MODULE) --variant $$VARIANT_NORM || { \
+		$(UPDATE_VARIANT_STATE) $(PHASE) $$VARIANT_NORM $(LIFECYCLE_STATE_EXECUTION_FAILED) >/dev/null 2>&1 || true; \
+		echo "==> Regenerating lineage dashboard"; \
+		$(MAKE) --no-print-directory generate_lineage || true; \
+		exit 1; \
+	}; \
 	$(UPDATE_VARIANT_STATE) $(PHASE) $$VARIANT_NORM $(LIFECYCLE_STATE_EXECUTION_COMPLETED) >/dev/null 2>&1 || true; \
 	echo "==> Regenerating lineage dashboard"; \
 	$(MAKE) --no-print-directory generate_lineage || true

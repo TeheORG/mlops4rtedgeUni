@@ -240,7 +240,7 @@ def _validate_single_file(file_rule: dict[str, Any], fpath: Path, rel: str) -> l
 
     if bool(file_rule.get("not_empty", False)):
         if fpath.stat().st_size <= 0:
-            msg = f"[FAIL] empty file: {rel}"
+            msg = f"[⭕️FAIL] empty file: {rel}"
             print(msg)
             errors.append(msg)
         else:
@@ -252,28 +252,28 @@ def _validate_single_file(file_rule: dict[str, Any], fpath: Path, rel: str) -> l
         if ok:
             print(f"[OK] size: {rel} ({size_expr})")
         else:
-            msg = f"[FAIL] size: {rel} -> {detail}"
+            msg = f"[⭕️FAIL] size: {rel} -> {detail}"
             print(msg)
             errors.append(msg)
 
     checks = file_rule.get("checks", []) or []
     if checks:
         if not isinstance(checks, list) or not all(isinstance(c, dict) for c in checks):
-            msg = f"[FAIL] checks must be a list of mappings: {rel}"
+            msg = f"[⭕️FAIL] checks must be a list of mappings: {rel}"
             print(msg)
             errors.append(msg)
             return errors
         try:
             content_errors = _check_file_content(fpath, checks)
         except Exception as exc:
-            msg = f"[FAIL] cannot evaluate checks in {rel}: {exc}"
+            msg = f"[⭕️FAIL] cannot evaluate checks in {rel}: {exc}"
             print(msg)
             errors.append(msg)
             return errors
 
         if content_errors:
             for cerr in content_errors:
-                msg = f"[FAIL] {rel}: {cerr}"
+                msg = f"[⭕️FAIL] {rel}: {cerr}"
                 print(msg)
                 errors.append(msg)
         else:
@@ -291,14 +291,14 @@ def _validate_directory_children(
     errors: list[str] = []
     children = dir_rule.get("children", []) or []
     if not isinstance(children, list) or not all(isinstance(c, dict) for c in children):
-        msg = f"[FAIL] children must be a list of mappings: {rel_dir_pattern}"
+        msg = f"[⭕️FAIL] children must be a list of mappings: {rel_dir_pattern}"
         print(msg)
         return [msg]
 
     for dpath in matched_dirs:
         rel_dir = dpath.relative_to(variant_dir).as_posix()
         if not dpath.is_dir():
-            msg = f"[FAIL] expected directory match but got file: {rel_dir}"
+            msg = f"[⭕️FAIL] expected directory match but got file: {rel_dir}"
             print(msg)
             errors.append(msg)
             continue
@@ -306,7 +306,7 @@ def _validate_directory_children(
         for child in children:
             child_rel = str(child.get("path", "")).strip()
             if not child_rel:
-                msg = f"[FAIL] child rule requires non-empty path under: {rel_dir_pattern}"
+                msg = f"[⭕️FAIL] child rule requires non-empty path under: {rel_dir_pattern}"
                 print(msg)
                 errors.append(msg)
                 continue
@@ -319,7 +319,7 @@ def _validate_directory_children(
                 if full.is_file():
                     errors.extend(_validate_single_file(child, full, rel_full))
             elif child_required:
-                msg = f"[FAIL] missing required file: {rel_full}"
+                msg = f"[⭕️FAIL] missing required file: {rel_full}"
                 print(msg)
                 errors.append(msg)
             else:
@@ -333,7 +333,7 @@ def validate_phase(spec_path: Path, phase: str, variant_dir: Path) -> int:
     rules = _as_phase_rules(spec, phase)
     files = _normalize_files(rules)
 
-    print(f"===== CHECKING {phase} ({variant_dir.name}) with spec =====")
+    print(f"\n===== CHECKING {phase} ({variant_dir.name}) with spec =====")
     print(f"[INFO] Spec: {spec_path}")
 
     errors: list[str] = []
@@ -352,7 +352,7 @@ def validate_phase(spec_path: Path, phase: str, variant_dir: Path) -> int:
                 print(f"[OK] exists: {rel} ({len(matched_existing)} match(es))")
                 directory_rules.append((file_rule, matched_existing, rel))
             elif required:
-                msg = f"[FAIL] missing required directory pattern: {rel}"
+                msg = f"[⭕️FAIL] missing required directory pattern: {rel}"
                 print(msg)
                 errors.append(msg)
             else:
@@ -365,7 +365,7 @@ def validate_phase(spec_path: Path, phase: str, variant_dir: Path) -> int:
                 print(f"[OK] exists: {rel_path}")
                 existing_paths.append((file_rule, m, rel_path))
         elif required:
-            msg = f"[FAIL] missing required file: {rel}"
+            msg = f"[⭕️FAIL] missing required file: {rel}"
             print(msg)
             errors.append(msg)
         else:
@@ -379,11 +379,13 @@ def validate_phase(spec_path: Path, phase: str, variant_dir: Path) -> int:
     for dir_rule, matched_dirs, rel_dir_pattern in directory_rules:
         errors.extend(_validate_directory_children(variant_dir, dir_rule, matched_dirs, rel_dir_pattern))
 
-    print("================================")
+    print("\n======####@@@@@@@@@@@@####======")
     if errors:
-        print(f"[ERROR] Validation failed with {len(errors)} issue(s)")
+        print(f"❌[ERROR] Validation failed with {len(errors)} issue(s)")
+        print("======####@@@@@@@@@@@@####======\n")
         return 1
-    print("[SUCCESS] Validation passed")
+    print("✅[SUCCESS] Validation passed")
+    print("======####@@@@@@@@@@@@####======\n")
     return 0
 
 
