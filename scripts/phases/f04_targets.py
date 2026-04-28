@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 
 import argparse
+import hashlib
 import time
 import re
+from collections import Counter, defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -27,6 +29,15 @@ PHASE = "f04_targets"
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 # ============================================================
 
+
+# ============================================================
+# Helper functions
+# ============================================================
+def extract_measure_name(prediction_name: str) -> str:
+    suffix = "_any-to-"
+    if suffix in prediction_name:
+        return prediction_name.split(suffix, 1)[0]
+    return prediction_name
 
 # ============================================================
 # MAIN
@@ -124,6 +135,8 @@ def main():
         return normalized
 
     target_event_types = normalize_target_event_types(target_event_types_raw)
+    measure_name = extract_measure_name(prediction_name)
+    target_event_count = len(target_event_types)
 
     if target_operator != "OR":
         raise NotImplementedError(
@@ -233,6 +246,87 @@ def main():
     # outputs.yaml
     # --------------------------------------------------------
 
+
+    def analyze_ow_duplicates(ow_events_list, labels):
+        """
+        Analiza duplicados basados SOLO en OW (ignorando label)
+        """
+
+        total = len(ow_events_list)
+
+        # --------------------------------------------------------
+        # Agrupar por OW
+        # --------------------------------------------------------
+
+        groups = defaultdict(list)
+
+        for ow, label in zip(ow_events_list, labels):
+            key = tuple(ow)
+            groups[key].append(label)
+
+        unique_ow = len(groups)
+
+        # --------------------------------------------------------
+        # Duplicados estructurales
+        # --------------------------------------------------------
+
+        num_duplicate_sequences = sum(len(v) - 1 for v in groups.values() if len(v) > 1)
+        duplicate_ratio = num_duplicate_sequences / total if total else 0.0
+
+        # --------------------------------------------------------
+        # Ambigüedad de labels (CRÍTICO)
+        # --------------------------------------------------------
+
+        ambiguous_sequences = 0
+        ambiguous_samples = 0
+
+        for labels_list in groups.values():
+            if len(set(labels_list)) > 1:
+                ambiguous_sequences += 1
+                ambiguous_samples += len(labels_list)
+
+        ambiguous_ratio = ambiguous_samples / total if total else 0.0
+
+        # --------------------------------------------------------
+        # Dominancia de clase por OW
+        # --------------------------------------------------------
+
+        majority_consistency = []
+
+        for labels_list in groups.values():
+            count = Counter(labels_list)
+            majority = max(count.values())
+            consistency = majority / len(labels_list)
+            majority_consistency.append(consistency)
+
+        avg_consistency = sum(majority_consistency) / len(majority_consistency)
+
+        return {
+            "total_sequences": total,
+            "unique_ow_sequences": unique_ow,
+            "num_duplicate_sequences": num_duplicate_sequences,
+            "duplicate_ratio": duplicate_ratio,
+
+ 
+            "ambiguous_sequences": ambiguous_sequences,
+            "ambiguous_samples": ambiguous_samples,
+            "ambiguous_ratio": ambiguous_ratio,
+
+            # calidad del dataset
+            "avg_label_consistency_per_ow": avg_consistency,
+        }
+    
+    dedup_stats = analyze_ow_duplicates(df_out["OW_events"], df_out["label"])
+
+
+    parent_exports = parent_outputs.get("exports", {})
+
+    parent_f02 = parent_exports.get("parent_f02")
+    window_strategy = parent_exports.get("window_strategy")
+    dup_ratio_ow = parent_exports.get("dup_ratio_ow")
+    dup_ratio_pw = parent_exports.get("dup_ratio_pw")
+    seq_len_mean_ow = parent_exports.get("seq_len_mean_ow")
+
     outputs_content = {
         "phase": PHASE,
         "variant": variant,
@@ -252,12 +346,23 @@ def main():
             "LT": int(parent_outputs.get("exports", {}).get("LT", params.get("LT"))),
             "PW": int(parent_outputs.get("exports", {}).get("PW", params.get("PW"))),
             "prediction_name": prediction_name,
+            "measure_name": measure_name,
             "target_operator": target_operator,
             "target_event_types": target_event_types,
+            "target_event_count": int(target_event_count),
             "event_type_count": event_type_count,
-            "n_windows": total,
-            "n_windows_pos": positives,
-            "n_windows_neg": negatives,
+            "window_strategy": window_strategy,
+            "parent_f03": parent_variant,
+            "parent_f02": parent_f02,
+            "n_windows": int(total),
+            "n_windows_pos": int(positives),
+            "n_windows_neg": int(negatives),
+            "class_balance_ratio": float(ratio),
+            "deduplication_stats": dedup_stats,
+            "unique_ratio": dedup_stats["unique_ow_sequences"] / total if total else 0.0,
+            "dup_ratio_ow_parent": dup_ratio_ow,
+            "dup_ratio_pw_parent": dup_ratio_pw,
+            "seq_len_mean_ow_parent": seq_len_mean_ow,
         },
         "metrics": {
             "execution_time": float(elapsed),

@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 import pyarrow as pa
 import pyarrow.parquet as pq
+import hashlib
 
 from scripts.core.artifacts import (
     sha256_of_file,
@@ -48,6 +49,19 @@ def flush_rows(writer, rows, schema):
 def range_event_count(offsets, i0, i1):
     return int(offsets[i1] - offsets[i0])
 
+def stable_array_hash(arr):
+    if len(arr) == 0:
+        return "EMPTY"
+    a = np.asarray(arr, dtype=np.int32)
+    return hashlib.md5(a.tobytes()).hexdigest()
+
+
+def register_window(rows, ow, pw, ow_lengths, pw_lengths, ow_hashes, pw_hashes):
+    rows.append({"OW_events": ow, "PW_events": pw})
+    ow_lengths.append(len(ow))
+    pw_lengths.append(len(pw))
+    ow_hashes.add(stable_array_hash(ow))
+    pw_hashes.add(stable_array_hash(pw))
 
 # ============================================================
 # MAIN
@@ -196,6 +210,13 @@ def main():
     windows_total = 0
     windows_written = 0
 
+
+    ow_lengths = []
+    pw_lengths = []
+
+    ow_hashes = set()
+    pw_hashes = set()
+
     # =================================================================
     # FAST PATH: SYNCHRO
     # =================================================================
@@ -222,14 +243,15 @@ def main():
                         ow = events_flat[offsets[i_ow_0]:offsets[i_ow_1]]
                         pw = events_flat[offsets[i_pw_0]:offsets[i_pw_1]]
                         if len(ow) or len(pw):
-                            rows.append({"OW_events": ow, "PW_events": pw})
+                            register_window(rows, ow, pw, ow_lengths, pw_lengths, ow_hashes, pw_hashes)
                             windows_written += 1
                 else:
                     ow = events_flat[offsets[i_ow_0]:offsets[i_ow_1]]
                     pw = events_flat[offsets[i_pw_0]:offsets[i_pw_1]]
                     if len(ow) or len(pw):
-                        rows.append({"OW_events": ow, "PW_events": pw})
+                        register_window(rows, ow, pw, ow_lengths, pw_lengths, ow_hashes, pw_hashes)
                         windows_written += 1
+
 
             if len(rows) >= BATCH:
                 flush_rows(writer, rows, schema)
@@ -280,7 +302,7 @@ def main():
             ow = events_flat[offsets[i_ow_0]:offsets[i_ow_1]]
             pw = events_flat[offsets[i_pw_0]:offsets[i_pw_1]]
             if len(ow) or len(pw):
-                rows.append({"OW_events": ow, "PW_events": pw})
+                register_window(rows, ow, pw, ow_lengths, pw_lengths, ow_hashes, pw_hashes)
                 windows_written += 1
 
             if len(rows) >= BATCH:
@@ -318,6 +340,23 @@ def main():
     # outputs.yaml
     # --------------------------------------------------------
 
+    n_unique_ow_hash = len(ow_hashes)
+    n_unique_pw_hash = len(pw_hashes)
+
+    dup_ratio_ow = (
+        1.0 - (n_unique_ow_hash / windows_written)
+        if windows_written > 0 else 0.0
+    )
+    dup_ratio_pw = (
+        1.0 - (n_unique_pw_hash / windows_written)
+        if windows_written > 0 else 0.0
+    )
+
+    seq_len_mean_ow = float(np.mean(ow_lengths)) if ow_lengths else 0.0
+    seq_len_mean_pw = float(np.mean(pw_lengths)) if pw_lengths else 0.0
+    seq_len_std_ow = float(np.std(ow_lengths)) if ow_lengths else 0.0
+    seq_len_std_pw = float(np.std(pw_lengths)) if pw_lengths else 0.0
+
     outputs_content = {
         "phase": PHASE,
         "variant": variant,
@@ -340,18 +379,25 @@ def main():
             "OW": OW,
             "LT": LT,
             "PW": PW,
+            "Ratio_PW_OW": PW / OW if OW > 0 else None,
             "event_type_count": event_type_count,
             "window_strategy": window_strategy,
             "nan_mode": nan_mode,
+            "parent_f02": parent_variant,
             "n_windows": windows_written,
-            "n_windows_pos": windows_written,   # F04 lo calculará realmente
-            "n_windows_neg": 0,
+            "n_unique_ow_hash": n_unique_ow_hash,
+            "n_unique_pw_hash": n_unique_pw_hash,
+            "dup_ratio_ow": float(dup_ratio_ow),
+            "dup_ratio_pw": float(dup_ratio_pw),
+            "seq_len_mean_ow": seq_len_mean_ow,
+            "seq_len_mean_pw": seq_len_mean_pw,
+            "seq_len_std_ow": seq_len_std_ow,
+            "seq_len_std_pw": seq_len_std_pw,
         },
         "metrics": {
             "execution_time": float(elapsed),
             "n_events_in": int(len(df)),
             "n_windows_out": int(windows_written),
-            "positive_ratio": 0.0,
         },
         "provenance": {
             "generated_at": datetime.now(timezone.utc).isoformat(),

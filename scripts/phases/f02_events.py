@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 
 import argparse
+import math
 import sys
 import time
+from collections import Counter, defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -178,6 +180,437 @@ def generate_events(df, epoch_col, measure_cols, bands, event_to_id, strategy, n
     })
 
 
+def build_event_metadata(event_to_id, bands):
+    metadata = {}
+    transition_catalog_count = 0
+    level_catalog_count = 0
+
+    for event_name, event_id in event_to_id.items():
+        measure = None
+        for col in bands.keys():
+            prefix = f"{col}_"
+            if event_name.startswith(prefix):
+                measure = col
+                payload = event_name[len(prefix):]
+                break
+
+        if measure is None:
+            continue
+
+        labels = bands[measure]["labels"]
+        first_label = labels[0] if labels else None
+        last_label = labels[-1] if labels else None
+        label_to_idx = {label: idx for idx, label in enumerate(labels)}
+
+        meta = {
+            "event_id": int(event_id),
+            "event_name": event_name,
+            "measure_name": measure,
+            "kind": "unknown",
+            "rare": False,
+            "jump_size": None,
+        }
+
+        if payload == "NaN_NaN":
+            meta["kind"] = "nan"
+        elif "-to-" in payload:
+            src, dst = payload.split("-to-", 1)
+            meta["kind"] = "transition"
+            meta["rare"] = dst in {first_label, last_label}
+            if src in label_to_idx and dst in label_to_idx:
+                meta["jump_size"] = int(abs(label_to_idx[dst] - label_to_idx[src]))
+            transition_catalog_count += 1
+        else:
+            meta["kind"] = "level"
+            meta["rare"] = payload in {first_label, last_label}
+            level_catalog_count += 1
+
+        metadata[int(event_id)] = meta
+
+    return metadata, int(transition_catalog_count), int(level_catalog_count)
+
+
+def compute_transition_stats(event_counts, event_metadata, transition_catalog_count):
+    transition_counts = []
+    jump_sizes = []
+
+    for event_id, count in event_counts.items():
+        meta = event_metadata.get(int(event_id), {})
+        if meta.get("kind") != "transition":
+            continue
+        transition_counts.append(int(count))
+        jump_size = meta.get("jump_size")
+        if jump_size is not None:
+            jump_sizes.extend([int(jump_size)] * int(count))
+
+    n_transition_events = int(sum(transition_counts))
+    n_unique_transition_types_observed = int(len(transition_counts))
+    transition_coverage_ratio = (
+        float(n_unique_transition_types_observed / transition_catalog_count)
+        if transition_catalog_count > 0 else 0.0
+    )
+
+    if jump_sizes:
+        jump_arr = np.array(jump_sizes, dtype=float)
+        jump_size_mean = float(jump_arr.mean())
+        jump_size_std = float(jump_arr.std())
+        pct_jump_eq_1 = float((jump_arr == 1).mean())
+        pct_jump_ge_2 = float((jump_arr >= 2).mean())
+        pct_jump_ge_3 = float((jump_arr >= 3).mean())
+    else:
+        jump_size_mean = 0.0
+        jump_size_std = 0.0
+        pct_jump_eq_1 = 0.0
+        pct_jump_ge_2 = 0.0
+        pct_jump_ge_3 = 0.0
+
+    return {
+        "n_transition_events": n_transition_events,
+        "n_unique_transition_types_observed": n_unique_transition_types_observed,
+        "transition_coverage_ratio": transition_coverage_ratio,
+        "jump_size_mean": jump_size_mean,
+        "jump_size_std": jump_size_std,
+        "pct_jump_eq_1": pct_jump_eq_1,
+        "pct_jump_ge_2": pct_jump_ge_2,
+        "pct_jump_ge_3": pct_jump_ge_3,
+    }
+
+
+def compute_measure_stats(
+    measure_cols,
+    df_events,
+    event_counts,
+    event_metadata,
+    band_assignments,
+    strategy,
+):
+    per_measure = {}
+    band_occupancy = {}
+
+    row_measure_counts = {col: [] for col in measure_cols}
+    for row_events in df_events["events"]:
+        counts = {col: 0 for col in measure_cols}
+        for event_id in row_events:
+            meta = event_metadata.get(int(event_id))
+            if not meta:
+                continue
+            measure = meta["measure_name"]
+            counts[measure] = counts.get(measure, 0) + 1
+        for col in measure_cols:
+            row_measure_counts[col].append(int(counts.get(col, 0)))
+
+    for col in measure_cols:
+        measure_event_counts = {
+            int(event_id): int(count)
+            for event_id, count in event_counts.items()
+            if event_metadata.get(int(event_id), {}).get("measure_name") == col
+        }
+        total_measure_events = int(sum(measure_event_counts.values()))
+        observed_types = int(len(measure_event_counts))
+        top1_ratio = (
+            float(max(measure_event_counts.values()) / total_measure_events)
+            if total_measure_events > 0 else 0.0
+        )
+        rare_count = int(sum(
+            count for event_id, count in measure_event_counts.items()
+            if event_metadata.get(int(event_id), {}).get("rare", False)
+        ))
+        rare_ratio = float(rare_count / total_measure_events) if total_measure_events > 0 else 0.0
+
+        jump_vals = []
+        if strategy.lower() in ("transitions", "both"):
+            for event_id, count in measure_event_counts.items():
+                meta = event_metadata.get(int(event_id), {})
+                if meta.get("kind") == "transition" and meta.get("jump_size") is not None:
+                    jump_vals.extend([int(meta["jump_size"])] * int(count))
+
+        band_counts = {}
+        kind_arr = band_assignments[col]["kind"]
+        label_arr = band_assignments[col]["label"]
+        for label in band_assignments[col]["labels"]:
+            band_counts[label] = int(np.sum((kind_arr == "band") & (label_arr == label)))
+
+        measure_entry = {
+            "n_events_generated": total_measure_events,
+            "n_unique_event_types_observed": observed_types,
+            "top1_ratio": top1_ratio,
+            "rare_event_ratio": rare_ratio,
+            "mean_events_per_row_contributed": float(np.mean(row_measure_counts[col])) if row_measure_counts[col] else 0.0,
+            "band_occupancy": band_counts,
+        }
+        if strategy.lower() in ("transitions", "both"):
+            measure_entry["jump_size_mean"] = float(np.mean(jump_vals)) if jump_vals else 0.0
+
+        per_measure[col] = measure_entry
+        band_occupancy[col] = band_counts
+
+    return per_measure, band_occupancy
+
+
+def compute_event_stats(df, df_events, epoch_col, measure_cols, bands, event_to_id, strategy, nan_mode, Tu):
+    row_lengths = df_events["events"].apply(len).to_numpy(dtype=int)
+    total_events_generated = int(row_lengths.sum())
+    total_rows = int(len(df_events))
+    flat_events = [int(event_id) for row in df_events["events"] for event_id in row]
+    event_counts = Counter(flat_events)
+    event_metadata, transition_catalog_count, level_catalog_count = build_event_metadata(event_to_id, bands)
+
+    observed_types = int(len(event_counts))
+    n_event_types_catalog = int(len(event_to_id))
+    top_counts = [count for _, count in event_counts.most_common(5)]
+    top1_event_ratio = float(top_counts[0] / total_events_generated) if top_counts and total_events_generated > 0 else 0.0
+    top5_event_ratio = float(sum(top_counts) / total_events_generated) if total_events_generated > 0 else 0.0
+
+    if total_events_generated > 0 and observed_types > 0:
+        probs = np.array([count / total_events_generated for count in event_counts.values()], dtype=float)
+        event_entropy = float(-(probs * np.log(probs)).sum())
+        normalized_event_entropy = (
+            float(event_entropy / math.log(observed_types))
+            if observed_types > 1 else 0.0
+        )
+    else:
+        event_entropy = 0.0
+        normalized_event_entropy = 0.0
+
+    rare_event_count = int(sum(
+        count for event_id, count in event_counts.items()
+        if event_metadata.get(int(event_id), {}).get("rare", False)
+    ))
+    rare_event_ratio = float(rare_event_count / total_events_generated) if total_events_generated > 0 else 0.0
+    rare_event_types_observed = int(sum(
+        1 for event_id in event_counts
+        if event_metadata.get(int(event_id), {}).get("rare", False)
+    ))
+    rare_event_type_ratio = float(rare_event_types_observed / observed_types) if observed_types > 0 else 0.0
+
+    epochs = df[epoch_col].to_numpy(dtype=np.int64)
+    is_consecutive = np.zeros(len(epochs), dtype=bool)
+    if len(epochs) > 1:
+        is_consecutive[1:] = (np.diff(epochs) == Tu)
+    n_steps = max(len(epochs) - 1, 0)
+    n_consecutive_steps = int(is_consecutive[1:].sum()) if len(is_consecutive) > 1 else 0
+    n_broken_steps = int(n_steps - n_consecutive_steps)
+    consecutive_ratio = float(n_consecutive_steps / n_steps) if n_steps > 0 else 0.0
+    broken_ratio = float(n_broken_steps / n_steps) if n_steps > 0 else 0.0
+
+    band_assignments = {}
+    for col in measure_cols:
+        kind_arr, label_arr = assign_bands_to_column(
+            df[col].to_numpy(),
+            bands[col]["cuts"],
+            bands[col]["labels"],
+        )
+        band_assignments[col] = {
+            "kind": kind_arr,
+            "label": label_arr,
+            "labels": bands[col]["labels"],
+        }
+
+    per_measure, band_occupancy = compute_measure_stats(
+        measure_cols=measure_cols,
+        df_events=df_events,
+        event_counts=event_counts,
+        event_metadata=event_metadata,
+        band_assignments=band_assignments,
+        strategy=strategy,
+    )
+
+    transition_stats = {
+        "n_transition_events": 0,
+        "n_unique_transition_types_observed": 0,
+        "transition_coverage_ratio": 0.0,
+        "jump_size_mean": 0.0,
+        "jump_size_std": 0.0,
+        "pct_jump_eq_1": 0.0,
+        "pct_jump_ge_2": 0.0,
+        "pct_jump_ge_3": 0.0,
+    }
+    if strategy.lower() in ("transitions", "both"):
+        transition_stats = compute_transition_stats(
+            event_counts=event_counts,
+            event_metadata=event_metadata,
+            transition_catalog_count=transition_catalog_count,
+        )
+
+    n_level_events = int(sum(
+        count for event_id, count in event_counts.items()
+        if event_metadata.get(int(event_id), {}).get("kind") == "level"
+    ))
+    n_unique_level_types_observed = int(sum(
+        1 for event_id in event_counts
+        if event_metadata.get(int(event_id), {}).get("kind") == "level"
+    ))
+
+    top_events = []
+    id_to_name = {int(event_id): name for name, event_id in event_to_id.items()}
+    for event_id, count in event_counts.most_common(20):
+        top_events.append({
+            "event_id": int(event_id),
+            "event_name": id_to_name.get(int(event_id), f"event_{event_id}"),
+            "count": int(count),
+            "ratio": float(count / total_events_generated) if total_events_generated > 0 else 0.0,
+        })
+
+    stats = {
+        "global": {
+            "total_events_generated": total_events_generated,
+            "mean_events_per_row": float(row_lengths.mean()) if total_rows > 0 else 0.0,
+            "std_events_per_row": float(row_lengths.std()) if total_rows > 0 else 0.0,
+            "max_events_per_row": int(row_lengths.max()) if total_rows > 0 else 0,
+            "p95_events_per_row": float(np.percentile(row_lengths, 95)) if total_rows > 0 else 0.0,
+            "empty_rows_ratio": float(np.mean(row_lengths == 0)) if total_rows > 0 else 0.0,
+            "nonempty_rows_ratio": float(np.mean(row_lengths > 0)) if total_rows > 0 else 0.0,
+            "n_event_types_catalog": n_event_types_catalog,
+            "n_event_types_observed": observed_types,
+            "catalog_coverage_ratio": float(observed_types / n_event_types_catalog) if n_event_types_catalog > 0 else 0.0,
+            "rare_event_count": rare_event_count,
+            "rare_event_ratio": rare_event_ratio,
+            "rare_event_types_observed": rare_event_types_observed,
+            "rare_event_type_ratio": rare_event_type_ratio,
+            "top1_event_ratio": top1_event_ratio,
+            "top5_event_ratio": top5_event_ratio,
+            "event_entropy": event_entropy,
+            "normalized_event_entropy": normalized_event_entropy,
+            "n_consecutive_steps": n_consecutive_steps,
+            "consecutive_ratio": consecutive_ratio,
+            "n_broken_steps": n_broken_steps,
+            "broken_ratio": broken_ratio,
+            "n_level_events": n_level_events,
+            "n_unique_level_types_observed": n_unique_level_types_observed,
+            **transition_stats,
+        },
+        "event_frequency": {
+            str(event_id): {
+                "event_name": id_to_name.get(int(event_id), f"event_{event_id}"),
+                "count": int(count),
+            }
+            for event_id, count in event_counts.most_common()
+        },
+        "per_measure": per_measure,
+        "top_events": top_events,
+        "band_occupancy": band_occupancy,
+    }
+
+    return stats
+
+
+def build_outputs_metrics(stats, execution_time, n_rows_in, n_rows_out):
+    global_stats = stats["global"]
+    return {
+        "execution_time": float(execution_time),
+        "n_rows_in": int(n_rows_in),
+        "n_rows_out": int(n_rows_out),
+        "total_events_generated": int(global_stats["total_events_generated"]),
+        "mean_events_per_row": float(global_stats["mean_events_per_row"]),
+        "empty_rows_ratio": float(global_stats["empty_rows_ratio"]),
+        "n_event_types_observed": int(global_stats["n_event_types_observed"]),
+        "catalog_coverage_ratio": float(global_stats["catalog_coverage_ratio"]),
+        "top1_event_ratio": float(global_stats["top1_event_ratio"]),
+        "rare_event_ratio": float(global_stats["rare_event_ratio"]),
+        "event_entropy": float(global_stats["event_entropy"]),
+        "normalized_event_entropy": float(global_stats["normalized_event_entropy"]),
+        "n_transition_events": int(global_stats["n_transition_events"]),
+        "jump_size_mean": float(global_stats["jump_size_mean"]),
+    }
+
+
+def build_report_html(variant, parent_variant, strategy, bands_pct, nan_mode, stats):
+    global_stats = stats["global"]
+
+    top_events_df = pd.DataFrame(stats["top_events"])
+    if not top_events_df.empty:
+        top_events_df["ratio"] = top_events_df["ratio"].map(lambda x: f"{100 * float(x):.2f}%")
+        top_events_html = top_events_df.to_html(index=False, classes="tbl", escape=False)
+    else:
+        top_events_html = "<p>No hay eventos observados.</p>"
+
+    per_measure_rows = []
+    for measure_name, measure_stats in stats["per_measure"].items():
+        row = {
+            "measure_name": measure_name,
+            "n_events_generated": measure_stats["n_events_generated"],
+            "n_unique_event_types_observed": measure_stats["n_unique_event_types_observed"],
+            "top1_ratio": f"{100 * float(measure_stats['top1_ratio']):.2f}%",
+            "rare_event_ratio": f"{100 * float(measure_stats['rare_event_ratio']):.2f}%",
+            "mean_events_per_row_contributed": f"{float(measure_stats['mean_events_per_row_contributed']):.3f}",
+        }
+        if "jump_size_mean" in measure_stats:
+            row["jump_size_mean"] = f"{float(measure_stats['jump_size_mean']):.3f}"
+        row["band_occupancy"] = ", ".join(
+            f"{band}:{count}" for band, count in measure_stats["band_occupancy"].items()
+        )
+        per_measure_rows.append(row)
+
+    per_measure_html = (
+        pd.DataFrame(per_measure_rows).to_html(index=False, classes="tbl", escape=False)
+        if per_measure_rows else "<p>No hay resumen por medida.</p>"
+    )
+
+    summary_cards = f"""
+    <div class="kpi-grid">
+      <div class="card"><div class="k">Total events</div><div class="v">{global_stats['total_events_generated']:,}</div></div>
+      <div class="card"><div class="k">Mean / row</div><div class="v">{global_stats['mean_events_per_row']:.3f}</div></div>
+      <div class="card"><div class="k">Empty rows</div><div class="v">{100 * global_stats['empty_rows_ratio']:.2f}%</div></div>
+      <div class="card"><div class="k">Observed types</div><div class="v">{global_stats['n_event_types_observed']}</div></div>
+      <div class="card"><div class="k">Catalog coverage</div><div class="v">{100 * global_stats['catalog_coverage_ratio']:.2f}%</div></div>
+      <div class="card"><div class="k">Rare event ratio</div><div class="v">{100 * global_stats['rare_event_ratio']:.2f}%</div></div>
+      <div class="card"><div class="k">Entropy</div><div class="v">{global_stats['event_entropy']:.3f}</div></div>
+      <div class="card"><div class="k">Norm entropy</div><div class="v">{global_stats['normalized_event_entropy']:.3f}</div></div>
+    </div>
+    """
+
+    global_table = pd.DataFrame(
+        [{"metric": key, "value": value} for key, value in global_stats.items()]
+    ).to_html(index=False, classes="tbl", escape=False)
+
+    return f"""
+    <!doctype html>
+    <html lang="es">
+    <head>
+      <meta charset="utf-8">
+      <title>F02 Events — {variant}</title>
+      <style>
+        body {{ font-family: Arial, sans-serif; margin: 24px; color: #1f2937; }}
+        h1, h2, h3 {{ color: #111827; }}
+        .lead {{ color: #4b5563; max-width: 980px; }}
+        .kpi-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 20px 0; }}
+        .card {{ border: 1px solid #e5e7eb; border-radius: 10px; padding: 14px; background: #f9fafb; }}
+        .card .k {{ font-size: 12px; color: #6b7280; text-transform: uppercase; }}
+        .card .v {{ font-size: 24px; font-weight: 700; margin-top: 6px; }}
+        .tbl {{ border-collapse: collapse; width: 100%; margin: 16px 0; }}
+        .tbl th, .tbl td {{ border: 1px solid #d1d5db; padding: 8px 10px; text-align: left; }}
+        .tbl th {{ background: #f3f4f6; }}
+        .panel {{ margin: 24px 0; }}
+      </style>
+    </head>
+    <body>
+      <h1>F02 Events — {variant}</h1>
+      <p class="lead">
+        Parent: <code>{parent_variant}</code> | strategy: <code>{strategy}</code> | bands: <code>{bands_pct}</code> | nan_mode: <code>{nan_mode}</code>.
+        Este reporte resume la calidad y estructura del dataset de eventos generado sin alterar la lógica principal de F02.
+      </p>
+
+      {summary_cards}
+
+      <section class="panel">
+        <h2>Resumen global</h2>
+        {global_table}
+      </section>
+
+      <section class="panel">
+        <h2>Top events</h2>
+        {top_events_html}
+      </section>
+
+      <section class="panel">
+        <h2>Resumen por medida</h2>
+        {per_measure_html}
+      </section>
+    </body>
+    </html>
+    """
+
+
 # ============================================================
 # MAIN
 # ============================================================
@@ -283,27 +716,36 @@ def main():
 
     events_path = variant_dir / "02_events.parquet"
     catalog_path = variant_dir / "02_events_catalog.json"
+    stats_path = variant_dir / "02_events_stats.json"
     report_path = variant_dir / "02_events_report.html"
 
     df_events.to_parquet(events_path, index=False)
 
     save_json(catalog_path, event_to_id)
 
-    # Report muy simple (puedes refinar luego)
-    report_html = f"""
-    <html>
-    <body>
-    <h1>F02 Events — {variant}</h1>
-    <p>Parent: {parent_variant}</p>
-    <p>Strategy: {strategy}</p>
-    <p>Band thresholds: {bands_pct}</p>
-    <p>N events: {len(df_events)}</p>
-    <p>N event types: {len(event_to_id)}</p>
-    </body>
-    </html>
-    """
+    stats = compute_event_stats(
+        df=df,
+        df_events=df_events,
+        epoch_col=epoch_col,
+        measure_cols=measure_cols,
+        bands=bands,
+        event_to_id=event_to_id,
+        strategy=strategy,
+        nan_mode=nan_mode,
+        Tu=Tu,
+    )
+    save_json(stats_path, stats)
 
-    report_path.write_text(report_html)
+    report_html = build_report_html(
+        variant=variant,
+        parent_variant=parent_variant,
+        strategy=strategy,
+        bands_pct=bands_pct,
+        nan_mode=nan_mode,
+        stats=stats,
+    )
+
+    report_path.write_text(report_html, encoding="utf-8")
 
     execution_time = float(time.perf_counter() - start_time)
 
@@ -323,6 +765,10 @@ def main():
                 "path": catalog_path.name,
                 "sha256": sha256_of_file(catalog_path),
             },
+            "stats": {
+                "path": stats_path.name,
+                "sha256": sha256_of_file(stats_path),
+            },
             "report": {
                 "path": report_path.name,
                 "sha256": sha256_of_file(report_path),
@@ -332,12 +778,14 @@ def main():
             "Tu": int(Tu),
             "n_events": int(len(df_events)),
             "n_types": int(len(event_to_id)),
+            "n_types_observed": int(stats["global"]["n_event_types_observed"]),
         },
-        "metrics": {
-            "execution_time": execution_time,
-            "n_rows_in": int(len(df)),
-            "n_rows_out": int(len(df_events)),
-        },
+        "metrics": build_outputs_metrics(
+            stats=stats,
+            execution_time=execution_time,
+            n_rows_in=len(df),
+            n_rows_out=len(df_events),
+        ),
         "provenance": {
             "generated_at": datetime.now(timezone.utc).isoformat(),
         },

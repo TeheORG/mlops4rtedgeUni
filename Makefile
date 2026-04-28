@@ -880,6 +880,12 @@ variant5: check-variant-format
 	@$(eval EXTRA_FLAGS += imbalance_strategy=$(if $(strip $(IMBALANCE_STRATEGY)),$(IMBALANCE_STRATEGY),none))
 	@$(if $(strip $(IMBALANCE_MAX_MAJ)), \
 		$(eval EXTRA_FLAGS += imbalance_max_majority_samples=$(IMBALANCE_MAX_MAJ)))
+	
+	# Deduplicación opcional (por defecto: none)
+	@$(eval EXTRA_FLAGS += deduplication_mode=$(if $(strip $(DEDUP_MODE)),$(DEDUP_MODE),none))
+
+	# Seed opcional (por defecto: 42)
+	@$(eval EXTRA_FLAGS += seed=$(if $(strip $(SEED)),$(SEED),42))
 
 	# Optional training hyperparameters (schema defaults si no se pasan)
 	@$(if $(strip $(BATCH_SIZE)), \
@@ -1044,6 +1050,8 @@ help5:
 	@echo "   make variant5 VARIANT=v501 PARENT=v401 \\"
 	@echo "       MODEL_FAMILY=dense_bow \\"
 	@echo "       IMBALANCE_STRATEGY=none"
+	@echo "   DEDUP_MODE=none|auto|neg_only|all   (optional, default: none)"
+	@echo "   SEED=42 (optional, default: 42)"
 	@echo ""
 	@echo " Optional overrides:"
 	@echo "   BATCH_SIZE=128"

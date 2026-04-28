@@ -341,13 +341,6 @@ phases:
           type: integer
           required: true
 
-        n_windows_pos:
-          type: integer
-          required: true
-
-        n_windows_neg:
-          type: integer
-          required: true
 
       metrics:
 
@@ -358,10 +351,7 @@ phases:
         n_events_in:
           type: integer
           required: true
-
-        positive_ratio:
-          type: float
-          required: true       
+    
     # ------------------------------------------------------------
   # F04 — TARGET ENGINEERING (WINDOW LABELING)
   # ------------------------------------------------------------
@@ -602,8 +592,29 @@ phases:
         type: dict
         required: true
         default:
-          epochs: 20
+          epochs: 10
           max_samples: null
+
+      # -------------------------------------------------
+      # Deduplicacion mode
+      # -------------------------------------------------
+      deduplication_mode:
+        type: string
+        required: false
+        inherited: false
+        allowed:
+          - none
+          - auto  
+          - neg_only
+          - all
+
+      #--------------------------------------------------
+      # Seed
+      #--------------------------------------------------
+      seed:
+        type: integer
+        required: false
+        inherited: false
 
       # -------------------------------------------------
       # Evaluation split

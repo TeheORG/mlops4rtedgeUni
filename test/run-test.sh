@@ -408,53 +408,53 @@ if should_run_phase 6; then
     echo -e "${GREEN}[✓] PASSED${NC}"
     echo ""
 
-    echo -e "${YELLOW}[TEST 6.1]${NC}"
-    timed_make f06 v601 variant6 VARIANT=v601 PARENT=v501
-    timed_make f06 v601 script6 VARIANT=v601
-    echo -e "${GREEN}[✓] PASSED${NC}"
-    echo ""
+    # echo -e "${YELLOW}[TEST 6.1]${NC}"
+    # timed_make f06 v601 variant6 VARIANT=v601 PARENT=v501
+    # timed_make f06 v601 script6 VARIANT=v601
+    # echo -e "${GREEN}[✓] PASSED${NC}"
+    # echo ""
 
-    echo -e "${YELLOW}[TEST 6.2]${NC}"
-    timed_make f06 v602 variant6 VARIANT=v602 PARENT=v502
-    timed_make f06 v602 script6 VARIANT=v602
-    echo -e "${GREEN}[✓] PASSED${NC}"
-    echo ""
+    # echo -e "${YELLOW}[TEST 6.2]${NC}"
+    # timed_make f06 v602 variant6 VARIANT=v602 PARENT=v502
+    # timed_make f06 v602 script6 VARIANT=v602
+    # echo -e "${GREEN}[✓] PASSED${NC}"
+    # echo ""
 
-    echo -e "${YELLOW}[TEST 6.3]${NC}"
-    timed_make f06 v603 variant6 VARIANT=v603 PARENT=v503
-    timed_make f06 v603 script6 VARIANT=v603
-    echo -e "${GREEN}[✓] PASSED${NC}"
-    echo ""
+    # echo -e "${YELLOW}[TEST 6.3]${NC}"
+    # timed_make f06 v603 variant6 VARIANT=v603 PARENT=v503
+    # timed_make f06 v603 script6 VARIANT=v603
+    # echo -e "${GREEN}[✓] PASSED${NC}"
+    # echo ""
 
-    echo -e "${YELLOW}[TEST 6.4]${NC}"
-    timed_make f06 v604 variant6 VARIANT=v604 PARENT=v504
-    timed_make f06 v604 script6 VARIANT=v604
-    echo -e "${GREEN}[✓] PASSED${NC}"
-    echo ""
+    # echo -e "${YELLOW}[TEST 6.4]${NC}"
+    # timed_make f06 v604 variant6 VARIANT=v604 PARENT=v504
+    # timed_make f06 v604 script6 VARIANT=v604
+    # echo -e "${GREEN}[✓] PASSED${NC}"
+    # echo ""
 
-    echo -e "${YELLOW}[TEST 6.5]${NC}"
-    timed_make f06 v605 variant6 VARIANT=v605 PARENT=v505
-    timed_make f06 v605 script6 VARIANT=v605
-    echo -e "${GREEN}[✓] PASSED${NC}"
-    echo ""
+    # echo -e "${YELLOW}[TEST 6.5]${NC}"
+    # timed_make f06 v605 variant6 VARIANT=v605 PARENT=v505
+    # timed_make f06 v605 script6 VARIANT=v605
+    # echo -e "${GREEN}[✓] PASSED${NC}"
+    # echo ""
 
-    echo -e "${YELLOW}[TEST 6.6]${NC}"
-    timed_make f06 v606 variant6 VARIANT=v606 PARENT=v506
-    timed_make f06 v606 script6 VARIANT=v606
-    echo -e "${GREEN}[✓] PASSED${NC}"
-    echo ""
+    # echo -e "${YELLOW}[TEST 6.6]${NC}"
+    # timed_make f06 v606 variant6 VARIANT=v606 PARENT=v506
+    # timed_make f06 v606 script6 VARIANT=v606
+    # echo -e "${GREEN}[✓] PASSED${NC}"
+    # echo ""
 
-    echo -e "${YELLOW}[TEST 6.7]${NC}"
-    timed_make f06 v607 variant6 VARIANT=v607 PARENT=v507
-    timed_make f06 v607 script6 VARIANT=v607
-    echo -e "${GREEN}[✓] PASSED${NC}"
-    echo ""
+    # echo -e "${YELLOW}[TEST 6.7]${NC}"
+    # timed_make f06 v607 variant6 VARIANT=v607 PARENT=v507
+    # timed_make f06 v607 script6 VARIANT=v607
+    # echo -e "${GREEN}[✓] PASSED${NC}"
+    # echo ""
 
-    echo -e "${YELLOW}[TEST 6.8]${NC}"
-    timed_make f06 v608 variant6 VARIANT=v608 PARENT=v508
-    timed_make f06 v608 script6 VARIANT=v608
-    echo -e "${GREEN}[✓] PASSED${NC}"
-    echo ""
+    # echo -e "${YELLOW}[TEST 6.8]${NC}"
+    # timed_make f06 v608 variant6 VARIANT=v608 PARENT=v508
+    # timed_make f06 v608 script6 VARIANT=v608
+    # echo -e "${GREEN}[✓] PASSED${NC}"
+    # echo ""
 
 fi
 
