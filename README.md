@@ -178,6 +178,17 @@ make check1 VARIANT=v001
 make register1 VARIANT=v001
 ```
 
+#### Limpieza profunda F01:
+```bash
+make variant1 VARIANT=v000 RAW=data/raw.csv CLEANING=basic NAN_VALUES='[-999999]' ERROR_VALUES='{"MG-LV-MSB_AC_Voltage":[0.0],"Receiving_Point_AC_Voltage":[0.0],"Island_mode_MCCB_AC_Voltage":[0.0],"Island_mode_MCCB_Frequency":[-327.679993,0.0],"MG-LV-MSB_Frequency":[-327.679993,0.0],"Outlet_Temperature":[-52.5],"Inlet_Temperature_of_Chilled_Water":[-52.5,-52.400002,-52.299999]}'
+make script1 VARIANT=v000
+make check1 VARIANT=v000
+make register1 VARIANT=v000
+```
+
+
+
+
 ### F02: Build events dataset
 
 ```bash

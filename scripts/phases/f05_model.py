@@ -152,6 +152,9 @@ def deduplicate_labeled_windows(df: pd.DataFrame, mode: str):
             "n_after": int(len(df)),
             "n_removed": 0,
             "removed_ratio": 0.0,
+            "n_ambiguous_sequences_removed": 0,
+            "n_ambiguous_rows_removed": 0,
+            "n_majority_resolved_sequences": 0,
         }
         return df.copy(), stats
 
@@ -159,6 +162,44 @@ def deduplicate_labeled_windows(df: pd.DataFrame, mode: str):
     work["_ow_hash"] = work["OW_events"].apply(stable_seq_hash)
 
     n_before = int(len(work))
+
+    """
+    Ambiguity handling:
+    If the same OW_events sequence appears with conflicting labels,
+    this indicates instability or noise in the target.
+
+    We apply a strict consistency threshold (>= 0.995):
+    - Highly consistent sequences → resolved via majority voting
+    - Low consistency sequences → removed entirely
+
+    This avoids corrupting the model with contradictory supervision.
+    """
+    label_stats = (
+        work.groupby("_ow_hash")["label"]
+        .agg(n_total="size", n_pos="sum")
+    )
+    label_stats["n_pos"] = label_stats["n_pos"].astype(int)
+    label_stats["n_neg"] = (label_stats["n_total"] - label_stats["n_pos"]).astype(int)
+    label_stats["consistency"] = (
+        label_stats[["n_pos", "n_neg"]].max(axis=1) / label_stats["n_total"]
+    )
+    label_stats["majority_label"] = (label_stats["n_pos"] >= label_stats["n_neg"]).astype(int)
+
+    consistent_mask = label_stats["consistency"] >= 0.995
+    conflicting_mask = (label_stats["n_pos"] > 0) & (label_stats["n_neg"] > 0)
+
+    ambiguous_hashes = label_stats.index[~consistent_mask]
+    n_ambiguous_sequences_removed = int((~consistent_mask).sum())
+    n_ambiguous_rows_removed = int(
+        label_stats.loc[~consistent_mask, "n_total"].sum()
+    )
+    n_majority_resolved_sequences = int((consistent_mask & conflicting_mask).sum())
+
+    # Majority voting is only safe for highly consistent hashes; weaker agreement means
+    # the same observation window has contradictory supervision and should not train.
+    majority_label_by_hash = label_stats.loc[consistent_mask, "majority_label"]
+    work = work[~work["_ow_hash"].isin(ambiguous_hashes)].copy()
+    work["label"] = work["_ow_hash"].map(majority_label_by_hash).astype(int)
 
     if mode == "all":
         deduped = work.drop_duplicates(subset=["_ow_hash"], keep="first").copy()
@@ -202,6 +243,9 @@ def deduplicate_labeled_windows(df: pd.DataFrame, mode: str):
         "n_after": n_after,
         "n_removed": n_removed,
         "removed_ratio": removed_ratio,
+        "n_ambiguous_sequences_removed": n_ambiguous_sequences_removed,
+        "n_ambiguous_rows_removed": n_ambiguous_rows_removed,
+        "n_majority_resolved_sequences": n_majority_resolved_sequences,
     }
     return deduped, stats
 

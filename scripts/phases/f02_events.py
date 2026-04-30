@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import html
 import math
 import sys
 import time
@@ -34,6 +35,17 @@ from scripts.core.traceability import validate_outputs
 
 PHASE = "f02_events"
 PROJECT_ROOT = REPO_ROOT
+
+TARGET_CANDIDATE_MIN_UNIQUE_TYPES = 3
+TARGET_CANDIDATE_MIN_RATIO = 0.001
+
+MEASURE_SCORE_WEIGHT_EVENTS = 0.35
+MEASURE_SCORE_WEIGHT_OCCUPANCY_ENTROPY = 0.25
+MEASURE_SCORE_WEIGHT_UNIQUE_TYPES = 0.20
+MEASURE_SCORE_WEIGHT_DOMINANCE = 0.10
+MEASURE_SCORE_WEIGHT_RARE_EVENTS = 0.10
+MEASURE_SCORE_UNIQUE_TYPES_NORMALIZER = 10
+MEASURE_SCORE_RARE_EVENT_RATIO_NORMALIZER = 0.20
 
 
 # ============================================================
@@ -208,6 +220,7 @@ def build_event_metadata(event_to_id, bands):
             "measure_name": measure,
             "kind": "unknown",
             "rare": False,
+            "rare_direction": None,
             "jump_size": None,
         }
 
@@ -217,6 +230,10 @@ def build_event_metadata(event_to_id, bands):
             src, dst = payload.split("-to-", 1)
             meta["kind"] = "transition"
             meta["rare"] = dst in {first_label, last_label}
+            if dst == first_label:
+                meta["rare_direction"] = "low"
+            elif dst == last_label:
+                meta["rare_direction"] = "high"
             if src in label_to_idx and dst in label_to_idx:
                 meta["jump_size"] = int(abs(label_to_idx[dst] - label_to_idx[src]))
             transition_catalog_count += 1
@@ -276,6 +293,399 @@ def compute_transition_stats(event_counts, event_metadata, transition_catalog_co
     }
 
 
+def safe_ratio(num, den):
+    return float(num / den) if den else 0.0
+
+
+def safe_entropy_from_counts(counts):
+    positive_counts = [float(count) for count in counts if count > 0]
+    total = float(sum(positive_counts))
+    if total <= 0:
+        return 0.0, 0.0
+
+    probs = np.array([count / total for count in positive_counts], dtype=float)
+    entropy = float(-(probs * np.log(probs)).sum())
+    normalized_entropy = float(entropy / math.log(len(probs))) if len(probs) > 1 else 0.0
+
+    return entropy, normalized_entropy
+
+
+def compute_band_occupancy_metrics(band_counts):
+    counts = [int(count) for count in band_counts.values()]
+    total_band_count = int(sum(counts))
+    nonzero_counts = [count for count in counts if count > 0]
+    n_active_bands = int(len(nonzero_counts))
+    max_band_count = int(max(counts)) if counts else 0
+    min_nonzero_band_count = int(min(nonzero_counts)) if nonzero_counts else 0
+
+    labels = list(band_counts.keys())
+    first_label = labels[0] if labels else None
+    last_label = labels[-1] if labels else None
+    extreme_band_count = int(sum(
+        int(band_counts.get(label, 0))
+        for label in {first_label, last_label}
+        if label is not None
+    ))
+    middle_band_count = int(total_band_count - extreme_band_count)
+    occupancy_entropy, normalized_occupancy_entropy = safe_entropy_from_counts(counts)
+
+    return {
+        "total_band_count": total_band_count,
+        "n_active_bands": n_active_bands,
+        "max_band_count": max_band_count,
+        "max_band_ratio": safe_ratio(max_band_count, total_band_count),
+        "min_nonzero_band_count": min_nonzero_band_count,
+        "extreme_band_count": extreme_band_count,
+        "extreme_band_ratio": safe_ratio(extreme_band_count, total_band_count),
+        "middle_band_count": middle_band_count,
+        "middle_band_ratio": safe_ratio(middle_band_count, total_band_count),
+        "occupancy_entropy": occupancy_entropy,
+        "normalized_occupancy_entropy": normalized_occupancy_entropy,
+    }
+
+
+def compute_measure_quality_scores(per_measure):
+    max_log_events = max(
+        (math.log1p(float(stats["n_events_generated"])) for stats in per_measure.values()),
+        default=0.0,
+    )
+
+    for stats in per_measure.values():
+        n_events = int(stats["n_events_generated"])
+        if n_events == 0 or max_log_events <= 0:
+            score = 0.0
+        else:
+            normalized_log_events = safe_ratio(math.log1p(float(n_events)), max_log_events)
+            score = (
+                MEASURE_SCORE_WEIGHT_EVENTS * normalized_log_events
+                + MEASURE_SCORE_WEIGHT_OCCUPANCY_ENTROPY * float(stats["normalized_occupancy_entropy"])
+                + MEASURE_SCORE_WEIGHT_UNIQUE_TYPES * min(
+                    safe_ratio(
+                        float(stats["n_unique_event_types_observed"]),
+                        MEASURE_SCORE_UNIQUE_TYPES_NORMALIZER,
+                    ),
+                    1,
+                )
+                + MEASURE_SCORE_WEIGHT_DOMINANCE * (1 - min(float(stats["top1_ratio"]), 1))
+                + MEASURE_SCORE_WEIGHT_RARE_EVENTS * min(
+                    safe_ratio(
+                        float(stats["rare_event_ratio"]),
+                        MEASURE_SCORE_RARE_EVENT_RATIO_NORMALIZER,
+                    ),
+                    1,
+                )
+            )
+
+        stats["measure_transition_score"] = float(score)
+        stats["high_target_candidate"] = bool(
+            n_events > 0
+            and int(stats["n_unique_event_types_observed"]) >= TARGET_CANDIDATE_MIN_UNIQUE_TYPES
+            and int(stats["high_rare_event_count"]) > 0
+            and float(stats["high_rare_event_ratio"]) >= TARGET_CANDIDATE_MIN_RATIO
+        )
+        stats["low_target_candidate"] = bool(
+            n_events > 0
+            and int(stats["n_unique_event_types_observed"]) >= TARGET_CANDIDATE_MIN_UNIQUE_TYPES
+            and int(stats["low_rare_event_count"]) > 0
+            and float(stats["low_rare_event_ratio"]) >= TARGET_CANDIDATE_MIN_RATIO
+        )
+
+    return per_measure
+
+
+def build_target_candidates(per_measure):
+    candidates = {}
+
+    for measure, stats in per_measure.items():
+        high_candidate = bool(stats["high_target_candidate"])
+        low_candidate = bool(stats["low_target_candidate"])
+        high_count = int(stats["high_rare_event_count"])
+        low_count = int(stats["low_rare_event_count"])
+        high_ratio = float(stats["high_rare_event_ratio"])
+        low_ratio = float(stats["low_rare_event_ratio"])
+
+        candidates[measure] = {
+            "high": {
+                "candidate": high_candidate,
+                "extreme_event_count": high_count,
+                "extreme_event_ratio": high_ratio,
+                "reason": "passes high target candidate rules" if high_candidate else "does not pass high target candidate rules",
+            },
+            "low": {
+                "candidate": low_candidate,
+                "extreme_event_count": low_count,
+                "extreme_event_ratio": low_ratio,
+                "reason": "passes low target candidate rules" if low_candidate else "does not pass low target candidate rules",
+            },
+        }
+
+    return candidates
+
+
+def compute_global_gate_flags(global_stats):
+    activity_flag = "reject" if (
+        global_stats["total_events_generated"] == 0
+        or global_stats["empty_rows_ratio"] >= 0.995
+    ) else "warning" if global_stats["empty_rows_ratio"] >= 0.99 else "ok"
+
+    diversity_flag = "reject" if global_stats["normalized_event_entropy"] < 0.30 else (
+        "warning" if global_stats["normalized_event_entropy"] < 0.50 else "ok"
+    )
+    catalog_flag = "reject" if global_stats["catalog_coverage_ratio"] < 0.10 else (
+        "warning" if global_stats["catalog_coverage_ratio"] < 0.20 else "ok"
+    )
+    dominance_flag = "reject" if global_stats["top1_event_ratio"] > 0.50 else (
+        "warning" if global_stats["top1_event_ratio"] > 0.30 or global_stats["top5_event_ratio"] > 0.70 else "ok"
+    )
+    continuity_flag = "reject" if (
+        global_stats["pct_jump_eq_1"] < 0.70
+        or global_stats["pct_jump_ge_3"] > 0.10
+    ) else "warning" if (
+        global_stats["pct_jump_eq_1"] < 0.85
+        or global_stats["pct_jump_ge_3"] > 0.05
+    ) else "ok"
+    measure_coverage_flag = "reject" if global_stats["non_eventless_measure_ratio"] < 0.30 else (
+        "warning" if global_stats["non_eventless_measure_ratio"] < 0.50 else "ok"
+    )
+
+    flags = {
+        "activity_flag": activity_flag,
+        "diversity_flag": diversity_flag,
+        "catalog_flag": catalog_flag,
+        "dominance_flag": dominance_flag,
+        "continuity_flag": continuity_flag,
+        "measure_coverage_flag": measure_coverage_flag,
+    }
+
+    if "reject" in flags.values():
+        gate_status = "reject"
+    elif "warning" in flags.values():
+        gate_status = "warning"
+    else:
+        gate_status = "candidate"
+
+    return {**flags, "f02_gate_status": gate_status}
+
+
+def compute_f02_quality_score(global_stats):
+    return float(
+        0.25 * global_stats["normalized_event_entropy"]
+        + 0.20 * min(safe_ratio(global_stats["catalog_coverage_ratio"], 0.50), 1)
+        + 0.20 * global_stats["non_eventless_measure_ratio"]
+        + 0.15 * global_stats["pct_jump_eq_1"]
+        + 0.10 * (1 - min(safe_ratio(global_stats["top1_event_ratio"], 0.50), 1))
+        + 0.10 * min(safe_ratio(global_stats["nonempty_rows_ratio"], 0.05), 1)
+    )
+
+
+def format_pct(x):
+    return f"{100 * float(x):.2f}%"
+
+
+def format_float(x, digits=3):
+    return f"{float(x):.{digits}f}"
+
+
+def html_escape(value):
+    return html.escape("" if value is None else str(value))
+
+
+def fmt_float(x, digits=3):
+    try:
+        return f"{float(x):.{digits}f}"
+    except (TypeError, ValueError):
+        return "n/a"
+
+
+def fmt_pct(x):
+    try:
+        return f"{100 * float(x):.2f}%"
+    except (TypeError, ValueError):
+        return "n/a"
+
+
+def badge(text, kind):
+    return f'<span class="badge {html_escape(kind)}">{html_escape(text)}</span>'
+
+
+def pass_fail_badge(ok):
+    return badge("OK" if ok else "FAIL", "ok" if ok else "reject")
+
+
+def metric_status(value, op, threshold):
+    try:
+        val = float(value)
+    except (TypeError, ValueError):
+        return False
+    if op == ">":
+        return val > threshold
+    if op == ">=":
+        return val >= threshold
+    if op == "<":
+        return val < threshold
+    if op == "<=":
+        return val <= threshold
+    return False
+
+
+def render_gate_criteria_table(global_stats):
+    rows = [
+        ("Actividad", "total_events_generated", "> 0", "Debe generar algún evento", ">", 0, "int"),
+        ("Actividad", "empty_rows_ratio", "< 0.995", "No puede estar prácticamente vacía", "<", 0.995, "pct"),
+        ("Diversidad", "normalized_event_entropy", ">= 0.50", "Debe haber diversidad suficiente", ">=", 0.50, "float"),
+        ("Dominancia", "top1_event_ratio", "<= 0.30", "No debe dominar una única transición", "<=", 0.30, "pct"),
+        ("Dominancia", "top5_event_ratio", "<= 0.70", "No deben dominar solo cinco eventos", "<=", 0.70, "pct"),
+        ("Catálogo", "catalog_coverage_ratio", ">= 0.20", "Debe usarse una parte mínima del catálogo", ">=", 0.20, "pct"),
+        ("Continuidad", "pct_jump_eq_1", ">= 0.85", "La mayoría de transiciones deben ser locales", ">=", 0.85, "pct"),
+        ("Continuidad", "pct_jump_ge_3", "<= 0.05", "No debe haber demasiados saltos bruscos", "<=", 0.05, "pct"),
+        ("Cobertura de medidas", "non_eventless_measure_ratio", ">= 0.50", "Al menos la mitad de medidas deben generar eventos", ">=", 0.50, "pct"),
+    ]
+    body = []
+    for block, metric, threshold_text, interpretation, op, threshold, fmt in rows:
+        value = global_stats.get(metric)
+        ok = metric_status(value, op, threshold)
+        if fmt == "pct":
+            value_text = fmt_pct(value)
+        elif fmt == "int":
+            value_text = html_escape(value if value is not None else "n/a")
+        else:
+            value_text = fmt_float(value)
+        body.append(
+            "<tr>"
+            f"<td>{html_escape(block)}</td>"
+            f"<td><code>{html_escape(metric)}</code></td>"
+            f"<td>{html_escape(threshold_text)}</td>"
+            f"<td>{html_escape(interpretation)}</td>"
+            f"<td>{value_text}</td>"
+            f"<td>{pass_fail_badge(ok)}</td>"
+            "</tr>"
+        )
+    return (
+        '<table class="tbl decision-table">'
+        "<thead><tr><th>Bloque</th><th>Métrica</th><th>Threshold</th><th>Interpretación</th><th>Valor actual</th><th>Estado</th></tr></thead>"
+        f"<tbody>{''.join(body)}</tbody></table>"
+    )
+
+
+def render_target_rule_table():
+    rows = [
+        ("High", "high_rare_event_count", "> 0"),
+        ("High", "high_rare_event_ratio", ">= 0.001"),
+        ("Low", "low_rare_event_count", "> 0"),
+        ("Low", "low_rare_event_ratio", ">= 0.001"),
+        ("Ambos", "n_unique_event_types_observed", ">= 3"),
+    ]
+    body = "".join(
+        "<tr>"
+        f"<td>{html_escape(target)}</td>"
+        f"<td><code>{html_escape(metric)}</code></td>"
+        f"<td>{html_escape(threshold)}</td>"
+        "</tr>"
+        for target, metric, threshold in rows
+    )
+    return (
+        '<table class="tbl compact">'
+        "<thead><tr><th>Target</th><th>Métrica</th><th>Threshold</th></tr></thead>"
+        f"<tbody>{body}</tbody></table>"
+    )
+
+
+def render_band_occupancy_table(band_occupancy):
+    if not isinstance(band_occupancy, dict) or not band_occupancy:
+        return "<p class=\"muted\">Sin ocupación de bandas.</p>"
+    rows = "".join(
+        f"<tr><td>{html_escape(band)}</td><td>{html_escape(count)}</td></tr>"
+        for band, count in band_occupancy.items()
+    )
+    return (
+        '<table class="tbl mini">'
+        "<thead><tr><th>Banda</th><th>Count</th></tr></thead>"
+        f"<tbody>{rows}</tbody></table>"
+    )
+
+
+def render_measure_details(measure_stats):
+    fields = [
+        ("top1_ratio", "pct"),
+        ("rare_event_ratio", "pct"),
+        ("n_active_bands", "raw"),
+        ("max_band_ratio", "pct"),
+        ("extreme_band_ratio", "pct"),
+        ("occupancy_entropy", "float"),
+        ("normalized_occupancy_entropy", "float"),
+        ("band_degeneracy_flag", "bool"),
+        ("extreme_occupancy_flag", "bool"),
+        ("measure_transition_score", "float"),
+    ]
+    rows = []
+    for key, fmt in fields:
+        value = measure_stats.get(key)
+        if fmt == "pct":
+            rendered = fmt_pct(value)
+        elif fmt == "float":
+            rendered = fmt_float(value)
+        elif fmt == "bool":
+            rendered = badge(str(bool(value)).lower(), "ok" if not value else "warning")
+        else:
+            rendered = html_escape(value if value is not None else "n/a")
+        rows.append(f"<tr><td><code>{html_escape(key)}</code></td><td>{rendered}</td></tr>")
+
+    metrics_table = (
+        '<table class="tbl mini">'
+        "<thead><tr><th>Métrica</th><th>Valor</th></tr></thead>"
+        f"<tbody>{''.join(rows)}</tbody></table>"
+    )
+    bands_table = render_band_occupancy_table(measure_stats.get("band_occupancy", {}))
+    return f"<details><summary>Más info</summary><div class=\"details-grid\">{metrics_table}{bands_table}</div></details>"
+
+
+def render_target_candidates_table(stats):
+    per_measure = stats.get("per_measure", {}) or {}
+    target_candidates = stats.get("target_candidates", {}) or {}
+    rows = []
+
+    for measure_name, measure_stats in per_measure.items():
+        candidate_info = target_candidates.get(measure_name, {}) or {}
+        high_info = candidate_info.get("high", {}) or {}
+        low_info = candidate_info.get("low", {}) or {}
+        high_candidate = bool(high_info.get("candidate", measure_stats.get("high_target_candidate", False)))
+        low_candidate = bool(low_info.get("candidate", measure_stats.get("low_target_candidate", False)))
+        high_count = high_info.get("extreme_event_count", measure_stats.get("high_rare_event_count", 0))
+        low_count = low_info.get("extreme_event_count", measure_stats.get("low_rare_event_count", 0))
+        high_ratio = high_info.get("extreme_event_ratio", measure_stats.get("high_rare_event_ratio", 0.0))
+        low_ratio = low_info.get("extreme_event_ratio", measure_stats.get("low_rare_event_ratio", 0.0))
+
+        rows.append(
+            "<tr>"
+            f"<td class=\"measure-name\">{html_escape(measure_name)}</td>"
+            f"<td>{badge(str(high_candidate).lower(), 'ok' if high_candidate else 'reject')}</td>"
+            f"<td>{html_escape(high_info.get('reason', 'n/a'))}</td>"
+            f"<td>{html_escape(high_count)}</td>"
+            f"<td>{fmt_pct(high_ratio)}</td>"
+            f"<td>{badge(str(low_candidate).lower(), 'ok' if low_candidate else 'reject')}</td>"
+            f"<td>{html_escape(low_info.get('reason', 'n/a'))}</td>"
+            f"<td>{html_escape(low_count)}</td>"
+            f"<td>{fmt_pct(low_ratio)}</td>"
+            f"<td>{html_escape(measure_stats.get('n_events_generated', 'n/a'))}</td>"
+            f"<td>{html_escape(measure_stats.get('n_unique_event_types_observed', 'n/a'))}</td>"
+            f"<td>{render_measure_details(measure_stats)}</td>"
+            "</tr>"
+        )
+
+    if not rows:
+        return "<p>No hay candidatos calculados.</p>"
+
+    return (
+        '<table class="tbl target-table">'
+        "<thead><tr>"
+        "<th>measure_name</th><th>high_candidate</th><th>high_reason</th><th>high_rare_event_count</th><th>high_rare_event_ratio</th>"
+        "<th>low_candidate</th><th>low_reason</th><th>low_rare_event_count</th><th>low_rare_event_ratio</th>"
+        "<th>n_events_generated</th><th>n_unique_event_types_observed</th><th>Más info</th>"
+        "</tr></thead>"
+        f"<tbody>{''.join(rows)}</tbody></table>"
+    )
+
+
 def compute_measure_stats(
     measure_cols,
     df_events,
@@ -316,6 +726,32 @@ def compute_measure_stats(
             if event_metadata.get(int(event_id), {}).get("rare", False)
         ))
         rare_ratio = float(rare_count / total_measure_events) if total_measure_events > 0 else 0.0
+        rare_event_type_count = int(sum(
+            1 for event_id in measure_event_counts
+            if event_metadata.get(int(event_id), {}).get("rare", False)
+        ))
+        high_rare_count = int(sum(
+            count for event_id, count in measure_event_counts.items()
+            if event_metadata.get(int(event_id), {}).get("kind") == "transition"
+            and event_metadata.get(int(event_id), {}).get("rare_direction") == "high"
+        ))
+        low_rare_count = int(sum(
+            count for event_id, count in measure_event_counts.items()
+            if event_metadata.get(int(event_id), {}).get("kind") == "transition"
+            and event_metadata.get(int(event_id), {}).get("rare_direction") == "low"
+        ))
+        high_rare_event_type_count = int(sum(
+            1 for event_id in measure_event_counts
+            if event_metadata.get(int(event_id), {}).get("kind") == "transition"
+            and event_metadata.get(int(event_id), {}).get("rare_direction") == "high"
+        ))
+        low_rare_event_type_count = int(sum(
+            1 for event_id in measure_event_counts
+            if event_metadata.get(int(event_id), {}).get("kind") == "transition"
+            and event_metadata.get(int(event_id), {}).get("rare_direction") == "low"
+        ))
+        high_rare_event_ratio = safe_ratio(high_rare_count, total_measure_events)
+        low_rare_event_ratio = safe_ratio(low_rare_count, total_measure_events)
 
         jump_vals = []
         if strategy.lower() in ("transitions", "both"):
@@ -329,20 +765,35 @@ def compute_measure_stats(
         label_arr = band_assignments[col]["label"]
         for label in band_assignments[col]["labels"]:
             band_counts[label] = int(np.sum((kind_arr == "band") & (label_arr == label)))
+        band_metrics = compute_band_occupancy_metrics(band_counts)
 
         measure_entry = {
             "n_events_generated": total_measure_events,
             "n_unique_event_types_observed": observed_types,
             "top1_ratio": top1_ratio,
+            "rare_event_count": rare_count,
             "rare_event_ratio": rare_ratio,
+            "high_rare_event_count": high_rare_count,
+            "low_rare_event_count": low_rare_count,
+            "rare_event_type_count": rare_event_type_count,
+            "high_rare_event_type_count": high_rare_event_type_count,
+            "low_rare_event_type_count": low_rare_event_type_count,
+            "high_rare_event_ratio": high_rare_event_ratio,
+            "low_rare_event_ratio": low_rare_event_ratio,
             "mean_events_per_row_contributed": float(np.mean(row_measure_counts[col])) if row_measure_counts[col] else 0.0,
             "band_occupancy": band_counts,
+            **band_metrics,
         }
+        measure_entry["is_eventless_measure"] = bool(total_measure_events == 0)
+        measure_entry["band_degeneracy_flag"] = bool(measure_entry["n_active_bands"] <= 1)
+        measure_entry["extreme_occupancy_flag"] = bool(measure_entry["extreme_band_ratio"] >= 0.95)
         if strategy.lower() in ("transitions", "both"):
             measure_entry["jump_size_mean"] = float(np.mean(jump_vals)) if jump_vals else 0.0
 
         per_measure[col] = measure_entry
         band_occupancy[col] = band_counts
+
+    per_measure = compute_measure_quality_scores(per_measure)
 
     return per_measure, band_occupancy
 
@@ -451,34 +902,76 @@ def compute_event_stats(df, df_events, epoch_col, measure_cols, bands, event_to_
             "ratio": float(count / total_events_generated) if total_events_generated > 0 else 0.0,
         })
 
+    n_measures_total = int(len(measure_cols))
+    n_eventless_measures = int(sum(
+        1 for measure_stats in per_measure.values()
+        if measure_stats["is_eventless_measure"]
+    ))
+    n_non_eventless_measures = int(n_measures_total - n_eventless_measures)
+    n_measures_with_high_rare_events = int(sum(
+        1 for measure_stats in per_measure.values()
+        if int(measure_stats["high_rare_event_count"]) > 0
+    ))
+    n_measures_with_low_rare_events = int(sum(
+        1 for measure_stats in per_measure.values()
+        if int(measure_stats["low_rare_event_count"]) > 0
+    ))
+    high_rare_event_count = int(sum(
+        int(measure_stats["high_rare_event_count"])
+        for measure_stats in per_measure.values()
+    ))
+    low_rare_event_count = int(sum(
+        int(measure_stats["low_rare_event_count"])
+        for measure_stats in per_measure.values()
+    ))
+
+    global_stats = {
+        "total_events_generated": total_events_generated,
+        "mean_events_per_row": float(row_lengths.mean()) if total_rows > 0 else 0.0,
+        "std_events_per_row": float(row_lengths.std()) if total_rows > 0 else 0.0,
+        "max_events_per_row": int(row_lengths.max()) if total_rows > 0 else 0,
+        "p95_events_per_row": float(np.percentile(row_lengths, 95)) if total_rows > 0 else 0.0,
+        "empty_rows_ratio": float(np.mean(row_lengths == 0)) if total_rows > 0 else 0.0,
+        "nonempty_rows_ratio": float(np.mean(row_lengths > 0)) if total_rows > 0 else 0.0,
+        "n_event_types_catalog": n_event_types_catalog,
+        "n_event_types_observed": observed_types,
+        "catalog_coverage_ratio": float(observed_types / n_event_types_catalog) if n_event_types_catalog > 0 else 0.0,
+        "effective_catalog_unused_ratio": 1.0 - (float(observed_types / n_event_types_catalog) if n_event_types_catalog > 0 else 0.0),
+        "rare_event_count": rare_event_count,
+        "rare_event_ratio": rare_event_ratio,
+        "rare_event_types_observed": rare_event_types_observed,
+        "rare_event_type_ratio": rare_event_type_ratio,
+        "top1_event_ratio": top1_event_ratio,
+        "top5_event_ratio": top5_event_ratio,
+        "event_entropy": event_entropy,
+        "normalized_event_entropy": normalized_event_entropy,
+        "n_consecutive_steps": n_consecutive_steps,
+        "consecutive_ratio": consecutive_ratio,
+        "n_broken_steps": n_broken_steps,
+        "broken_ratio": broken_ratio,
+        "n_level_events": n_level_events,
+        "n_unique_level_types_observed": n_unique_level_types_observed,
+        "n_measures_total": n_measures_total,
+        "n_eventless_measures": n_eventless_measures,
+        "eventless_measure_ratio": safe_ratio(n_eventless_measures, n_measures_total),
+        "n_non_eventless_measures": n_non_eventless_measures,
+        "non_eventless_measure_ratio": safe_ratio(n_non_eventless_measures, n_measures_total),
+        "n_measures_with_high_rare_events": n_measures_with_high_rare_events,
+        "n_measures_with_low_rare_events": n_measures_with_low_rare_events,
+        "high_rare_measure_ratio": safe_ratio(n_measures_with_high_rare_events, n_measures_total),
+        "low_rare_measure_ratio": safe_ratio(n_measures_with_low_rare_events, n_measures_total),
+        "high_rare_event_count": high_rare_event_count,
+        "low_rare_event_count": low_rare_event_count,
+        "high_rare_event_ratio": safe_ratio(high_rare_event_count, total_events_generated),
+        "low_rare_event_ratio": safe_ratio(low_rare_event_count, total_events_generated),
+        "events_per_million_rows": safe_ratio(total_events_generated * 1_000_000, total_rows),
+        **transition_stats,
+    }
+    global_stats["f02_quality_score"] = compute_f02_quality_score(global_stats)
+    global_stats.update(compute_global_gate_flags(global_stats))
+
     stats = {
-        "global": {
-            "total_events_generated": total_events_generated,
-            "mean_events_per_row": float(row_lengths.mean()) if total_rows > 0 else 0.0,
-            "std_events_per_row": float(row_lengths.std()) if total_rows > 0 else 0.0,
-            "max_events_per_row": int(row_lengths.max()) if total_rows > 0 else 0,
-            "p95_events_per_row": float(np.percentile(row_lengths, 95)) if total_rows > 0 else 0.0,
-            "empty_rows_ratio": float(np.mean(row_lengths == 0)) if total_rows > 0 else 0.0,
-            "nonempty_rows_ratio": float(np.mean(row_lengths > 0)) if total_rows > 0 else 0.0,
-            "n_event_types_catalog": n_event_types_catalog,
-            "n_event_types_observed": observed_types,
-            "catalog_coverage_ratio": float(observed_types / n_event_types_catalog) if n_event_types_catalog > 0 else 0.0,
-            "rare_event_count": rare_event_count,
-            "rare_event_ratio": rare_event_ratio,
-            "rare_event_types_observed": rare_event_types_observed,
-            "rare_event_type_ratio": rare_event_type_ratio,
-            "top1_event_ratio": top1_event_ratio,
-            "top5_event_ratio": top5_event_ratio,
-            "event_entropy": event_entropy,
-            "normalized_event_entropy": normalized_event_entropy,
-            "n_consecutive_steps": n_consecutive_steps,
-            "consecutive_ratio": consecutive_ratio,
-            "n_broken_steps": n_broken_steps,
-            "broken_ratio": broken_ratio,
-            "n_level_events": n_level_events,
-            "n_unique_level_types_observed": n_unique_level_types_observed,
-            **transition_stats,
-        },
+        "global": global_stats,
         "event_frequency": {
             str(event_id): {
                 "event_name": id_to_name.get(int(event_id), f"event_{event_id}"),
@@ -489,6 +982,7 @@ def compute_event_stats(df, df_events, epoch_col, measure_cols, bands, event_to_
         "per_measure": per_measure,
         "top_events": top_events,
         "band_occupancy": band_occupancy,
+        "target_candidates": build_target_candidates(per_measure),
     }
 
     return stats
@@ -507,6 +1001,14 @@ def build_outputs_metrics(stats, execution_time, n_rows_in, n_rows_out):
         "catalog_coverage_ratio": float(global_stats["catalog_coverage_ratio"]),
         "top1_event_ratio": float(global_stats["top1_event_ratio"]),
         "rare_event_ratio": float(global_stats["rare_event_ratio"]),
+        "eventless_measure_ratio": float(global_stats["eventless_measure_ratio"]),
+        "non_eventless_measure_ratio": float(global_stats["non_eventless_measure_ratio"]),
+        "high_rare_measure_ratio": float(global_stats["high_rare_measure_ratio"]),
+        "low_rare_measure_ratio": float(global_stats["low_rare_measure_ratio"]),
+        "high_rare_event_ratio": float(global_stats["high_rare_event_ratio"]),
+        "low_rare_event_ratio": float(global_stats["low_rare_event_ratio"]),
+        "f02_quality_score": float(global_stats["f02_quality_score"]),
+        "f02_gate_status": global_stats["f02_gate_status"],
         "event_entropy": float(global_stats["event_entropy"]),
         "normalized_event_entropy": float(global_stats["normalized_event_entropy"]),
         "n_transition_events": int(global_stats["n_transition_events"]),
@@ -514,7 +1016,7 @@ def build_outputs_metrics(stats, execution_time, n_rows_in, n_rows_out):
     }
 
 
-def build_report_html(variant, parent_variant, strategy, bands_pct, nan_mode, stats):
+def _build_report_html_legacy(variant, parent_variant, strategy, bands_pct, nan_mode, stats):
     global_stats = stats["global"]
 
     top_events_df = pd.DataFrame(stats["top_events"])
@@ -530,12 +1032,20 @@ def build_report_html(variant, parent_variant, strategy, bands_pct, nan_mode, st
             "measure_name": measure_name,
             "n_events_generated": measure_stats["n_events_generated"],
             "n_unique_event_types_observed": measure_stats["n_unique_event_types_observed"],
-            "top1_ratio": f"{100 * float(measure_stats['top1_ratio']):.2f}%",
-            "rare_event_ratio": f"{100 * float(measure_stats['rare_event_ratio']):.2f}%",
-            "mean_events_per_row_contributed": f"{float(measure_stats['mean_events_per_row_contributed']):.3f}",
+            "top1_ratio": format_pct(measure_stats["top1_ratio"]),
+            "rare_event_ratio": format_pct(measure_stats["rare_event_ratio"]),
+            "high_rare_event_ratio": format_pct(measure_stats["high_rare_event_ratio"]),
+            "low_rare_event_ratio": format_pct(measure_stats["low_rare_event_ratio"]),
+            "n_active_bands": measure_stats["n_active_bands"],
+            "max_band_ratio": format_pct(measure_stats["max_band_ratio"]),
+            "extreme_band_ratio": format_pct(measure_stats["extreme_band_ratio"]),
+            "occupancy_entropy": format_float(measure_stats["occupancy_entropy"]),
+            "band_degeneracy_flag": measure_stats["band_degeneracy_flag"],
+            "measure_transition_score": format_float(measure_stats["measure_transition_score"]),
+            "mean_events_per_row_contributed": format_float(measure_stats["mean_events_per_row_contributed"]),
         }
         if "jump_size_mean" in measure_stats:
-            row["jump_size_mean"] = f"{float(measure_stats['jump_size_mean']):.3f}"
+            row["jump_size_mean"] = format_float(measure_stats["jump_size_mean"])
         row["band_occupancy"] = ", ".join(
             f"{band}:{count}" for band, count in measure_stats["band_occupancy"].items()
         )
@@ -546,6 +1056,45 @@ def build_report_html(variant, parent_variant, strategy, bands_pct, nan_mode, st
         if per_measure_rows else "<p>No hay resumen por medida.</p>"
     )
 
+    gate_rows = [
+        {"gate": key, "status": global_stats[key]}
+        for key in [
+            "activity_flag",
+            "diversity_flag",
+            "catalog_flag",
+            "dominance_flag",
+            "continuity_flag",
+            "measure_coverage_flag",
+        ]
+    ]
+    gate_diagnosis_html = pd.DataFrame(gate_rows).to_html(index=False, classes="tbl", escape=False)
+
+    target_candidate_rows = []
+    for measure_name, target_info in stats.get("target_candidates", {}).items():
+        for side in ("high", "low"):
+            side_info = target_info[side]
+            target_candidate_rows.append({
+                "measure_name": measure_name,
+                "side": side,
+                "candidate": side_info["candidate"],
+                "extreme_event_count": side_info["extreme_event_count"],
+                "extreme_event_ratio": format_pct(side_info["extreme_event_ratio"]),
+                "reason": side_info["reason"],
+            })
+    target_candidates_html = (
+        pd.DataFrame(target_candidate_rows).to_html(index=False, classes="tbl", escape=False)
+        if target_candidate_rows else "<p>No hay candidatos calculados.</p>"
+    )
+
+    high_candidate_measures = int(sum(
+        1 for measure_stats in stats["per_measure"].values()
+        if measure_stats["high_target_candidate"]
+    ))
+    low_candidate_measures = int(sum(
+        1 for measure_stats in stats["per_measure"].values()
+        if measure_stats["low_target_candidate"]
+    ))
+
     summary_cards = f"""
     <div class="kpi-grid">
       <div class="card"><div class="k">Total events</div><div class="v">{global_stats['total_events_generated']:,}</div></div>
@@ -554,6 +1103,11 @@ def build_report_html(variant, parent_variant, strategy, bands_pct, nan_mode, st
       <div class="card"><div class="k">Observed types</div><div class="v">{global_stats['n_event_types_observed']}</div></div>
       <div class="card"><div class="k">Catalog coverage</div><div class="v">{100 * global_stats['catalog_coverage_ratio']:.2f}%</div></div>
       <div class="card"><div class="k">Rare event ratio</div><div class="v">{100 * global_stats['rare_event_ratio']:.2f}%</div></div>
+      <div class="card"><div class="k">Gate status</div><div class="v">{global_stats['f02_gate_status']}</div></div>
+      <div class="card"><div class="k">Quality score</div><div class="v">{global_stats['f02_quality_score']:.3f}</div></div>
+      <div class="card"><div class="k">Non-eventless measures</div><div class="v">{global_stats['n_non_eventless_measures']}/{global_stats['n_measures_total']}</div></div>
+      <div class="card"><div class="k">High candidate measures</div><div class="v">{high_candidate_measures}</div></div>
+      <div class="card"><div class="k">Low candidate measures</div><div class="v">{low_candidate_measures}</div></div>
       <div class="card"><div class="k">Entropy</div><div class="v">{global_stats['event_entropy']:.3f}</div></div>
       <div class="card"><div class="k">Norm entropy</div><div class="v">{global_stats['normalized_event_entropy']:.3f}</div></div>
     </div>
@@ -598,6 +1152,16 @@ def build_report_html(variant, parent_variant, strategy, bands_pct, nan_mode, st
       </section>
 
       <section class="panel">
+        <h2>Gate diagnosis</h2>
+        {gate_diagnosis_html}
+      </section>
+
+      <section class="panel">
+        <h2>Target candidates</h2>
+        {target_candidates_html}
+      </section>
+
+      <section class="panel">
         <h2>Top events</h2>
         {top_events_html}
       </section>
@@ -606,6 +1170,246 @@ def build_report_html(variant, parent_variant, strategy, bands_pct, nan_mode, st
         <h2>Resumen por medida</h2>
         {per_measure_html}
       </section>
+    </body>
+    </html>
+    """
+
+
+def build_report_html(variant, parent_variant, strategy, bands_pct, nan_mode, stats):
+    global_stats = stats.get("global", {})
+
+    top_events_df = pd.DataFrame(stats.get("top_events", []))
+    if not top_events_df.empty:
+        if "ratio" in top_events_df.columns:
+            top_events_df["ratio"] = top_events_df["ratio"].map(fmt_pct)
+        top_events_html = top_events_df.to_html(index=False, classes="tbl", escape=True)
+    else:
+        top_events_html = "<p>No hay eventos observados.</p>"
+
+    gate_status = str(global_stats.get("f02_gate_status", "n/a"))
+    gate_kind = "ok" if gate_status == "candidate" else "warning" if gate_status == "warning" else "reject"
+    total_events = global_stats.get("total_events_generated", 0)
+    try:
+        total_events_text = f"{int(total_events):,}"
+    except (TypeError, ValueError):
+        total_events_text = "n/a"
+
+    kpis = [
+        ("f02_gate_status", badge(gate_status, gate_kind)),
+        ("f02_quality_score", fmt_float(global_stats.get("f02_quality_score"))),
+        ("total_events_generated", html_escape(total_events_text)),
+        ("normalized_event_entropy", fmt_float(global_stats.get("normalized_event_entropy"))),
+        ("catalog_coverage_ratio", fmt_pct(global_stats.get("catalog_coverage_ratio"))),
+        ("non_eventless_measure_ratio", fmt_pct(global_stats.get("non_eventless_measure_ratio"))),
+        ("high_rare_measure_ratio", fmt_pct(global_stats.get("high_rare_measure_ratio"))),
+        ("low_rare_measure_ratio", fmt_pct(global_stats.get("low_rare_measure_ratio"))),
+    ]
+    kpi_cards = "".join(
+        f'<div class="card"><div class="k">{html_escape(label)}</div><div class="v">{value}</div></div>'
+        for label, value in kpis
+    )
+
+    global_table = pd.DataFrame(
+        [{"metric": key, "value": value} for key, value in global_stats.items()]
+    ).to_html(index=False, classes="tbl", escape=True)
+    gate_criteria_html = render_gate_criteria_table(global_stats)
+    target_rules_html = render_target_rule_table()
+    target_candidates_html = render_target_candidates_table(stats)
+
+    return f"""
+    <!doctype html>
+    <html lang="es">
+    <head>
+      <meta charset="utf-8">
+      <title>F02 Events - {html_escape(variant)}</title>
+      <style>
+        :root {{
+          --bg: #f6f8fb;
+          --panel: #ffffff;
+          --ink: #172033;
+          --muted: #667085;
+          --line: #d9e0ea;
+          --head: #eef3f8;
+          --ok-bg: #dcfce7;
+          --ok-fg: #166534;
+          --warn-bg: #fef3c7;
+          --warn-fg: #92400e;
+          --bad-bg: #fee2e2;
+          --bad-fg: #991b1b;
+          --code: #26364f;
+        }}
+        * {{ box-sizing: border-box; }}
+        body {{
+          margin: 0;
+          background: var(--bg);
+          color: var(--ink);
+          font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+          line-height: 1.45;
+        }}
+        main {{ max-width: 1480px; margin: 0 auto; padding: 28px; }}
+        h1, h2, h3 {{ margin: 0 0 10px; color: var(--ink); }}
+        h1 {{ font-size: 30px; letter-spacing: 0; }}
+        h2 {{ font-size: 19px; margin-top: 4px; }}
+        p {{ margin: 8px 0 0; }}
+        code {{ color: var(--code); background: #eef3f8; border-radius: 4px; padding: 1px 4px; }}
+        .hero {{
+          background: linear-gradient(180deg, #ffffff 0%, #f9fbfd 100%);
+          border: 1px solid var(--line);
+          border-radius: 8px;
+          padding: 22px;
+          box-shadow: 0 10px 24px rgba(23, 32, 51, 0.06);
+        }}
+        .meta {{
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px 14px;
+          color: var(--muted);
+          font-size: 13px;
+          margin-top: 10px;
+        }}
+        .lead {{ color: var(--muted); max-width: 1120px; }}
+        .kpi-grid {{
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+          gap: 12px;
+          margin-top: 18px;
+        }}
+        .card {{
+          border: 1px solid var(--line);
+          border-radius: 8px;
+          padding: 14px;
+          background: var(--panel);
+        }}
+        .card .k {{
+          min-height: 32px;
+          color: var(--muted);
+          font-size: 11px;
+          font-weight: 700;
+          text-transform: uppercase;
+          overflow-wrap: anywhere;
+        }}
+        .card .v {{ margin-top: 7px; font-size: 23px; font-weight: 800; overflow-wrap: anywhere; }}
+        .panel {{
+          margin-top: 22px;
+          padding: 18px;
+          background: var(--panel);
+          border: 1px solid var(--line);
+          border-radius: 8px;
+        }}
+        .table-wrap {{ overflow-x: auto; margin-top: 12px; }}
+        .tbl {{
+          border-collapse: collapse;
+          width: 100%;
+          min-width: 760px;
+          font-size: 13px;
+        }}
+        .tbl th, .tbl td {{
+          border: 1px solid var(--line);
+          padding: 8px 10px;
+          text-align: left;
+          vertical-align: top;
+        }}
+        .tbl th {{
+          position: sticky;
+          top: 0;
+          z-index: 1;
+          background: var(--head);
+          color: #344054;
+          font-size: 11px;
+          text-transform: uppercase;
+          letter-spacing: 0;
+        }}
+        .tbl tr:nth-child(even) td {{ background: #fbfdff; }}
+        .target-table {{ min-width: 1360px; }}
+        .compact {{ max-width: 720px; min-width: 520px; }}
+        .mini {{ min-width: 260px; font-size: 12px; }}
+        .mini th {{ position: static; }}
+        .measure-name {{ font-weight: 700; color: #111827; }}
+        .badge {{
+          display: inline-flex;
+          align-items: center;
+          min-height: 22px;
+          padding: 2px 8px;
+          border-radius: 999px;
+          font-size: 12px;
+          font-weight: 800;
+          white-space: nowrap;
+        }}
+        .badge.ok, .badge.candidate, .badge.true {{ background: var(--ok-bg); color: var(--ok-fg); }}
+        .badge.warning {{ background: var(--warn-bg); color: var(--warn-fg); }}
+        .badge.reject, .badge.false {{ background: var(--bad-bg); color: var(--bad-fg); }}
+        details {{ margin: 0; }}
+        details > summary {{
+          cursor: pointer;
+          color: #2563eb;
+          font-weight: 700;
+          white-space: nowrap;
+        }}
+        details[open] > summary {{ margin-bottom: 10px; }}
+        .details-grid {{
+          display: grid;
+          grid-template-columns: minmax(280px, 1fr) minmax(220px, 0.8fr);
+          gap: 12px;
+          min-width: 560px;
+        }}
+        .muted {{ color: var(--muted); }}
+        .global-details summary {{ font-size: 16px; }}
+        @media (max-width: 760px) {{
+          main {{ padding: 14px; }}
+          .hero, .panel {{ padding: 14px; }}
+          .details-grid {{ grid-template-columns: 1fr; min-width: 0; }}
+        }}
+      </style>
+    </head>
+    <body>
+      <main>
+        <section class="hero">
+          <h1>F02 Events - {html_escape(variant)}</h1>
+          <div class="meta">
+            <span>Parent: <code>{html_escape(parent_variant)}</code></span>
+            <span>Strategy: <code>{html_escape(strategy)}</code></span>
+            <span>Bands: <code>{html_escape(bands_pct)}</code></span>
+            <span>NaN mode: <code>{html_escape(nan_mode)}</code></span>
+          </div>
+          <div class="kpi-grid">{kpi_cards}</div>
+        </section>
+
+        <section class="panel">
+          <h2>Criterio de decisión F02 → F03</h2>
+          <p class="lead">
+            La variante F02 se evalúa antes de construir ventanas para evitar pasar a F03 discretizaciones degeneradas.
+            No busca elegir la mejor variante, sino descartar las que no generan una representación de eventos mínimamente útil.
+            El criterio se aplica en dos niveles: validación global de la variante y validación por medida/dirección para posibles targets F04.
+          </p>
+          <div class="table-wrap">{gate_criteria_html}</div>
+        </section>
+
+        <section class="panel">
+          <h2>Decisión por medida/dirección</h2>
+          <p class="lead">
+            Una variante F02 puede pasar globalmente aunque algunas medidas no sean útiles.
+            Para decidir si una medida puede generar un target high o low en F04, se comprueba el soporte de eventos extremos en la dirección correspondiente.
+          </p>
+          <div class="table-wrap">{target_rules_html}</div>
+        </section>
+
+        <section class="panel">
+          <h2>Target candidates</h2>
+          <div class="table-wrap">{target_candidates_html}</div>
+        </section>
+
+        <section class="panel">
+          <h2>Top events</h2>
+          <div class="table-wrap">{top_events_html}</div>
+        </section>
+
+        <section class="panel">
+          <details class="global-details">
+            <summary>Global metrics completas</summary>
+            <div class="table-wrap">{global_table}</div>
+          </details>
+        </section>
+      </main>
     </body>
     </html>
     """
@@ -779,6 +1583,7 @@ def main():
             "n_events": int(len(df_events)),
             "n_types": int(len(event_to_id)),
             "n_types_observed": int(stats["global"]["n_event_types_observed"]),
+            "target_candidates": stats.get("target_candidates", {}),
         },
         "metrics": build_outputs_metrics(
             stats=stats,
