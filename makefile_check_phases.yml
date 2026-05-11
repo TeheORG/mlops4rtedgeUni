@@ -271,12 +271,6 @@ f06_quant:
         - type: yaml_key
           key: parameters.deployment.require_int8
           required: true
-        - type: yaml_key
-          key: parameters.deployment.memory_limit_bytes
-          required: true
-          constraints:
-            - integer
-            - { gt: 0 }
     - path: metadata.yaml
       required: true
       not_empty: true

@@ -15,7 +15,7 @@ PHASES = [
     {"name": "f05_modeling", "parent_keys": ["parameters","parent_variant"], "metadata": ["metadata.yml"]},
     {"name": "f06_quant",    "parent_keys": ["parameters","parent_variant"], "metadata": ["metadata.yml"]},
     {"name": "f07_modval",   "parent_keys": ["parameters","parent_variant"], "metadata": ["metadata.yml"]},
-    {"name": "f08_sysval",   "parent_keys": ["parameters","parents"], "metadata": ["metadata.yml"]},
+    {"name": "f08_sysval",   "parent_keys": ["parameters","parent_variant"], "metadata": ["metadata.yml"]},
 ]
 
 PHASE_COLORS = {

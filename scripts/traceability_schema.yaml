@@ -150,6 +150,12 @@ phases:
     parent_required: true
 
     parameters:
+      parent_variant:
+        mode: single
+        type: string
+        required: true
+        inherited: false
+        regex: "^v1_[0-9]{4}$"
 
       Tu:
         type: integer
@@ -242,10 +248,11 @@ phases:
     parameters:
 
       parent_variant:
+        mode: single
         type: string
         required: true
         inherited: false
-        regex: "^v[0-9]_[0-9]{4}$"
+        regex: "^v2_[0-9]{4}$"
 
       Tu:
         type: integer
@@ -341,7 +348,6 @@ phases:
           type: integer
           required: true
 
-
       metrics:
 
         execution_time:
@@ -351,8 +357,8 @@ phases:
         n_events_in:
           type: integer
           required: true
-    
-    # ------------------------------------------------------------
+
+  # ------------------------------------------------------------
   # F04 — TARGET ENGINEERING (WINDOW LABELING)
   # ------------------------------------------------------------
 
@@ -363,10 +369,11 @@ phases:
     parameters:
 
       parent_variant:
+        mode: single
         type: string
         required: true
         inherited: false
-        regex: "^v[0-9]_[0-9]{4}$"
+        regex: "^v3_[0-9]{4}$"
 
       # Solo para trazabilidad estructural (heredados si no se redefinen)
       Tu:
@@ -503,15 +510,15 @@ phases:
     parameters:
 
       parent_variant:
+        mode: single
         type: string
         required: true
         inherited: false
-        regex: "^v[0-9]_[0-9]{4}$"
+        regex: "^v4_[0-9]{4}$"
 
       # -------------------------------------------------
       # Geometría heredada
       # -------------------------------------------------
-
       Tu:
         type: integer
         required: false
@@ -784,15 +791,15 @@ phases:
     parameters:
 
       parent_variant:
+        mode: single
         type: string
         required: true
         inherited: false
-        regex: "^v[0-9]_[0-9]{4}$"
+        regex: "^v5_[0-9]{4}$"
 
       # -------------------------------------------------
       # Geometría heredada
       # -------------------------------------------------
-
       Tu:
         type: integer
         required: false
@@ -1029,10 +1036,11 @@ phases:
     parameters:
 
       parent_variant:
+        mode: single
         type: string
         required: true
         inherited: false
-        regex: "^v[0-9]_[0-9]{4}$"
+        regex: "^v6_[0-9]{4}$"
 
       # -------------------------------------------------
       # Geometría heredada desde F06
@@ -1340,6 +1348,7 @@ phases:
 
         # Consistencia PC vs ESP32 (comparación de predicciones)
         pc_esp_agreement:
+          type: float
           required: false
 
         # Tasas de outcome observadas
@@ -1362,18 +1371,19 @@ phases:
 
   f08_sysval:
 
-    parent_required: false
-    parent_mode: multi
+    parent_required: true
 
     parameters:
+
+      parent_variant:
+        mode: multi
+        type: list
+        required: true
+        regex: "^v7_[0-9]{4}$"
 
       # -------------------------------------------------
       # Multi-parent explícito (modo manual)
       # -------------------------------------------------
-
-      parents:
-        type: list
-        required: true
 
       selection_mode:
         type: string

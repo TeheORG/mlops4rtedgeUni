@@ -353,10 +353,14 @@ def _sha256_file(path: Path) -> str:
 
 def compute_parent_hashes(phase: str, params: dict) -> dict:
     parents = []
-    if "parent" in params:
+    if params.get("parent"):
         parents = [params["parent"]]
-    elif "parents" in params:
-        parents = params["parents"]
+    else:
+        pv = params.get("parameters", {}).get("parent_variant")
+        if isinstance(pv, list):
+            parents = pv
+        elif isinstance(pv, str) and pv:
+            parents = [pv]
 
     hashes = {}
     schema = load_schema()
@@ -509,7 +513,15 @@ class ParamsManager:
         # Validar PARENT según parent_required
         # -----------------------------------------------------------
 
-        if parent_required and not parent_variant:
+        # Para fases multi-parent (mode: multi), los parents se pasan como
+        # parámetro regular (parent_variant=[...]), no via PARENT= key.
+        # La validación la hace resolve_params al tratar parent_variant como
+        # parámetro required.
+        is_multi_parent = (
+            parameters_schema.get("parent_variant", {}).get("mode") == "multi"
+        )
+
+        if parent_required and not parent_variant and not is_multi_parent:
             raise ValueError(
                 f"La fase {self.phase} requiere PARENT=vY_XXXX (variante de la fase anterior)"
             )

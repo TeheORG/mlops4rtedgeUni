@@ -192,7 +192,8 @@ make register1 VARIANT=v000
 ### F02: Build events dataset
 
 ```bash
-make variant2 VARIANT=v201 PARENT=v001 STRATEGY=levels BANDS='[0.1, 0.2, 0.3]' NAN_MODE=discard
+# make variant2 VARIANT=v201 PARENT=v001 STRATEGY=levels BANDS='[0.1, 0.2, 0.3]' NAN_MODE=discard
+make variant2 VARIANT=v202 PARENT=v001 STRATEGY=transitions BANDS='[10, 90]' NAN_MODE=discard
 make script2 VARIANT=v201
 make check2 VARIANT=v201
 make register2 VARIANT=v201
@@ -210,7 +211,7 @@ make register3 VARIANT=v301
 ### F04: Create prediction targets
 
 ```bash
-make variant4 VARIANT=v401 PARENT=v301 NAME=battery_overheat OPERATOR=OR EVENTS='["Battery_Active_Power_80_100-to-100_120"]'
+make variant4 VARIANT=v401 PARENT=v301 NAME=battery_overheat OPERATOR=OR EVENTS='["Battery_Active_Power_0_10-to-90_100,Battery_Active_Power_10_90-to-90_100"]'
 make script4 VARIANT=v401
 make check4 VARIANT=v401
 make register4 VARIANT=v401
@@ -241,7 +242,8 @@ F06 uses Docker for reproducible packaging in the default flow.
 ### F07: Validate a model on edge hardware
 
 ```bash
-make variant7 VARIANT=v701 PARENT=v601 PLATFORM=esp32 MTI_MS=100000
+# make variant7 VARIANT=v701 PARENT=v601 PLATFORM=esp32 MTI_MS=100000
+make variant7 VARIANT=v702 PARENT=v601 PLATFORM=esp32 MTI_MS=100 TIME_SCALE=0.01
 make script7 VARIANT=v701
 make check7 VARIANT=v701
 make register7 VARIANT=v701
@@ -258,7 +260,7 @@ make script7-post VARIANT=v701
 ### F08: Validate a multi-model edge system
 
 ```bash
-make variant8 VARIANT=v801 PARENTS=v700,v703 PLATFORM=esp32 MTI_MS=100
+make variant8 VARIANT=v801 PARENTS=v702,v703 PLATFORM=esp32 MTI_MS=100
 make script8 VARIANT=v801
 make check8 VARIANT=v801
 make register8 VARIANT=v801

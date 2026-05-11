@@ -219,14 +219,12 @@ def build_unique_windows_from_datasets(
 # ============================================================
 
 def resolve_parent_variants(params_data: dict) -> list[str]:
-    raw = params_data.get("parents")
-
-    if raw is None:
-        raw = params_data.get("parameters", {}).get("parents")
+    parameters = params_data.get("parameters", {}) or {}
+    raw = parameters.get("parent_variant") or parameters.get("parents")
 
     if raw is None:
         raise RuntimeError(
-            "[F08] parents requerido. "
+            "[F08] parent_variant requerido. "
             "Define PARENTS=v7XX,v7YY,... en make variant8"
         )
 

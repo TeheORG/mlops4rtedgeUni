@@ -198,7 +198,7 @@ LIFECYCLE_STATE_EXECUTION_FAILED := EXECUTION_FAILED
 # or for F08:
 #   PARENT_PHASE="f07_modval"
 #   PARENTS="v700 v701 v702"
-RESOLVE_PARENT_INFO = $(PYTHON) -c "import yaml; from pathlib import Path; from scripts.core.params_manager import infer_parent_phase, load_schema; phase='$(PHASE)'; params_path='$(VARIANTS_DIR)/$(VARIANT)/params.yaml'; data=yaml.safe_load(open(params_path).read()) or {}; parent=data.get('parent'); params=data.get('parameters', {}) or {}; parents=params.get('parents', []) or []; schema=load_schema(); parent_phase=infer_parent_phase(schema, phase) or ''; resolved = [parent] if parent else (parents if parents else []); print('PARENT_PHASE=\"%s\"' % parent_phase); print('PARENTS=\"%s\"' % ' '.join(resolved))"
+RESOLVE_PARENT_INFO = $(PYTHON) -c "import yaml; from pathlib import Path; from scripts.core.params_manager import infer_parent_phase, load_schema; phase='$(PHASE)'; params_path='$(VARIANTS_DIR)/$(VARIANT)/params.yaml'; data=yaml.safe_load(open(params_path).read()) or {}; parent=data.get('parent'); params=data.get('parameters', {}) or {}; pv=params.get('parent_variant'); parents=(pv if isinstance(pv, list) else ([pv] if isinstance(pv, str) and pv else [])) or params.get('parents', []) or []; schema=load_schema(); parent_phase=infer_parent_phase(schema, phase) or ''; resolved = [parent] if parent else (parents if parents else []); print('PARENT_PHASE=\"%s\"' % parent_phase); print('PARENTS=\"%s\"' % ' '.join(resolved))"
 
 # Create creation_context.yaml with commit + digest of watched paths
 define WRITE_CREATION_CONTEXT
@@ -1533,7 +1533,7 @@ variant8: check-variant-format
 	@set -eu; \
 	PARENTS_NORM="$$( $(PYTHON) -c 'import sys, yaml; from scripts.core.params_manager import normalize_variant_id_for_phase; phase=sys.argv[1]; raw=sys.argv[2].strip(); value=yaml.safe_load(raw) if raw else None; assert value is not None; value = [item.strip() for item in raw.split(",") if item.strip()] if isinstance(value, str) and "," in raw and not raw.startswith("[") else ([value] if isinstance(value, str) else value); assert isinstance(value, list); normalized=[normalize_variant_id_for_phase(str(item), phase, "PARENTS") for item in value]; print("[" + ", ".join(normalized) + "]")' "$(PHASE7)" "$(PARENTS)")"; \
 	SELECTION_MODE_VAL="$(if $(strip $(SELECTION_MODE)),$(SELECTION_MODE),manual)"; \
-	EXTRA_FLAGS="parents=$$PARENTS_NORM platform=$(PLATFORM) MTI_MS=$(MTI_MS) selection_mode=$$SELECTION_MODE_VAL"; \
+	EXTRA_FLAGS="parent_variant=$$PARENTS_NORM platform=$(PLATFORM) MTI_MS=$(MTI_MS) selection_mode=$$SELECTION_MODE_VAL"; \
 	$(if $(strip $(OBJECTIVE)),EXTRA_FLAGS="$$EXTRA_FLAGS objective=$(OBJECTIVE)"; ) \
 	$(if $(strip $(TIME_SCALE)),EXTRA_FLAGS="$$EXTRA_FLAGS time_scale_factor=$(TIME_SCALE)"; ) \
 	$(if $(strip $(MAX_ROWS)),EXTRA_FLAGS="$$EXTRA_FLAGS max_rows=$(MAX_ROWS)"; ) \

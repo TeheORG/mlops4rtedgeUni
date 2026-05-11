@@ -300,7 +300,7 @@ def find_children(phase: str, variant: str) -> List[str]:
 
             parameters = params_data.get("parameters")
             if isinstance(parameters, dict):
-                nested_parents = parameters.get("parents")
+                nested_parents = parameters.get("parent_variant") or parameters.get("parents")
                 if isinstance(nested_parents, list):
                     candidate_parents.extend([str(p) for p in nested_parents if p is not None])
 
@@ -487,10 +487,14 @@ def find_parent_phase(parent_variant: str) -> str:
 
 def audit_parents(params: dict):
     parents = []
-    if "parent" in params:
+    if params.get("parent"):
         parents = [params["parent"]]
-    elif "parents" in params:
-        parents = params["parents"]
+    else:
+        pv = params.get("parameters", {}).get("parent_variant") or params.get("parameters", {}).get("parents")
+        if isinstance(pv, list):
+            parents = pv
+        elif isinstance(pv, str) and pv:
+            parents = [pv]
 
     # Si no hay parents, nada que auditar
     if not parents:
