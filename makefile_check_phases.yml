@@ -534,11 +534,6 @@ f08_sysval:
           key: parent
           required: true
         - type: yaml_key
-          key: parameters.parents
-          required: true
-          constraints:
-            - not_empty
-        - type: yaml_key
           key: parameters.platform
           required: true
         - type: yaml_key

@@ -15,6 +15,7 @@ if str(REPO_ROOT) not in sys.path:
 
 import numpy as np
 import pandas as pd
+import pyarrow.parquet as pq
 import matplotlib.pyplot as plt
 
 
@@ -1455,7 +1456,7 @@ def main():
         "F02",
     )
 
-    df = pd.read_parquet(parent_dataset_path)
+    df = pq.read_table(parent_dataset_path, memory_map=True).to_pandas()
 
     Tu = params["Tu"]
     strategy = params["strategy"]

@@ -93,7 +93,7 @@ def main():
     if not parent_catalog_path.exists():
         raise RuntimeError("No existe catálogo de eventos F03")
 
-    df = pd.read_parquet(parent_dataset_path)
+    df = pq.read_table(parent_dataset_path, memory_map=True).to_pandas()
 
     if "OW_events" not in df.columns or "PW_events" not in df.columns:
         raise RuntimeError(

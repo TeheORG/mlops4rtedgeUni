@@ -193,7 +193,7 @@ make register1 VARIANT=v000
 
 ```bash
 # make variant2 VARIANT=v201 PARENT=v001 STRATEGY=levels BANDS='[0.1, 0.2, 0.3]' NAN_MODE=discard
-make variant2 VARIANT=v202 PARENT=v001 STRATEGY=transitions BANDS='[10, 90]' NAN_MODE=discard
+make variant2 VARIANT=v201 PARENT=v001 STRATEGY=transitions BANDS='[10, 90]' NAN_MODE=discard
 make script2 VARIANT=v201
 make check2 VARIANT=v201
 make register2 VARIANT=v201
@@ -243,7 +243,7 @@ F06 uses Docker for reproducible packaging in the default flow.
 
 ```bash
 # make variant7 VARIANT=v701 PARENT=v601 PLATFORM=esp32 MTI_MS=100000
-make variant7 VARIANT=v702 PARENT=v601 PLATFORM=esp32 MTI_MS=100 TIME_SCALE=0.01
+make variant7 VARIANT=v701 PARENT=v601 PLATFORM=esp32 MTI_MS=100 TIME_SCALE=0.01
 make script7 VARIANT=v701
 make check7 VARIANT=v701
 make register7 VARIANT=v701

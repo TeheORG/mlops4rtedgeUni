@@ -15,6 +15,7 @@ if str(REPO_ROOT) not in sys.path:
 import yaml
 import numpy as np
 import pandas as pd
+import pyarrow.parquet as pq
 import matplotlib.pyplot as plt
 
 from scripts.core.artifacts import sha256_of_file, save_outputs_yaml, load_params, get_variant_dir
@@ -162,7 +163,7 @@ def main():
     if raw_path.suffix.lower() == ".csv":
         df = pd.read_csv(raw_path)
     else:
-        df = pd.read_parquet(raw_path)
+        df = pq.read_table(raw_path, memory_map=True).to_pandas()
 
     # Subsetting opcional
     first_line = params.get("first_line")

@@ -110,7 +110,7 @@ def main():
         "F03",
     )
 
-    df = pd.read_parquet(parent_dataset_path)
+    df = pq.read_table(parent_dataset_path, memory_map=True).to_pandas()
 
     # --------------------------------------------------------
     # Parámetros

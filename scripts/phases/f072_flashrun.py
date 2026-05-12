@@ -25,6 +25,11 @@ PHASE = "f07_modval"
 IDF_DOCKER_IMAGE = "mlops4ofp-idf:6.0"
 FLASH_RETRY_ATTEMPTS = 3
 
+# ── Límites del contenedor Docker de build ────────────────────────────────────
+# None  → usa toda la RAM disponible del sistema (comportamiento por defecto)
+# "8g"  → limita a 8 GB RAM (recomendado si el sistema tiene poca RAM libre)
+DOCKER_MEMORY_LIMIT: str | None = None
+
 
 # ============================================================
 # UTILIDADES
@@ -377,10 +382,12 @@ def flash_portable(
 
 
 def resolve_docker_memory_limit() -> str | None:
-    """Devuelve límite de memoria Docker por defecto (máximo disponible)."""
+    """Devuelve límite de memoria Docker. Prioridad: env var > constante > máximo disponible."""
     env_value = os.environ.get("F07_DOCKER_MEMORY")
     if env_value:
         return env_value
+    if DOCKER_MEMORY_LIMIT is not None:
+        return DOCKER_MEMORY_LIMIT
 
     probe = subprocess.run(
         ["docker", "info", "--format", "{{.MemTotal}}"],
