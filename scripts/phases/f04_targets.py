@@ -135,7 +135,8 @@ def main():
         return normalized
 
     target_event_types = normalize_target_event_types(target_event_types_raw)
-    measure_name = extract_measure_name(prediction_name)
+    parent_measure_name = parent_outputs.get("exports", {}).get("measure_name")
+    measure_name = parent_measure_name or extract_measure_name(prediction_name)
     target_event_count = len(target_event_types)
 
     if target_operator != "OR":

@@ -1459,6 +1459,7 @@ def main():
     df = pq.read_table(parent_dataset_path, memory_map=True).to_pandas()
 
     Tu = params["Tu"]
+    measure_name = params["measure_name"]
     strategy = params["strategy"]
     bands_pct = params["bands"]
     nan_mode = params["nan_mode"]
@@ -1490,7 +1491,13 @@ def main():
         )
 
     # Verificación de coherencia
-    missing = [c for c in measure_cols if c not in df.columns]
+    if measure_name not in measure_cols:
+        raise RuntimeError(
+            "[ERROR] Invalid MEASURE. Must be one of: "
+            + ", ".join(str(col) for col in measure_cols)
+        )
+
+    missing = [measure_name] if measure_name not in df.columns else []
     if missing:
         raise RuntimeError(
             f"Columnas de medida declaradas en F01 no están en el dataset padre: {missing}"
@@ -1499,6 +1506,8 @@ def main():
     # --------------------------------------------------------
     # Generar eventos
     # --------------------------------------------------------
+
+    measure_cols = [measure_name]
 
     minmax_stats = compute_minmax(df, measure_cols)
     bands = compute_cuts_and_labels(minmax_stats, bands_pct)
@@ -1553,6 +1562,7 @@ def main():
     report_path.write_text(report_html, encoding="utf-8")
 
     execution_time = float(time.perf_counter() - start_time)
+    event_types = list(event_to_id.keys())
 
     # --------------------------------------------------------
     # Construir outputs.yaml
@@ -1581,6 +1591,11 @@ def main():
         },
         "exports": {
             "Tu": int(Tu),
+            "measure_name": measure_name,
+            "event_strategy": strategy,
+            "bands": bands_pct,
+            "event_types": event_types,
+            "n_event_types": int(len(event_to_id)),
             "n_events": int(len(df_events)),
             "n_types": int(len(event_to_id)),
             "n_types_observed": int(stats["global"]["n_event_types_observed"]),

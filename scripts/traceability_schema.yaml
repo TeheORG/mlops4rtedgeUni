@@ -162,6 +162,11 @@ phases:
         required: true
         inherited: true
 
+      measure_name:
+        type: string
+        required: true
+        inherited: false
+
       strategy:
         type: string
         required: true
@@ -208,6 +213,30 @@ phases:
       exports:
 
         Tu:
+          type: integer
+          required: true
+
+        measure_name:
+          type: string
+          required: true
+
+        event_strategy:
+          type: string
+          required: true
+
+        bands:
+          type: list
+          required: true
+          items:
+            type: number
+
+        event_types:
+          type: list
+          required: true
+          items:
+            type: string
+
+        n_event_types:
           type: integer
           required: true
 
@@ -258,6 +287,11 @@ phases:
         type: integer
         required: false
         inherited: true   # si el usuario no lo redefine, hereda el de fases anteriores
+
+      measure_name:
+        type: string
+        required: false
+        inherited: true
 
       OW:
         type: integer
@@ -343,6 +377,11 @@ phases:
         nan_mode:
           type: string
           required: true
+
+        measure_name:
+          type: string
+          required: false
+          nullable: true
 
         n_windows:
           type: integer

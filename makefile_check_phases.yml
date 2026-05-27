@@ -103,6 +103,28 @@ f02_events:
     - path: outputs.yaml
       required: true
       not_empty: true
+      checks:
+        - type: yaml_key
+          key: exports.measure_name
+          constraints:
+            - not_empty
+        - type: yaml_key
+          key: exports.event_strategy
+          constraints:
+            - { in: [levels, transitions, both] }
+        - type: yaml_key
+          key: exports.bands
+          constraints:
+            - not_empty
+        - type: yaml_key
+          key: exports.event_types
+          constraints:
+            - not_empty
+        - type: yaml_key
+          key: exports.n_event_types
+          constraints:
+            - integer
+            - { gt: 0 }
     - path: metadata.yaml
       required: true
       not_empty: true

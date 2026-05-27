@@ -122,6 +122,7 @@ def main():
     PW = params["PW"]
     window_strategy = params["window_strategy"]
     nan_mode = params["nan_mode"]
+    measure_name = params.get("measure_name") or parent_outputs.get("exports", {}).get("measure_name")
     BATCH = 10_000
 
     # --------------------------------------------------------
@@ -383,6 +384,7 @@ def main():
             "event_type_count": event_type_count,
             "window_strategy": window_strategy,
             "nan_mode": nan_mode,
+            "measure_name": measure_name,
             "parent_f02": parent_variant,
             "n_windows": windows_written,
             "n_unique_ow_hash": n_unique_ow_hash,

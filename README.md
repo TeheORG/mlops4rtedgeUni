@@ -192,38 +192,50 @@ make register1 VARIANT=v000
 ### F02: Build events dataset
 
 ```bash
-# make variant2 VARIANT=v201 PARENT=v001 STRATEGY=levels BANDS='[0.1, 0.2, 0.3]' NAN_MODE=discard
-make variant2 VARIANT=v201 PARENT=v001 STRATEGY=transitions BANDS='[10, 90]' NAN_MODE=discard
-make script2 VARIANT=v201
-make check2 VARIANT=v201
-make register2 VARIANT=v201
+make variant2 VARIANT=v2_0001 PARENT=v1_0000 MEASURE=Battery_Active_Power STRATEGY=transitions BANDS='[10,20,30,40,50,60,70,80,90]' NAN_MODE=discard
+make script2 VARIANT=v2_0001
+make check2 VARIANT=v2_0001
+make register2 VARIANT=v2_0001
 ```
+
+F02 is univariate: each F02 variant selects exactly one measure through `MEASURE`.
+The selected measure is validated against `exports.measure_cols` from the F01 parent
+`outputs.yaml`. If it is invalid, variant creation stops with:
+
+```bash
+[ERROR] Invalid MEASURE. Must be one of: ...
+```
+
+F02 stores the selected measure and event definition in `outputs.yaml` under
+`exports.measure_name`, `exports.event_strategy`, `exports.bands`,
+`exports.event_types`, `exports.n_event_types`, and the legacy-compatible
+`exports.n_types`.
 
 ### F03: Build windows dataset
 
 ```bash
-make variant3 VARIANT=v301 PARENT=v201 OW=600 LT=100 PW=100 STRATEGY=synchro NAN_MODE=discard
-make script3 VARIANT=v301
-make check3 VARIANT=v301
-make register3 VARIANT=v301
+make variant3 VARIANT=v3_0001 PARENT=v2_0001 OW=600 LT=100 PW=100 STRATEGY=synchro NAN_MODE=discard
+make script3 VARIANT=v3_0001
+make check3 VARIANT=v3_0001
+make register3 VARIANT=v3_0001
 ```
 
 ### F04: Create prediction targets
 
 ```bash
-make variant4 VARIANT=v401 PARENT=v301 NAME=battery_overheat OPERATOR=OR EVENTS='["Battery_Active_Power_0_10-to-90_100,Battery_Active_Power_10_90-to-90_100"]'
-make script4 VARIANT=v401
-make check4 VARIANT=v401
-make register4 VARIANT=v401
+make variant4 VARIANT=v4_0001 PARENT=v3_0001 NAME=battery_active_power_high_90 OPERATOR=OR EVENTS='["Battery_Active_Power_80_90-to-90_100"]'
+make script4 VARIANT=v4_0001
+make check4 VARIANT=v4_0001
+make register4 VARIANT=v4_0001
 ```
 
 ### F05: Train models
 
 ```bash
-make variant5 VARIANT=v501 PARENT=v401 MODEL_FAMILY=dense_bow IMBALANCE_STRATEGY=none
-make script5 VARIANT=v501
-make check5 VARIANT=v501
-make register5 VARIANT=v501
+make variant5 VARIANT=v5_0001 PARENT=v4_0001 MODEL_FAMILY=cnn1d IMBALANCE_STRATEGY=rare_events IMBALANCE_MAX_MAJ=20000 SEED=42
+make script5 VARIANT=v5_0001
+make check5 VARIANT=v5_0001
+make register5 VARIANT=v5_0001
 ```
 
 Common F05 overrides include batch size, epochs, learning rate, embedding size, hidden units, dropout, AutoML, and evaluation split.
@@ -231,13 +243,70 @@ Common F05 overrides include batch size, epochs, learning rate, embedding size, 
 ### F06: Quantize and package for edge
 
 ```bash
-make variant6 VARIANT=v601 PARENT=v501 DEPLOY_TARGET=esp32 REQUIRE_INT8=true
-make script6 VARIANT=v601
-make check6 VARIANT=v601
-make register6 VARIANT=v601
+make variant6 VARIANT=v6_0001 PARENT=v5_0001
+make script6 VARIANT=v6_0001
+make check6 VARIANT=v6_0001
+make register6 VARIANT=v6_0001
 ```
 
 F06 uses Docker for reproducible packaging in the default flow.
+
+## Univariate F02 Change Summary
+
+Modified files:
+
+1. `Makefile`
+2. `scripts/phases/f02_events.py`
+3. `scripts/phases/f03_windows.py`
+4. `scripts/phases/f04_targets.py`
+5. `scripts/traceability_schema.yaml`
+6. `makefile_check_phases.yml`
+7. `README.md`
+
+What changed:
+
+1. `make variant2` now requires `MEASURE=<measure>`.
+2. `MEASURE` is validated against `executions/f01_explore/<PARENT>/outputs.yaml`
+   at `exports.measure_cols`.
+3. F02 passes `measure_name=<MEASURE>` to the parameter manager.
+4. F02 loads the clean F01 dataset but generates levels/transitions/both only
+   for the selected measure.
+5. F02 exports `measure_name`, `event_strategy`, `bands`, `event_types`,
+   `n_event_types`, `Tu`, and the existing compatible count fields.
+6. F03 carries `measure_name` forward in its exports when available.
+7. F04 prefers the inherited univariate `measure_name` when available.
+8. F05 and F06 keep their command shape and consume the univariate parent
+   artifacts through the existing catalog/window/target flow.
+
+Recommended full-flow test:
+
+```bash
+make variant2 VARIANT=v2_0001 PARENT=v1_0000 MEASURE=Battery_Active_Power STRATEGY=transitions BANDS='[10,20,30,40,50,60,70,80,90]' NAN_MODE=discard
+make script2 VARIANT=v2_0001
+make check2 VARIANT=v2_0001
+
+make variant3 VARIANT=v3_0001 PARENT=v2_0001 OW=600 LT=100 PW=100 STRATEGY=synchro NAN_MODE=discard
+make script3 VARIANT=v3_0001
+make check3 VARIANT=v3_0001
+
+make variant4 VARIANT=v4_0001 PARENT=v3_0001 NAME=battery_active_power_high_90 OPERATOR=OR EVENTS='["Battery_Active_Power_80_90-to-90_100"]'
+make script4 VARIANT=v4_0001
+make check4 VARIANT=v4_0001
+
+make variant5 VARIANT=v5_0001 PARENT=v4_0001 MODEL_FAMILY=cnn1d IMBALANCE_STRATEGY=rare_events IMBALANCE_MAX_MAJ=20000 SEED=42
+make script5 VARIANT=v5_0001
+make check5 VARIANT=v5_0001
+
+make variant6 VARIANT=v6_0001 PARENT=v5_0001
+make script6 VARIANT=v6_0001
+make check6 VARIANT=v6_0001
+```
+
+Known limitation:
+
+F02 is now intentionally one-measure-per-variant. To compare multiple measures,
+create one F02 variant per measure and run the downstream phases from each
+univariate F02 parent.
 
 ### F07: Validate a model on edge hardware
 

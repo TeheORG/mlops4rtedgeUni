@@ -529,12 +529,15 @@ VARIANTS_DIR2 = executions/$(PHASE2)
 
 variant2: check-variant-format
 	@test -n "$(PARENT)"   || (echo "[ERROR] You must specify PARENT=vY_XXXX (parent F01 variant)"; exit 1)
+	@test -n "$(MEASURE)"  || (echo "[ERROR] You must specify MEASURE=<measure>"; exit 1)
 	@test -n "$(STRATEGY)" || (echo "[ERROR] You must specify STRATEGY=levels|transitions|both"; exit 1)
 	@test -n "$(BANDS)"    || (echo "[ERROR] You must specify BANDS=[...percentages...]"; exit 1)
 	@test -n "$(NAN_MODE)" || (echo "[ERROR] You must specify NAN_MODE=keep|discard"; exit 1)
+	@$(PYTHON) -c 'import sys,yaml; from pathlib import Path; from scripts.core.params_manager import normalize_variant_id_for_phase; parent=normalize_variant_id_for_phase(sys.argv[1],"f01_explore","PARENT"); measure=sys.argv[2]; p=Path("executions")/"f01_explore"/parent/"outputs.yaml"; data=(yaml.safe_load(p.read_text()) if p.exists() else None); cols=(((data or {}).get("exports") or {}).get("measure_cols") or []); (print(f"[ERROR] Missing F01 outputs.yaml with exports.measure_cols at {p}") or sys.exit(1)) if data is None else None; (print("[ERROR] Invalid MEASURE. Must be one of: " + ", ".join(map(str, cols))) or sys.exit(1)) if measure not in cols else None' "$(PARENT)" "$(MEASURE)"
 
 	@$(eval EXTRA_FLAGS := )
 	@$(eval EXTRA_FLAGS += PARENT=$(PARENT))
+	@$(eval EXTRA_FLAGS += measure_name=$(MEASURE))
 	@$(eval EXTRA_FLAGS += strategy=$(STRATEGY))
 	@$(eval EXTRA_FLAGS += bands=$(BANDS))
 	@$(eval EXTRA_FLAGS += nan_mode=$(NAN_MODE))
@@ -574,20 +577,21 @@ help2:
 	@echo "==============================================="
 	@echo ""
 	@echo " Create:"
-	@echo "   make variant2 VARIANT=v201 PARENT=v001 \\"
-	@echo "       STRATEGY=levels BANDS='[0.1, 0.2, 0.3]' NAN_MODE=discard"
+	@echo "   make variant2 VARIANT=v2_0001 PARENT=v1_0000 \\"
+	@echo "       MEASURE=Battery_Active_Power \\"
+	@echo "       STRATEGY=levels|transitions|both BANDS='[10,20,30,40,50,60,70,80,90]' NAN_MODE=discard"
 	@echo ""
 	@echo " Execution:"
-	@echo "   make script2 VARIANT=v201"
+	@echo "   make script2 VARIANT=v2_0001"
 	@echo ""
 	@echo " Checking:"
-	@echo "   make check2 VARIANT=v201"
+	@echo "   make check2 VARIANT=v2_0001"
 	@echo ""
 	@echo " Register:"
-	@echo "   make register2 VARIANT=v201"
+	@echo "   make register2 VARIANT=v2_0001"
 	@echo ""
 	@echo " Remove: (only if no children variants)"
-	@echo "   make remove2 VARIANT=v201"
+	@echo "   make remove2 VARIANT=v2_0001"
 	@echo ""
 	@echo "==============================================="
 
@@ -833,8 +837,15 @@ SCRIPT5_MODULE = scripts.phases.f05_model
 VARIANTS_DIR5 = executions/$(PHASE5)
 
 # Docker único para F05/F06 (reproducible entre OS)
-F56_DOCKER_IMAGE ?= mlops4ofp-f56:py311-tf215
-F56_DOCKERFILE ?= scripts/docker/Dockerfile.f56
+ifeq ($(F56_GPU),true)
+  F56_DOCKER_IMAGE ?= mlops-f56-gpu:latest
+  F56_DOCKERFILE ?= scripts/docker/Dockerfile.f56_gpu
+  F56_DOCKER_RUN_ARGS ?= --gpus all
+else
+  F56_DOCKER_IMAGE ?= mlops4ofp-f56:py311-tf215
+  F56_DOCKERFILE ?= scripts/docker/Dockerfile.f56
+  F56_DOCKER_RUN_ARGS ?=
+endif
 F56_DOCKER_PLATFORM ?= linux/amd64
 
 ensure-f56-docker-image:
@@ -920,6 +931,7 @@ script5: check-variant-format ensure-f56-docker-image
 	$(MAKE) --no-print-directory generate_lineage || true; \
 	echo "==> Running F05 in Docker ($(F56_DOCKER_IMAGE)) for $$VARIANT_NORM"; \
 	docker run --rm --platform $(F56_DOCKER_PLATFORM) \
+		$(F56_DOCKER_RUN_ARGS) \
 		$(DOCKER_HOST_USER_ARGS) \
 		-v "$(DOCKER_HOST_PWD):$(DOCKER_WORKSPACE_PATH)" \
 		-w $(DOCKER_WORKSPACE_PATH) \
@@ -1166,6 +1178,7 @@ script6: check-variant-format ensure-f56-docker-image
 	$(MAKE) --no-print-directory generate_lineage || true; \
 	echo "==> Running F06 in Docker ($(F56_DOCKER_IMAGE)) for $$VARIANT_NORM"; \
 	docker run --rm --platform $(F56_DOCKER_PLATFORM) \
+		$(F56_DOCKER_RUN_ARGS) \
 		$(DOCKER_HOST_USER_ARGS) \
 		-v "$(DOCKER_HOST_PWD):$(DOCKER_WORKSPACE_PATH)" \
 		-w $(DOCKER_WORKSPACE_PATH) \

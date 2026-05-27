@@ -1,0 +1,24 @@
+FROM tensorflow/tensorflow:2.15.0-gpu
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PIP_DISABLE_PIP_VERSION_CHECK=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    bash \
+    ca-certificates \
+    gcc \
+    g++ \
+    git \
+    make \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /workspace
+
+COPY requirements-docker-gpu.txt /tmp/requirements-docker-gpu.txt
+RUN python -m pip install --upgrade pip setuptools wheel && \
+    python -m pip install --ignore-installed "blinker>=1.9.0" && \
+    python -m pip install -r /tmp/requirements-docker-gpu.txt
+
+CMD ["bash", "-lc", "python --version && python -c \"import tensorflow as tf; print(tf.__version__); print(tf.config.list_physical_devices('GPU'))\""]
