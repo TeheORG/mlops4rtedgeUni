@@ -214,7 +214,7 @@ F02 stores the selected measure and event definition in `outputs.yaml` under
 ### F03: Build windows dataset
 
 ```bash
-make variant3 VARIANT=v3_0001 PARENT=v2_0001 OW=600 LT=100 PW=100 STRATEGY=synchro NAN_MODE=discard
+make variant3 VARIANT=v3_0001 PARENT=v2_0001 OW=600 LT=10 PW=10 STRATEGY=synchro NAN_MODE=discard
 make script3 VARIANT=v3_0001
 make check3 VARIANT=v3_0001
 make register3 VARIANT=v3_0001
