@@ -43,6 +43,7 @@ mlruns/
 
 # Generated DVC refs from pipeline executions do not belong in the code repo
 # executions/**/*.dvc
+lineage_registry.json
 
 # Jupyter
 .ipynb_checkpoints/
