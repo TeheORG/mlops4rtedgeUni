@@ -33,8 +33,10 @@ executions-*/
 .dvc/config.local
 
 # Pipeline code repo: local DVC state and cache must not be versioned here
-.dvc/
+.dvc/*
+!.dvc/config
 .dvc_storage/
+
 
 # Local experiment tracking
 mlruns/
@@ -47,7 +49,7 @@ executions/**/*.dvc
 
 # Development
 .python-version
-.mlops4ofp/
+# .mlops4ofp/
 
 # Large data files (users will provide their own)
 data/*.csv
@@ -60,5 +62,8 @@ data/*.pkl
 run*.csv
 
 test/experiments/**/analysis/outputs/
-test/experiments/**/logs/
 test/experiments/**/analysis/figures/
+test/experiments/**/logs/
+test/experiments/experiment-*/analysis/outputs/
+test/experiments/experiment-*/analysis/figures/
+test/experiments/experiment1/
