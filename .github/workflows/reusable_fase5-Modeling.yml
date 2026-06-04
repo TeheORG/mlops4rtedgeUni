@@ -40,6 +40,7 @@ jobs:
       REGISTER_EXCLUDE_EXTS: |
         .h5
         .parquet
+        .tflite
     defaults:
       run:
         working-directory: ${{ github.workspace }}

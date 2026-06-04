@@ -36,7 +36,9 @@ jobs:
       DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
       VARIANT_ROOT: executions/f02_events/${{ inputs.variant_id }}
       REGISTER_EXCLUDE_EXTS: |
+        .h5
         .parquet
+        .tflite
     defaults:
       run:
         working-directory: ${{ github.workspace }}

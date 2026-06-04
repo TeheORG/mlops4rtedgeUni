@@ -458,7 +458,9 @@ register-generic: check-variant-format
 	for ext in $(DVC_EXTS); do \
 		$(DVC) add "$(VARIANTS_DIR)/$$VARIANT_NORM"/*.$$ext 2>/dev/null || true; \
 	done; \
-	if [ "$$MODE" = "custom" ]; then \
+	if [ "$${SKIP_GIT_PUBLISH:-0}" = "1" ]; then \
+		echo "[INFO] SKIP_GIT_PUBLISH=1: skipping Makefile git operations (workflow mode)"; \
+	elif [ "$$MODE" = "custom" ]; then \
 		echo "==> Adding files to Git"; \
 		git add "$(VARIANTS_DIR)/$$VARIANT_NORM" 2>/dev/null || true; \
 		git add "$(VARIANTS_DIR)/$$VARIANT_NORM"/*.dvc 2>/dev/null || true; \

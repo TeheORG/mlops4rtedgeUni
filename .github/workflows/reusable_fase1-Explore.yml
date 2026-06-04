@@ -34,7 +34,9 @@ jobs:
       SKIP_LINEAGE: "1"
       VARIANT_ROOT: executions/f01_explore/${{ inputs.variant_id }}
       REGISTER_EXCLUDE_EXTS: |
+        .h5
         .parquet
+        .tflite
     defaults:
       run:
         working-directory: ${{ github.workspace }}

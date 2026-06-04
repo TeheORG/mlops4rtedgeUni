@@ -42,7 +42,7 @@ Thumbs.db
 mlruns/
 
 # Generated DVC refs from pipeline executions do not belong in the code repo
-executions/**/*.dvc
+# executions/**/*.dvc
 
 # Jupyter
 .ipynb_checkpoints/

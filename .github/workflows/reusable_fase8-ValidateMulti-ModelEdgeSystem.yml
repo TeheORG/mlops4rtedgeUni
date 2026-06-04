@@ -34,8 +34,9 @@ jobs:
       DAGSHUB_TOKEN: ${{ secrets.DAGSHUB_TOKEN }}
       VARIANT_ROOT: executions/f08_sysval/${{ inputs.variant_id }}
       REGISTER_EXCLUDE_EXTS: |
-        .csv
-        .json
+        .h5
+        .parquet
+        .tflite
     defaults:
       run:
         working-directory: ${{ github.workspace }}
