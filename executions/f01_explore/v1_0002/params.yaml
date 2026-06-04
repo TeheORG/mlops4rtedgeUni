@@ -1,0 +1,7 @@
+phase: f01_explore
+variant: v1_0002
+parent: null
+parameters:
+  raw_path: data/raw.csv
+  cleaning: none
+parent_hashes: {}
