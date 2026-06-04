@@ -26,8 +26,8 @@ dist/
 Thumbs.db
 
 # Execution directories and results
-executions/
-executions-*/
+# executions/
+# executions-*/
 
 # DVC local config
 .dvc/config.local
