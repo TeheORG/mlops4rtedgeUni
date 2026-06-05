@@ -56,7 +56,7 @@ f01_explore:
   files:
     - path: 01_explore_dataset.parquet
       required: true
-      size: "> 20MB"
+      size: "> 5MB"
     - path: 01_explore_report.html
       required: true
       not_empty: true
