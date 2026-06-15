@@ -60,6 +60,54 @@ from tensorflow.lite.python import schema_py_generated as schema_fb
 
 PHASE = "f06_quant"
 PARENT_PHASE = "f05_modeling"
+EVENT_ID_DTYPES = {
+    "int8": (np.dtype(np.int8), tf.int8),
+    "uint8": (np.dtype(np.uint8), tf.uint8),
+    "int16": (np.dtype(np.int16), tf.int16),
+}
+
+
+@tf.keras.utils.register_keras_serializable(package="mlops4rtedge")
+class CastToInt32(tf.keras.layers.Layer):
+    def call(self, inputs):
+        return tf.cast(inputs, tf.int32)
+
+
+def resolve_exported_event_id_dtype(exports_parent: dict) -> dict:
+    dtype_name = str(
+        exports_parent.get("event_id_dtype")
+        or exports_parent.get("event_id_np_dtype")
+        or ""
+    )
+    if dtype_name not in EVENT_ID_DTYPES:
+        raise RuntimeError(
+            "F05 must export event_id_dtype as int8, uint8 or int16 "
+            f"for categorical sequence inputs; got {dtype_name or 'missing'}"
+        )
+
+    np_dtype, tf_dtype = EVENT_ID_DTYPES[dtype_name]
+    exported_np_dtype = str(exports_parent.get("event_id_np_dtype") or dtype_name)
+    exported_tf_dtype = str(exports_parent.get("event_id_tf_dtype") or dtype_name)
+    if exported_np_dtype != dtype_name or exported_tf_dtype != dtype_name:
+        raise RuntimeError(
+            "Inconsistent F05 event ID dtype metadata: "
+            f"event_id_dtype={dtype_name}, event_id_np_dtype={exported_np_dtype}, "
+            f"event_id_tf_dtype={exported_tf_dtype}"
+        )
+    if exports_parent.get("event_ids_are_categorical") is not True:
+        raise RuntimeError("F05 must mark sequence event IDs as categorical")
+    if exports_parent.get("requires_cast_to_int32") is not True:
+        raise RuntimeError("F05 must require CastToInt32 before Embedding/GATHER")
+
+    return {
+        "event_id_dtype": dtype_name,
+        "event_id_np_dtype": dtype_name,
+        "event_id_tf_dtype": dtype_name,
+        "numpy_dtype": np_dtype,
+        "tensorflow_dtype": tf_dtype,
+        "event_ids_are_categorical": True,
+        "requires_cast_to_int32": True,
+    }
 
 
 # ============================================================
@@ -126,12 +174,18 @@ def build_calibration_input(
     model_family: str,
     model,
     event_type_count: int | None = None,
+    event_id_np_dtype=None,
 ):
     """Construye X_calib en función de model_family y columnas del dataset."""
     if "OW_events" in df.columns and model_family in {"sequence_embedding", "cnn1d", "dense_bow"}:
         sequences = df["OW_events"].tolist()
 
         if model_family in {"sequence_embedding", "cnn1d"}:
+            if event_id_np_dtype is None:
+                raise RuntimeError("event_id_np_dtype exported by F05 is required")
+            event_id_np_dtype = np.dtype(event_id_np_dtype)
+            if event_id_np_dtype.name not in EVENT_ID_DTYPES:
+                raise RuntimeError(f"Unsupported categorical event ID dtype: {event_id_np_dtype}")
             seqs_idx = []
             for seq in sequences:
                 cur = []
@@ -147,7 +201,7 @@ def build_calibration_input(
                     cur.append(v)
                 seqs_idx.append(cur)
             max_len = int(model.input_shape[-1])
-            return pad_sequences(seqs_idx, max_len)
+            return pad_sequences(seqs_idx, max_len).astype(event_id_np_dtype, copy=False)
 
         if model_family == "dense_bow":
             input_dim = int(model.input_shape[-1])
@@ -191,13 +245,18 @@ def compute_binary_metrics(y_true, y_prob, threshold: float):
     }
 
 
-def quantize_input_for_tflite(sample, input_detail):
+def quantize_input_for_tflite(sample, input_detail, *, event_ids_are_categorical=False):
     dtype = input_detail["dtype"]
+    if event_ids_are_categorical:
+        if np.dtype(dtype).name not in EVENT_ID_DTYPES:
+            raise RuntimeError(f"Unsupported categorical TFLite input dtype: {dtype}")
+        return sample.astype(dtype, copy=False)
+
     scale, zero_point = input_detail.get("quantization", (0.0, 0))
     sample = sample.astype(np.float32)
     if np.issubdtype(dtype, np.integer):
         if scale in (None, 0.0):
-            raise RuntimeError("TFLite integer input has invalid quantization scale")
+            return sample.astype(dtype)
         q = np.round(sample / float(scale) + int(zero_point))
         info = np.iinfo(dtype)
         return np.clip(q, info.min, info.max).astype(dtype)
@@ -214,7 +273,12 @@ def dequantize_output_from_tflite(output, output_detail):
     return output.astype(np.float32)
 
 
-def predict_tflite_probabilities(tflite_bytes: bytes, X_eval: np.ndarray):
+def predict_tflite_probabilities(
+    tflite_bytes: bytes,
+    X_eval: np.ndarray,
+    *,
+    event_ids_are_categorical=False,
+):
     interpreter = tf.lite.Interpreter(model_content=tflite_bytes)
     interpreter.allocate_tensors()
     input_detail = interpreter.get_input_details()[0]
@@ -224,7 +288,14 @@ def predict_tflite_probabilities(tflite_bytes: bytes, X_eval: np.ndarray):
     y_prob = np.zeros(len(X_eval), dtype=np.float32)
     for i in range(len(X_eval)):
         sample = X_eval[i:i + 1]
-        interpreter.set_tensor(input_index, quantize_input_for_tflite(sample, input_detail))
+        interpreter.set_tensor(
+            input_index,
+            quantize_input_for_tflite(
+                sample,
+                input_detail,
+                event_ids_are_categorical=event_ids_are_categorical,
+            ),
+        )
         interpreter.invoke()
         output = dequantize_output_from_tflite(interpreter.get_tensor(output_index), output_detail).ravel()
         y_prob[i] = float(output[-1]) if output.size else 0.0
@@ -248,14 +319,16 @@ def build_tflite(model, X_calib, inference_input_dtype=tf.int8):
     """Genera modelo TFLite cuantizado a partir de un modelo Keras y X_calib."""
     converter = tf.lite.TFLiteConverter.from_keras_model(model)
     converter.optimizations = [tf.lite.Optimize.DEFAULT]
+    model_input_dtype = model.inputs[0].dtype.as_numpy_dtype
 
     def rep_dataset():
         for i in range(min(256, len(X_calib))):
-            yield [X_calib[i:i+1].astype(np.float32)]
+            yield [X_calib[i:i+1].astype(model_input_dtype)]
 
     converter.representative_dataset = rep_dataset
     converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
-    converter.inference_input_type = inference_input_dtype
+    if inference_input_dtype != tf.int16:
+        converter.inference_input_type = inference_input_dtype
     converter.inference_output_type = tf.int8
 
     return converter.convert()
@@ -371,6 +444,9 @@ def main():
 
     event_type_count = exports_parent.get("event_type_count")
     event_type_count = int(event_type_count) if event_type_count is not None else None
+    event_dtype_info = None
+    if model_family in {"sequence_embedding", "cnn1d"}:
+        event_dtype_info = resolve_exported_event_id_dtype(exports_parent)
 
     model = None
     X = None
@@ -404,7 +480,10 @@ def main():
         edge_capable = False
         incompat_reason = "Parent F05 no contiene artifacts.model válido"
     else:
-        model = tf.keras.models.load_model(dst_model)
+        model = tf.keras.models.load_model(
+            dst_model,
+            custom_objects={"CastToInt32": CastToInt32},
+        )
 
         X = build_calibration_input(
             df,
@@ -412,6 +491,11 @@ def main():
             model_family,
             model,
             event_type_count=event_type_count,
+            event_id_np_dtype=(
+                event_dtype_info["numpy_dtype"]
+                if event_dtype_info is not None
+                else None
+            ),
         )
         y = df[label_col].values
 
@@ -430,17 +514,26 @@ def main():
         if event_type_count is None:
             edge_capable = False
             incompat_reason = "Missing event_type_count in parent exports"
-        else:
-            event_type_count = int(event_type_count)
-            if event_type_count > 256:
-                edge_capable = False
-                incompat_reason = (
-                    f"event_type_count={event_type_count} exceeds uint8 capacity (256)"
-                )
+        elif (
+            event_dtype_info is not None
+            and event_type_count > np.iinfo(np.int16).max
+        ):
+            edge_capable = False
+            incompat_reason = (
+                f"event_type_count={event_type_count} exceeds supported event ID capacity "
+                f"({np.iinfo(np.int16).max}); uint16 is intentionally unsupported"
+            )
+        elif event_dtype_info is None and event_type_count > 256:
+            edge_capable = False
+            incompat_reason = (
+                f"event_type_count={event_type_count} exceeds uint8 capacity (256)"
+            )
 
-        requested_input_dtype = tf.int8
-        if edge_capable and event_type_count is not None and event_type_count > 127:
-            requested_input_dtype = tf.uint8
+        requested_input_dtype = (
+            event_dtype_info["tensorflow_dtype"]
+            if event_dtype_info is not None
+            else (tf.uint8 if event_type_count is not None and event_type_count > 127 else tf.int8)
+        )
 
         # ----------------------------------------------------------
         # 2. CUANTIZAR (solo si de momento es edge_capable)
@@ -478,11 +571,20 @@ def main():
                     f"{quant_signature['num_outputs']}"
                 )
 
-            elif quant_signature["input_dtype"] not in {"int8", "uint8"}:
+            elif quant_signature["input_dtype"] not in EVENT_ID_DTYPES:
                 edge_capable = False
                 incompat_reason = (
-                    f"Quantized model input dtype must be int8 or uint8, got "
+                    f"Quantized model input dtype must be int8, uint8 or int16, got "
                     f"{quant_signature['input_dtype']}"
+                )
+            elif (
+                event_dtype_info is not None
+                and quant_signature["input_dtype"] != event_dtype_info["event_id_dtype"]
+            ):
+                edge_capable = False
+                incompat_reason = (
+                    f"Quantized input dtype {quant_signature['input_dtype']} does not match "
+                    f"F05 event ID dtype {event_dtype_info['event_id_dtype']}"
                 )
 
             elif quant_signature["output_dtype"] != "int8":
@@ -500,6 +602,13 @@ def main():
                 incompat_reason = (
                     "Quantized operators not supported: " + ", ".join(unsupported_quant)
                 )
+            elif (
+                event_dtype_info is not None
+                and "GATHER" in operators_quant
+                and "CAST" not in operators_quant
+            ):
+                edge_capable = False
+                incompat_reason = "Categorical sequence input with GATHER requires CAST to int32"
             else:
                 # --------------------------------------------------
                 # 3. CALCULAR THRESHOLD SOBRE MODELO FLOAT
@@ -516,7 +625,11 @@ def main():
                 exported_operators = operators_quant
 
                 X_test, y_test = slice_f05_test_set(X, y, parent_outputs)
-                y_tflite_prob = predict_tflite_probabilities(tflite_bytes, X_test)
+                y_tflite_prob = predict_tflite_probabilities(
+                    tflite_bytes,
+                    X_test,
+                    event_ids_are_categorical=event_dtype_info is not None,
+                )
                 tflite_test_metrics = compute_binary_metrics(
                     y_test,
                     y_tflite_prob,
@@ -668,6 +781,14 @@ def main():
         "model_family": str(model_family),
         "edge_capable": bool(edge_capable),
     }
+    if event_dtype_info is not None:
+        exports_out.update({
+            "event_id_dtype": event_dtype_info["event_id_dtype"],
+            "event_id_np_dtype": event_dtype_info["event_id_np_dtype"],
+            "event_id_tf_dtype": event_dtype_info["event_id_tf_dtype"],
+            "event_ids_are_categorical": True,
+            "requires_cast_to_int32": True,
+        })
 
     if incompat_reason is not None:
         exports_out["incompatibility_reason"] = str(incompat_reason)
@@ -719,10 +840,19 @@ def main():
             quant_signature is not None
             and quant_signature["num_inputs"] == 1
             and quant_signature["num_outputs"] == 1
-            and quant_signature["input_dtype"] in {"int8", "uint8"}
+            and quant_signature["input_dtype"] in EVENT_ID_DTYPES
             and quant_signature["output_dtype"] == "int8"
         ),
     }
+    if event_dtype_info is not None:
+        metrics.update({
+            "event_type_count": int(event_type_count),
+            "event_id_dtype": event_dtype_info["event_id_dtype"],
+            "event_id_np_dtype": event_dtype_info["event_id_np_dtype"],
+            "event_id_tf_dtype": event_dtype_info["event_id_tf_dtype"],
+            "event_ids_are_categorical": True,
+            "requires_cast_to_int32": True,
+        })
     if tflite_test_metrics is not None:
         metrics.update({
             "tflite_eval_threshold": float(tflite_eval_threshold),

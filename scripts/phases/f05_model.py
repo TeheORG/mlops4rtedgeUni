@@ -62,6 +62,56 @@ FAST_MAX_MAJORITY_SAMPLES = 20_000
 DEFAULT_THRESHOLD_POLICY = "optimal_f2"
 DEFAULT_CNN1D_EVAL_MAX_SAMPLES = 100_000
 
+
+@tf.keras.utils.register_keras_serializable(package="mlops4rtedge")
+class CastToInt32(tf.keras.layers.Layer):
+    def call(self, inputs):
+        return tf.cast(inputs, tf.int32)
+
+
+def resolve_event_id_dtype(event_type_count: int) -> dict:
+    event_type_count = int(event_type_count)
+    if event_type_count < 1:
+        raise RuntimeError("event_type_count must be >= 1")
+    if event_type_count <= np.iinfo(np.int8).max:
+        np_dtype, tf_dtype = np.dtype(np.int8), tf.int8
+    elif event_type_count <= np.iinfo(np.uint8).max:
+        np_dtype, tf_dtype = np.dtype(np.uint8), tf.uint8
+    elif event_type_count <= np.iinfo(np.int16).max:
+        np_dtype, tf_dtype = np.dtype(np.int16), tf.int16
+    else:
+        raise RuntimeError(
+            f"event_type_count={event_type_count} exceeds supported event ID capacity "
+            f"({np.iinfo(np.int16).max}); uint16 is intentionally unsupported"
+        )
+
+    return {
+        "event_type_count": event_type_count,
+        "numpy_dtype": np_dtype,
+        "tensorflow_dtype": tf_dtype,
+        "event_id_dtype": np_dtype.name,
+        "event_id_np_dtype": np_dtype.name,
+        "event_id_tf_dtype": tf_dtype.name,
+        "event_ids_are_categorical": True,
+        "requires_cast_to_int32": True,
+    }
+
+
+def event_id_dtype_metadata(event_type_count: int) -> dict:
+    resolved = resolve_event_id_dtype(event_type_count)
+    return {
+        key: resolved[key]
+        for key in (
+            "event_type_count",
+            "event_id_dtype",
+            "event_id_np_dtype",
+            "event_id_tf_dtype",
+            "event_ids_are_categorical",
+            "requires_cast_to_int32",
+        )
+    }
+
+
 # ── Análisis opcionales (desactivar para acelerar ejecución) ──────────────────
 ENABLE_EXACT_DUPLICATE_ANALYSIS    = False   # set operations, rápido
 ENABLE_UNORDERED_DUPLICATE_ANALYSIS = False  # set operations, rápido
@@ -370,9 +420,7 @@ def vectorize_dense_bow(df: pd.DataFrame, label_col: str):
 def vectorize_sequence(df: pd.DataFrame, label_col: str, event_type_count: int):
     sequences = df["OW_events"].tolist()
     y = df[label_col].astype("int32").values
-
-    if event_type_count < 1:
-        raise RuntimeError("event_type_count must be >= 1")
+    dtype_info = resolve_event_id_dtype(event_type_count)
 
     normalized_seqs = []
     for seq in sequences:
@@ -391,12 +439,16 @@ def vectorize_sequence(df: pd.DataFrame, label_col: str, event_type_count: int):
     lengths = [len(seq) for seq in normalized_seqs]
     max_len = max(1, int(np.percentile(lengths, 95))) if lengths else 1
 
-    X = pad_sequences(normalized_seqs, max_len)
+    X = pad_sequences(normalized_seqs, max_len).astype(
+        dtype_info["numpy_dtype"],
+        copy=False,
+    )
 
     return X, y, {
         "vocab_size": int(event_type_count),
         "max_len": int(max_len),
         "vectorization": "sequence",
+        **event_id_dtype_metadata(event_type_count),
     }
 
 
@@ -1352,9 +1404,11 @@ def build_sequence_embedding_model(aux: dict, hp: dict) -> tf.keras.Model:
     units = int(hp.get("units", 64))
     dropout = float(hp.get("dropout", 0.0))
     embed_dim = int(hp.get("embed_dim", 32))
+    input_dtype = tf.as_dtype(aux["event_id_tf_dtype"])
 
     model = tf.keras.Sequential(name="sequence_embedding_binary_classifier")
-    model.add(tf.keras.layers.Input(shape=(int(aux["max_len"]),)))
+    model.add(tf.keras.layers.Input(shape=(int(aux["max_len"]),), dtype=input_dtype))
+    model.add(CastToInt32(name="cast_event_ids_to_int32"))
     model.add(
         tf.keras.layers.Embedding(
             input_dim=int(aux["vocab_size"]) + 1,
@@ -1381,9 +1435,11 @@ def build_cnn1d_model(aux: dict, hp: dict) -> tf.keras.Model:
     embed_dim = int(hp.get("embed_dim", 32))
     filters = int(hp.get("filters", 64))
     kernel_size = int(hp.get("kernel_size", 3))
+    input_dtype = tf.as_dtype(aux["event_id_tf_dtype"])
 
     model = tf.keras.Sequential(name="cnn1d_binary_classifier")
-    model.add(tf.keras.layers.Input(shape=(int(aux["max_len"]),)))
+    model.add(tf.keras.layers.Input(shape=(int(aux["max_len"]),), dtype=input_dtype))
+    model.add(CastToInt32(name="cast_event_ids_to_int32"))
     model.add(
         tf.keras.layers.Embedding(
             input_dim=int(aux["vocab_size"]) + 1,
@@ -1652,7 +1708,11 @@ def train_with_automl(
         gc.collect()
 
     if best_model_path is not None:
-        best_model = tf.keras.models.load_model(best_model_path, compile=False)
+        best_model = tf.keras.models.load_model(
+            best_model_path,
+            compile=False,
+            custom_objects={"CastToInt32": CastToInt32},
+        )
 
     best_validation_candidates = {
         "mejor_modelo_f1": _candidate_for_output(best_by_f1),
@@ -1855,6 +1915,11 @@ def write_non_trainable_outputs(
     start_time: float,
 ):
     execution_time = float(time.perf_counter() - start_time)
+    event_dtype_metadata = (
+        event_id_dtype_metadata(event_type_count)
+        if model_family in {"sequence_embedding", "cnn1d"}
+        else {}
+    )
     total_samples = int(sum(label_distribution.values()))
     positive_samples = int(label_distribution.get(1, 0))
     negative_samples = int(label_distribution.get(0, 0))
@@ -1911,6 +1976,7 @@ def write_non_trainable_outputs(
             "LT": int(LT),
             "PW": int(PW),
             "event_type_count": int(event_type_count),
+            **event_dtype_metadata,
             "prediction_name": str(prediction_name),
             "model_family": str(model_family),
             "trainable": False,
@@ -2004,13 +2070,17 @@ def main():
         event_type_count = exports_parent.get("event_type_count")
     if event_type_count is None:
         raise RuntimeError("event_type_count missing en exports del parent F04")
-
     Tu = int(params.get("Tu", exports_parent.get("Tu", 0)))
     OW = int(params.get("OW", exports_parent.get("OW", 0)))
     LT = int(params.get("LT", exports_parent.get("LT", 0)))
     PW = int(params.get("PW", exports_parent.get("PW", 0)))
 
     model_family = params["model_family"]
+    event_dtype_metadata = (
+        event_id_dtype_metadata(int(event_type_count))
+        if model_family in {"sequence_embedding", "cnn1d"}
+        else {}
+    )
 
     automl_cfg = params.get("automl", {})
     search_space = params.get("search_space", {})
@@ -2445,6 +2515,7 @@ def main():
             "LT": int(LT),
             "PW": int(PW),
             "event_type_count": int(event_type_count),
+            **event_dtype_metadata,
             "prediction_name": str(prediction_name),
             "measure_name": str(measure_name),
             "model_family": str(model_family),
@@ -2483,6 +2554,8 @@ def main():
         },
         "metrics": {
             "execution_time": float(execution_time),
+            **event_dtype_metadata,
+            **event_dtype_metadata,
             "mejor_modelo_f1": best_validation_candidates.get("mejor_modelo_f1"),
             "mejor_modelo_precision": best_validation_candidates.get("mejor_modelo_precision"),
             "mejor_modelo_recall": best_validation_candidates.get("mejor_modelo_recall"),
