@@ -1,0 +1,86 @@
+phase: f02_events
+variant: v2_0010
+artifacts:
+  events:
+    path: 02_events.parquet
+    sha256: 599aeeed5341f5b7a5a5710f1755eb58dbc7c45c49290f201a5b613947591a50
+  catalog:
+    path: 02_events_catalog.json
+    sha256: 059439450b008f825e8b46f3615c4092678463d12187e0cb1bd9b964400440b7
+  stats:
+    path: 02_events_stats.json
+    sha256: 4a703ff84042a74f0d337070ba11c9fabccb798d4df0cff95741e6dd4cbfc9aa
+  report:
+    path: 02_events_report.html
+    sha256: 31dd9a588c40c3f1fd09ae9ccd55e311d66373c69a4d8e843bd76a1b7a7d0a18
+exports:
+  Tu: 10
+  measure_name: Inlet_Temperature_of_Chilled_Water
+  event_strategy: transitions
+  bands:
+  - 20
+  - 40
+  - 60
+  - 80
+  event_types:
+  - Inlet_Temperature_of_Chilled_Water_0_20-to-20_40
+  - Inlet_Temperature_of_Chilled_Water_0_20-to-40_60
+  - Inlet_Temperature_of_Chilled_Water_0_20-to-60_80
+  - Inlet_Temperature_of_Chilled_Water_0_20-to-80_100
+  - Inlet_Temperature_of_Chilled_Water_20_40-to-0_20
+  - Inlet_Temperature_of_Chilled_Water_20_40-to-40_60
+  - Inlet_Temperature_of_Chilled_Water_20_40-to-60_80
+  - Inlet_Temperature_of_Chilled_Water_20_40-to-80_100
+  - Inlet_Temperature_of_Chilled_Water_40_60-to-0_20
+  - Inlet_Temperature_of_Chilled_Water_40_60-to-20_40
+  - Inlet_Temperature_of_Chilled_Water_40_60-to-60_80
+  - Inlet_Temperature_of_Chilled_Water_40_60-to-80_100
+  - Inlet_Temperature_of_Chilled_Water_60_80-to-0_20
+  - Inlet_Temperature_of_Chilled_Water_60_80-to-20_40
+  - Inlet_Temperature_of_Chilled_Water_60_80-to-40_60
+  - Inlet_Temperature_of_Chilled_Water_60_80-to-80_100
+  - Inlet_Temperature_of_Chilled_Water_80_100-to-0_20
+  - Inlet_Temperature_of_Chilled_Water_80_100-to-20_40
+  - Inlet_Temperature_of_Chilled_Water_80_100-to-40_60
+  - Inlet_Temperature_of_Chilled_Water_80_100-to-60_80
+  n_event_types: 20
+  n_events: 3887242
+  n_types: 20
+  n_types_observed: 8
+  target_candidates:
+    Inlet_Temperature_of_Chilled_Water:
+      high:
+        candidate: true
+        extreme_event_count: 1665
+        extreme_event_ratio: 0.13991596638655462
+        reason: passes high target candidate rules
+      low:
+        candidate: true
+        extreme_event_count: 1363
+        extreme_event_ratio: 0.11453781512605042
+        reason: passes low target candidate rules
+metrics:
+  execution_time: 8.618930554000002
+  n_rows_in: 3887242
+  n_rows_out: 3887242
+  total_events_generated: 11900
+  mean_events_per_row: 0.003061296415299073
+  empty_rows_ratio: 0.9969387035847009
+  n_event_types_observed: 8
+  catalog_coverage_ratio: 0.4
+  top1_event_ratio: 0.15521008403361344
+  rare_event_ratio: 0.25445378151260506
+  eventless_measure_ratio: 0.0
+  non_eventless_measure_ratio: 1.0
+  high_rare_measure_ratio: 1.0
+  low_rare_measure_ratio: 1.0
+  high_rare_event_ratio: 0.13991596638655462
+  low_rare_event_ratio: 0.11453781512605042
+  f02_quality_score: 0.8326768472170714
+  f02_gate_status: reject
+  event_entropy: 2.0594478875366313
+  normalized_event_entropy: 0.9903850847727833
+  n_transition_events: 11900
+  jump_size_mean: 1.0
+provenance:
+  generated_at: '2026-06-20T12:19:43.780214+00:00'
