@@ -1,0 +1,196 @@
+phase: f05_modeling
+variant: v5_0006
+artifacts:
+  model:
+    path: 05_modeling_model.h5
+    sha256: 482bd25a71fda1f689e702522fc56eb389144e8cbeb9c3e4752e367783495957
+  labeled_dataset:
+    path: 05_modeling_training_dataset.parquet
+    sha256: acaab68f81633bc6948af36bd96af41139c7853003536d037717cf14b522ffcd
+  history:
+    path: 05_modeling_history.json
+    sha256: 6d16f9f2a1bfacbfd40a201217eced725bc603a0b9e991df9b15825056cf21b6
+  split_hash_leakage:
+    path: 05_modeling_split_hash_leakage.json
+    sha256: 4bb8a941cd855bba6bbaf8f407c8b7b82413b2bbb9eb5a30ab2631c00f48e313
+  report:
+    path: 05_modeling_report.html
+    sha256: c78530c1e2abf7eea73e84320221939645e9f87a07e87c8db6cfe8b896880dd1
+exports:
+  Tu: 10
+  OW: 50
+  LT: 10
+  PW: 10
+  event_type_count: 20
+  event_id_dtype: int8
+  event_id_np_dtype: int8
+  event_id_tf_dtype: int8
+  event_ids_are_categorical: true
+  requires_cast_to_int32: true
+  prediction_name: outlet_temperature_high_80_fine_4
+  measure_name: Outlet_Temperature
+  model_family: cnn1d
+  window_strategy: synchro
+  deduplication_mode: none
+  deduplication_mode_effective: none
+  seed: 42
+  trainable: true
+  possible_split_leakage: false
+  high_split_leakage_warning: false
+  decision_threshold: 0.46905821561813354
+  threshold_source: validation
+  threshold_policy: optimal_f2
+  threshold_metric: f2
+  threshold_warning: null
+  best_val_recall: 0.999061473486626
+  val_precision: 0.4088726714038794
+  val_recall: 0.999061473486626
+  val_f1: 0.5802671027527937
+  val_pr_auc: 0.6423980091776814
+  val_precision_at_threshold: 0.4088726714038794
+  val_recall_at_threshold: 0.999061473486626
+  val_f1_at_threshold: 0.5802671027527937
+  test_precision: 0.4089598154201115
+  test_recall: 0.9985915492957746
+  test_f1: 0.5802755422179785
+  test_precision_at_threshold: 0.4089598154201115
+  test_recall_at_threshold: 0.9985915492957746
+  test_f1_at_threshold: 0.5802755422179785
+  test_fn_at_threshold: 3
+  test_pr_auc: 0.6290522173050528
+  imbalance_strategy: rare_events
+  parent_f04: v4_0006
+  parent_f03: v3_0004
+  parent_f02: v2_0004
+metrics:
+  execution_time: 63.100971598
+  event_type_count: 20
+  event_id_dtype: int8
+  event_id_np_dtype: int8
+  event_id_tf_dtype: int8
+  event_ids_are_categorical: true
+  requires_cast_to_int32: true
+  mejor_modelo_f1:
+    f1: 0.5831159917638984
+    recall: 0.996715157203191
+    precision: 0.4121071012805588
+  mejor_modelo_precision:
+    f1: 0.5831159917638984
+    recall: 0.996715157203191
+    precision: 0.4121071012805588
+  mejor_modelo_recall:
+    f1: 0.5802671027527937
+    recall: 0.999061473486626
+    precision: 0.4088726714038794
+  threshold_selection:
+    threshold: 0.46905821561813354
+    policy: optimal_f2
+    source: validation
+    metric: f2
+    warning: null
+    f2: 0.7752530769790984
+    precision: 0.4088726714038794
+    recall: 0.999061473486626
+    f1: 0.5802671027527937
+  threshold_metric: f2
+  n_train: 29942
+  n_val: 18493
+  n_test: 18493
+  n_exact_train: 0
+  n_exact_val: 0
+  n_exact_test: 0
+  n_exact_intersection_train_val: 0
+  n_exact_intersection_train_test: 0
+  n_exact_intersection_val_test: 0
+  n_exact_intersection_all_three: 0
+  n_unordered_train: 0
+  n_unordered_val: 0
+  n_unordered_test: 0
+  n_unordered_intersection_train_val: 0
+  n_unordered_intersection_train_test: 0
+  n_unordered_intersection_val_test: 0
+  n_unordered_intersection_all_three: 0
+  n_near_pairs_train_val: 0
+  n_near_pairs_train_test: 0
+  n_near_pairs_val_test: 0
+  n_near_pairs_total: 0
+  max_split_overlap_pct: 0.0
+  positive_ratio_train: 0.3320419477656803
+  positive_ratio_val: 0.1152327907857027
+  positive_ratio_test: 0.11517871627102147
+  val_positive_ratio: 0.1152327907857027
+  test_positive_ratio: 0.11517871627102147
+  val_pr_auc: 0.6423980091776814
+  val_precision_at_threshold: 0.4088726714038794
+  val_recall_at_threshold: 0.999061473486626
+  val_f1_at_threshold: 0.5802671027527937
+  test_pr_auc: 0.6290522173050528
+  test_precision_at_threshold: 0.4089598154201115
+  test_recall_at_threshold: 0.9985915492957746
+  test_f1_at_threshold: 0.5802755422179785
+  test_fn_at_threshold: 3
+  val_cap_used: false
+  test_cap_used: false
+  val_max_samples: 20000
+  test_max_samples: 20000
+  val_positive_ratio_before: 0.1152327907857027
+  val_positive_ratio_after: 0.1152327907857027
+  test_positive_ratio_before: 0.11517871627102147
+  test_positive_ratio_after: 0.11517871627102147
+  tp: 2127
+  tn: 13289
+  fp: 3074
+  fn: 3
+  n_samples_before_dedup: 86299
+  n_samples_after_dedup: 86299
+  n_removed_by_dedup: 0
+  removed_ratio_by_dedup: 0.0
+  train_n_samples_before_dedup: 86299
+  train_n_samples_after_dedup: 86299
+  train_n_removed_by_dedup: 0
+  train_removed_ratio_by_dedup: 0.0
+provenance:
+  generated_at: '2026-06-20T12:30:45.955764+00:00'
+  parent_phase: f04_targets
+  parent_variant: v4_0006
+mlflow_registration:
+  experiment_name: F05_outlet_temperature_high_80_fine_4
+  run_name: outlet_temperature_high_80_fine_4__v5_0006
+  metrics:
+    val_precision: 0.4088726714038794
+    val_recall: 0.999061473486626
+    val_f1: 0.5802671027527937
+    val_pr_auc: 0.6423980091776814
+    val_precision_at_threshold: 0.4088726714038794
+    val_recall_at_threshold: 0.999061473486626
+    val_f1_at_threshold: 0.5802671027527937
+    test_precision: 0.4089598154201115
+    test_recall: 0.9985915492957746
+    test_f1: 0.5802755422179785
+    test_precision_at_threshold: 0.4089598154201115
+    test_recall_at_threshold: 0.9985915492957746
+    test_f1_at_threshold: 0.5802755422179785
+    test_fn_at_threshold: 3
+    test_pr_auc: 0.6290522173050528
+    test_tp: 2127
+    test_tn: 13289
+    test_fp: 3074
+    test_fn: 3
+  params:
+    batch_size: 256
+    learning_rate: 0.001
+    n_layers: 1
+    units: 128
+    dropout: 0.2
+    embed_dim: 64
+    filters: 128
+    kernel_size: 5
+    model_family: cnn1d
+    decision_threshold: 0.46905821561813354
+    threshold_source: validation
+    threshold_policy: optimal_f2
+    threshold_metric: f2
+  artifacts:
+  - /__w/mlops4rtedgeUni/mlops4rtedgeUni/executions/f05_modeling/v5_0006/05_modeling_model.h5
+  - /__w/mlops4rtedgeUni/mlops4rtedgeUni/executions/f05_modeling/v5_0006/05_modeling_history.json
+  - /__w/mlops4rtedgeUni/mlops4rtedgeUni/executions/f05_modeling/v5_0006/05_modeling_trials_summary.json
