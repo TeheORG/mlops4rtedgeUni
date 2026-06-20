@@ -1,0 +1,14 @@
+phase: f03_windows
+variant: v3_0010
+parent: v2_0010
+parameters:
+  parent_variant: v2_0010
+  Tu: 10
+  measure_name: Inlet_Temperature_of_Chilled_Water
+  OW: 50
+  LT: 10
+  PW: 10
+  window_strategy: synchro
+  nan_mode: discard
+parent_hashes:
+  v2_0010: d60c367e8a138883447e766976ed471882ea9c1f03d91412ba980ec823d55464
