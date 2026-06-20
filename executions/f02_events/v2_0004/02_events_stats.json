@@ -1,0 +1,210 @@
+{
+  "global": {
+    "total_events_generated": 22632,
+    "mean_events_per_row": 0.005822122728659548,
+    "std_events_per_row": 0.07608038916561863,
+    "max_events_per_row": 1,
+    "p95_events_per_row": 0.0,
+    "empty_rows_ratio": 0.9941778772713404,
+    "nonempty_rows_ratio": 0.005822122728659548,
+    "n_event_types_catalog": 20,
+    "n_event_types_observed": 8,
+    "catalog_coverage_ratio": 0.4,
+    "effective_catalog_unused_ratio": 0.6,
+    "rare_event_count": 7081,
+    "rare_event_ratio": 0.31287557440791797,
+    "rare_event_types_observed": 2,
+    "rare_event_type_ratio": 0.25,
+    "top1_event_ratio": 0.20161717921527042,
+    "top5_event_ratio": 0.7470837751855779,
+    "event_entropy": 2.0098429448571324,
+    "normalized_event_entropy": 0.9665301498370186,
+    "n_consecutive_steps": 3887230,
+    "consecutive_ratio": 0.9999971702294764,
+    "n_broken_steps": 11,
+    "broken_ratio": 2.829770523618165e-06,
+    "n_level_events": 0,
+    "n_unique_level_types_observed": 0,
+    "n_measures_total": 1,
+    "n_eventless_measures": 0,
+    "eventless_measure_ratio": 0.0,
+    "n_non_eventless_measures": 1,
+    "non_eventless_measure_ratio": 1.0,
+    "n_measures_with_high_rare_events": 1,
+    "n_measures_with_low_rare_events": 1,
+    "high_rare_measure_ratio": 1.0,
+    "low_rare_measure_ratio": 1.0,
+    "high_rare_event_count": 2518,
+    "low_rare_event_count": 4563,
+    "high_rare_event_ratio": 0.11125839519264757,
+    "low_rare_event_ratio": 0.20161717921527042,
+    "events_per_million_rows": 5822.122728659549,
+    "n_transition_events": 22632,
+    "n_unique_transition_types_observed": 8,
+    "transition_coverage_ratio": 0.4,
+    "jump_size_mean": 1.0,
+    "jump_size_std": 0.0,
+    "pct_jump_eq_1": 1.0,
+    "pct_jump_ge_2": 0.0,
+    "pct_jump_ge_3": 0.0,
+    "f02_quality_score": 0.8229533470735196,
+    "activity_flag": "warning",
+    "diversity_flag": "ok",
+    "catalog_flag": "ok",
+    "dominance_flag": "warning",
+    "continuity_flag": "ok",
+    "measure_coverage_flag": "ok",
+    "f02_gate_status": "warning"
+  },
+  "event_frequency": {
+    "5": {
+      "event_name": "Outlet_Temperature_20_40-to-0_20",
+      "count": 4563
+    },
+    "1": {
+      "event_name": "Outlet_Temperature_0_20-to-20_40",
+      "count": 4563
+    },
+    "10": {
+      "event_name": "Outlet_Temperature_40_60-to-20_40",
+      "count": 2632
+    },
+    "6": {
+      "event_name": "Outlet_Temperature_20_40-to-40_60",
+      "count": 2632
+    },
+    "16": {
+      "event_name": "Outlet_Temperature_60_80-to-80_100",
+      "count": 2518
+    },
+    "20": {
+      "event_name": "Outlet_Temperature_80_100-to-60_80",
+      "count": 2518
+    },
+    "15": {
+      "event_name": "Outlet_Temperature_60_80-to-40_60",
+      "count": 1603
+    },
+    "11": {
+      "event_name": "Outlet_Temperature_40_60-to-60_80",
+      "count": 1603
+    }
+  },
+  "per_measure": {
+    "Outlet_Temperature": {
+      "n_events_generated": 22632,
+      "n_unique_event_types_observed": 8,
+      "top1_ratio": 0.20161717921527042,
+      "rare_event_count": 7081,
+      "rare_event_ratio": 0.31287557440791797,
+      "high_rare_event_count": 2518,
+      "low_rare_event_count": 4563,
+      "rare_event_type_count": 2,
+      "high_rare_event_type_count": 1,
+      "low_rare_event_type_count": 1,
+      "high_rare_event_ratio": 0.11125839519264757,
+      "low_rare_event_ratio": 0.20161717921527042,
+      "mean_events_per_row_contributed": 0.005822122728659548,
+      "band_occupancy": {
+        "0_20": 434909,
+        "20_40": 1278227,
+        "40_60": 781825,
+        "60_80": 1002216,
+        "80_100": 387448
+      },
+      "total_band_count": 3884625,
+      "n_active_bands": 5,
+      "max_band_count": 1278227,
+      "max_band_ratio": 0.32904772017891043,
+      "min_nonzero_band_count": 387448,
+      "extreme_band_count": 822357,
+      "extreme_band_ratio": 0.21169533738777874,
+      "middle_band_count": 3062268,
+      "middle_band_ratio": 0.7883046626122212,
+      "occupancy_entropy": 1.5130048333810155,
+      "normalized_occupancy_entropy": 0.9400827591371698,
+      "is_eventless_measure": false,
+      "band_degeneracy_flag": false,
+      "extreme_occupancy_flag": false,
+      "jump_size_mean": 1.0,
+      "measure_transition_score": 0.9248589718627654,
+      "high_target_candidate": true,
+      "low_target_candidate": true
+    }
+  },
+  "top_events": [
+    {
+      "event_id": 5,
+      "event_name": "Outlet_Temperature_20_40-to-0_20",
+      "count": 4563,
+      "ratio": 0.20161717921527042
+    },
+    {
+      "event_id": 1,
+      "event_name": "Outlet_Temperature_0_20-to-20_40",
+      "count": 4563,
+      "ratio": 0.20161717921527042
+    },
+    {
+      "event_id": 10,
+      "event_name": "Outlet_Temperature_40_60-to-20_40",
+      "count": 2632,
+      "ratio": 0.11629551078119477
+    },
+    {
+      "event_id": 6,
+      "event_name": "Outlet_Temperature_20_40-to-40_60",
+      "count": 2632,
+      "ratio": 0.11629551078119477
+    },
+    {
+      "event_id": 16,
+      "event_name": "Outlet_Temperature_60_80-to-80_100",
+      "count": 2518,
+      "ratio": 0.11125839519264757
+    },
+    {
+      "event_id": 20,
+      "event_name": "Outlet_Temperature_80_100-to-60_80",
+      "count": 2518,
+      "ratio": 0.11125839519264757
+    },
+    {
+      "event_id": 15,
+      "event_name": "Outlet_Temperature_60_80-to-40_60",
+      "count": 1603,
+      "ratio": 0.07082891481088724
+    },
+    {
+      "event_id": 11,
+      "event_name": "Outlet_Temperature_40_60-to-60_80",
+      "count": 1603,
+      "ratio": 0.07082891481088724
+    }
+  ],
+  "band_occupancy": {
+    "Outlet_Temperature": {
+      "0_20": 434909,
+      "20_40": 1278227,
+      "40_60": 781825,
+      "60_80": 1002216,
+      "80_100": 387448
+    }
+  },
+  "target_candidates": {
+    "Outlet_Temperature": {
+      "high": {
+        "candidate": true,
+        "extreme_event_count": 2518,
+        "extreme_event_ratio": 0.11125839519264757,
+        "reason": "passes high target candidate rules"
+      },
+      "low": {
+        "candidate": true,
+        "extreme_event_count": 4563,
+        "extreme_event_ratio": 0.20161717921527042,
+        "reason": "passes low target candidate rules"
+      }
+    }
+  }
+}
