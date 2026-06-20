@@ -1,0 +1,14 @@
+phase: f03_windows
+variant: v3_0004
+parent: v2_0004
+parameters:
+  parent_variant: v2_0004
+  Tu: 10
+  measure_name: Outlet_Temperature
+  OW: 50
+  LT: 10
+  PW: 10
+  window_strategy: synchro
+  nan_mode: discard
+parent_hashes:
+  v2_0004: 2a9c90a4edbb2fb366def68f12dc3ba7e673b4739a54960e6ef36cdb437b9b1a
