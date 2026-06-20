@@ -1,0 +1,344 @@
+{
+  "global": {
+    "total_events_generated": 173749,
+    "mean_events_per_row": 0.04469724292956291,
+    "std_events_per_row": 0.20663832994887146,
+    "max_events_per_row": 1,
+    "p95_events_per_row": 0.0,
+    "empty_rows_ratio": 0.9553027570704371,
+    "nonempty_rows_ratio": 0.04469724292956291,
+    "n_event_types_catalog": 90,
+    "n_event_types_observed": 21,
+    "catalog_coverage_ratio": 0.23333333333333334,
+    "effective_catalog_unused_ratio": 0.7666666666666666,
+    "rare_event_count": 3,
+    "rare_event_ratio": 1.726628642467007e-05,
+    "rare_event_types_observed": 2,
+    "rare_event_type_ratio": 0.09523809523809523,
+    "top1_event_ratio": 0.4288830439311881,
+    "top5_event_ratio": 0.9647134659767826,
+    "event_entropy": 1.2079051750154612,
+    "normalized_event_entropy": 0.39674701031886184,
+    "n_consecutive_steps": 3887230,
+    "consecutive_ratio": 0.9999971702294764,
+    "n_broken_steps": 11,
+    "broken_ratio": 2.829770523618165e-06,
+    "n_level_events": 0,
+    "n_unique_level_types_observed": 0,
+    "n_measures_total": 1,
+    "n_eventless_measures": 0,
+    "eventless_measure_ratio": 0.0,
+    "n_non_eventless_measures": 1,
+    "non_eventless_measure_ratio": 1.0,
+    "n_measures_with_high_rare_events": 1,
+    "n_measures_with_low_rare_events": 1,
+    "high_rare_measure_ratio": 1.0,
+    "low_rare_measure_ratio": 1.0,
+    "high_rare_event_count": 1,
+    "low_rare_event_count": 2,
+    "high_rare_event_ratio": 5.755428808223357e-06,
+    "low_rare_event_ratio": 1.1510857616446714e-05,
+    "events_per_million_rows": 44697.24292956291,
+    "n_transition_events": 173749,
+    "n_unique_transition_types_observed": 21,
+    "transition_coverage_ratio": 0.23333333333333334,
+    "jump_size_mean": 1.0013179931970833,
+    "jump_size_std": 0.044151480834963626,
+    "pct_jump_eq_1": 0.9988604250959717,
+    "pct_jump_ge_2": 0.0011395749040282246,
+    "pct_jump_ge_3": 9.784228973979706e-05,
+    "f02_quality_score": 0.6459670267503328,
+    "activity_flag": "ok",
+    "diversity_flag": "warning",
+    "catalog_flag": "ok",
+    "dominance_flag": "warning",
+    "continuity_flag": "ok",
+    "measure_coverage_flag": "ok",
+    "f02_gate_status": "warning"
+  },
+  "event_frequency": {
+    "51": {
+      "event_name": "GE_Active_Power_50_60-to-60_70",
+      "count": 74518
+    },
+    "60": {
+      "event_name": "GE_Active_Power_60_70-to-50_60",
+      "count": 74509
+    },
+    "80": {
+      "event_name": "GE_Active_Power_80_90-to-70_80",
+      "count": 6332
+    },
+    "71": {
+      "event_name": "GE_Active_Power_70_80-to-80_90",
+      "count": 6314
+    },
+    "70": {
+      "event_name": "GE_Active_Power_70_80-to-60_70",
+      "count": 5945
+    },
+    "61": {
+      "event_name": "GE_Active_Power_60_70-to-70_80",
+      "count": 5932
+    },
+    "62": {
+      "event_name": "GE_Active_Power_60_70-to-80_90",
+      "count": 62
+    },
+    "79": {
+      "event_name": "GE_Active_Power_80_90-to-60_70",
+      "count": 40
+    },
+    "69": {
+      "event_name": "GE_Active_Power_70_80-to-50_60",
+      "count": 40
+    },
+    "52": {
+      "event_name": "GE_Active_Power_50_60-to-70_80",
+      "count": 36
+    },
+    "78": {
+      "event_name": "GE_Active_Power_80_90-to-50_60",
+      "count": 7
+    },
+    "53": {
+      "event_name": "GE_Active_Power_50_60-to-80_90",
+      "count": 3
+    },
+    "46": {
+      "event_name": "GE_Active_Power_50_60-to-0_10",
+      "count": 2
+    },
+    "5": {
+      "event_name": "GE_Active_Power_0_10-to-50_60",
+      "count": 2
+    },
+    "49": {
+      "event_name": "GE_Active_Power_50_60-to-30_40",
+      "count": 1
+    },
+    "31": {
+      "event_name": "GE_Active_Power_30_40-to-40_50",
+      "count": 1
+    },
+    "43": {
+      "event_name": "GE_Active_Power_40_50-to-70_80",
+      "count": 1
+    },
+    "72": {
+      "event_name": "GE_Active_Power_70_80-to-90_100",
+      "count": 1
+    },
+    "85": {
+      "event_name": "GE_Active_Power_90_100-to-30_40",
+      "count": 1
+    },
+    "32": {
+      "event_name": "GE_Active_Power_30_40-to-50_60",
+      "count": 1
+    },
+    "6": {
+      "event_name": "GE_Active_Power_0_10-to-60_70",
+      "count": 1
+    }
+  },
+  "per_measure": {
+    "GE_Active_Power": {
+      "n_events_generated": 173749,
+      "n_unique_event_types_observed": 21,
+      "top1_ratio": 0.4288830439311881,
+      "rare_event_count": 3,
+      "rare_event_ratio": 1.726628642467007e-05,
+      "high_rare_event_count": 1,
+      "low_rare_event_count": 2,
+      "rare_event_type_count": 2,
+      "high_rare_event_type_count": 1,
+      "low_rare_event_type_count": 1,
+      "high_rare_event_ratio": 5.755428808223357e-06,
+      "low_rare_event_ratio": 1.1510857616446714e-05,
+      "mean_events_per_row_contributed": 0.04469724292956291,
+      "band_occupancy": {
+        "0_10": 14611,
+        "10_20": 0,
+        "20_30": 0,
+        "30_40": 33,
+        "40_50": 4,
+        "50_60": 2519241,
+        "60_70": 96311,
+        "70_80": 1178652,
+        "80_90": 75816,
+        "90_100": 3
+      },
+      "total_band_count": 3884671,
+      "n_active_bands": 8,
+      "max_band_count": 2519241,
+      "max_band_ratio": 0.6485082005657622,
+      "min_nonzero_band_count": 3,
+      "extreme_band_count": 14614,
+      "extreme_band_ratio": 0.003761965942547001,
+      "middle_band_count": 3870057,
+      "middle_band_ratio": 0.996238034057453,
+      "occupancy_entropy": 0.8323382935881222,
+      "normalized_occupancy_entropy": 0.400270109500522,
+      "is_eventless_measure": false,
+      "band_degeneracy_flag": false,
+      "extreme_occupancy_flag": false,
+      "jump_size_mean": 1.0013179931970833,
+      "measure_transition_score": 0.707187856125224,
+      "high_target_candidate": false,
+      "low_target_candidate": false
+    }
+  },
+  "top_events": [
+    {
+      "event_id": 51,
+      "event_name": "GE_Active_Power_50_60-to-60_70",
+      "count": 74518,
+      "ratio": 0.4288830439311881
+    },
+    {
+      "event_id": 60,
+      "event_name": "GE_Active_Power_60_70-to-50_60",
+      "count": 74509,
+      "ratio": 0.42883124507191406
+    },
+    {
+      "event_id": 80,
+      "event_name": "GE_Active_Power_80_90-to-70_80",
+      "count": 6332,
+      "ratio": 0.0364433752136703
+    },
+    {
+      "event_id": 71,
+      "event_name": "GE_Active_Power_70_80-to-80_90",
+      "count": 6314,
+      "ratio": 0.03633977749512227
+    },
+    {
+      "event_id": 70,
+      "event_name": "GE_Active_Power_70_80-to-60_70",
+      "count": 5945,
+      "ratio": 0.03421602426488785
+    },
+    {
+      "event_id": 61,
+      "event_name": "GE_Active_Power_60_70-to-70_80",
+      "count": 5932,
+      "ratio": 0.03414120369038095
+    },
+    {
+      "event_id": 62,
+      "event_name": "GE_Active_Power_60_70-to-80_90",
+      "count": 62,
+      "ratio": 0.0003568365861098481
+    },
+    {
+      "event_id": 79,
+      "event_name": "GE_Active_Power_80_90-to-60_70",
+      "count": 40,
+      "ratio": 0.00023021715232893428
+    },
+    {
+      "event_id": 69,
+      "event_name": "GE_Active_Power_70_80-to-50_60",
+      "count": 40,
+      "ratio": 0.00023021715232893428
+    },
+    {
+      "event_id": 52,
+      "event_name": "GE_Active_Power_50_60-to-70_80",
+      "count": 36,
+      "ratio": 0.00020719543709604084
+    },
+    {
+      "event_id": 78,
+      "event_name": "GE_Active_Power_80_90-to-50_60",
+      "count": 7,
+      "ratio": 4.0288001657563495e-05
+    },
+    {
+      "event_id": 53,
+      "event_name": "GE_Active_Power_50_60-to-80_90",
+      "count": 3,
+      "ratio": 1.726628642467007e-05
+    },
+    {
+      "event_id": 46,
+      "event_name": "GE_Active_Power_50_60-to-0_10",
+      "count": 2,
+      "ratio": 1.1510857616446714e-05
+    },
+    {
+      "event_id": 5,
+      "event_name": "GE_Active_Power_0_10-to-50_60",
+      "count": 2,
+      "ratio": 1.1510857616446714e-05
+    },
+    {
+      "event_id": 49,
+      "event_name": "GE_Active_Power_50_60-to-30_40",
+      "count": 1,
+      "ratio": 5.755428808223357e-06
+    },
+    {
+      "event_id": 31,
+      "event_name": "GE_Active_Power_30_40-to-40_50",
+      "count": 1,
+      "ratio": 5.755428808223357e-06
+    },
+    {
+      "event_id": 43,
+      "event_name": "GE_Active_Power_40_50-to-70_80",
+      "count": 1,
+      "ratio": 5.755428808223357e-06
+    },
+    {
+      "event_id": 72,
+      "event_name": "GE_Active_Power_70_80-to-90_100",
+      "count": 1,
+      "ratio": 5.755428808223357e-06
+    },
+    {
+      "event_id": 85,
+      "event_name": "GE_Active_Power_90_100-to-30_40",
+      "count": 1,
+      "ratio": 5.755428808223357e-06
+    },
+    {
+      "event_id": 32,
+      "event_name": "GE_Active_Power_30_40-to-50_60",
+      "count": 1,
+      "ratio": 5.755428808223357e-06
+    }
+  ],
+  "band_occupancy": {
+    "GE_Active_Power": {
+      "0_10": 14611,
+      "10_20": 0,
+      "20_30": 0,
+      "30_40": 33,
+      "40_50": 4,
+      "50_60": 2519241,
+      "60_70": 96311,
+      "70_80": 1178652,
+      "80_90": 75816,
+      "90_100": 3
+    }
+  },
+  "target_candidates": {
+    "GE_Active_Power": {
+      "high": {
+        "candidate": false,
+        "extreme_event_count": 1,
+        "extreme_event_ratio": 5.755428808223357e-06,
+        "reason": "does not pass high target candidate rules"
+      },
+      "low": {
+        "candidate": false,
+        "extreme_event_count": 2,
+        "extreme_event_ratio": 1.1510857616446714e-05,
+        "reason": "does not pass low target candidate rules"
+      }
+    }
+  }
+}
