@@ -1,0 +1,330 @@
+{
+  "global": {
+    "total_events_generated": 46395,
+    "mean_events_per_row": 0.011935197242672311,
+    "std_events_per_row": 0.10859442117093689,
+    "max_events_per_row": 1,
+    "p95_events_per_row": 0.0,
+    "empty_rows_ratio": 0.9880648027573277,
+    "nonempty_rows_ratio": 0.011935197242672311,
+    "n_event_types_catalog": 20,
+    "n_event_types_observed": 20,
+    "catalog_coverage_ratio": 1.0,
+    "effective_catalog_unused_ratio": 0.0,
+    "rare_event_count": 9247,
+    "rare_event_ratio": 0.19931027050328698,
+    "rare_event_types_observed": 8,
+    "rare_event_type_ratio": 0.4,
+    "top1_event_ratio": 0.15661170384739734,
+    "top5_event_ratio": 0.6916478068757409,
+    "event_entropy": 2.296955089420593,
+    "normalized_event_entropy": 0.7667424454774783,
+    "n_consecutive_steps": 3887230,
+    "consecutive_ratio": 0.9999971702294764,
+    "n_broken_steps": 11,
+    "broken_ratio": 2.829770523618165e-06,
+    "n_level_events": 0,
+    "n_unique_level_types_observed": 0,
+    "n_measures_total": 1,
+    "n_eventless_measures": 0,
+    "eventless_measure_ratio": 0.0,
+    "n_non_eventless_measures": 1,
+    "non_eventless_measure_ratio": 1.0,
+    "n_measures_with_high_rare_events": 1,
+    "n_measures_with_low_rare_events": 1,
+    "high_rare_measure_ratio": 1.0,
+    "low_rare_measure_ratio": 1.0,
+    "high_rare_event_count": 6434,
+    "low_rare_event_count": 2813,
+    "high_rare_event_ratio": 0.13867873693285915,
+    "low_rare_event_ratio": 0.060631533570427845,
+    "events_per_million_rows": 11935.197242672311,
+    "n_transition_events": 46395,
+    "n_unique_transition_types_observed": 20,
+    "transition_coverage_ratio": 1.0,
+    "jump_size_mean": 1.0925315227934045,
+    "jump_size_std": 0.33727901316600056,
+    "pct_jump_eq_1": 0.9219312425907964,
+    "pct_jump_ge_2": 0.07806875740920358,
+    "pct_jump_ge_3": 0.014031684448755254,
+    "f02_quality_score": 0.8225233514738542,
+    "activity_flag": "ok",
+    "diversity_flag": "ok",
+    "catalog_flag": "ok",
+    "dominance_flag": "ok",
+    "continuity_flag": "ok",
+    "measure_coverage_flag": "ok",
+    "f02_gate_status": "candidate"
+  },
+  "event_frequency": {
+    "11": {
+      "event_name": "PVPCS_Active_Power_40_60-to-60_80",
+      "count": 7266
+    },
+    "15": {
+      "event_name": "PVPCS_Active_Power_60_80-to-40_60",
+      "count": 7042
+    },
+    "6": {
+      "event_name": "PVPCS_Active_Power_20_40-to-40_60",
+      "count": 6169
+    },
+    "10": {
+      "event_name": "PVPCS_Active_Power_40_60-to-20_40",
+      "count": 6035
+    },
+    "16": {
+      "event_name": "PVPCS_Active_Power_60_80-to-80_100",
+      "count": 5577
+    },
+    "20": {
+      "event_name": "PVPCS_Active_Power_80_100-to-60_80",
+      "count": 5396
+    },
+    "1": {
+      "event_name": "PVPCS_Active_Power_0_20-to-20_40",
+      "count": 2673
+    },
+    "5": {
+      "event_name": "PVPCS_Active_Power_20_40-to-0_20",
+      "count": 2615
+    },
+    "19": {
+      "event_name": "PVPCS_Active_Power_80_100-to-40_60",
+      "count": 731
+    },
+    "14": {
+      "event_name": "PVPCS_Active_Power_60_80-to-20_40",
+      "count": 713
+    },
+    "7": {
+      "event_name": "PVPCS_Active_Power_20_40-to-60_80",
+      "count": 696
+    },
+    "12": {
+      "event_name": "PVPCS_Active_Power_40_60-to-80_100",
+      "count": 617
+    },
+    "18": {
+      "event_name": "PVPCS_Active_Power_80_100-to-20_40",
+      "count": 293
+    },
+    "8": {
+      "event_name": "PVPCS_Active_Power_20_40-to-80_100",
+      "count": 234
+    },
+    "9": {
+      "event_name": "PVPCS_Active_Power_40_60-to-0_20",
+      "count": 119
+    },
+    "2": {
+      "event_name": "PVPCS_Active_Power_0_20-to-40_60",
+      "count": 95
+    },
+    "13": {
+      "event_name": "PVPCS_Active_Power_60_80-to-0_20",
+      "count": 65
+    },
+    "3": {
+      "event_name": "PVPCS_Active_Power_0_20-to-60_80",
+      "count": 39
+    },
+    "17": {
+      "event_name": "PVPCS_Active_Power_80_100-to-0_20",
+      "count": 14
+    },
+    "4": {
+      "event_name": "PVPCS_Active_Power_0_20-to-80_100",
+      "count": 6
+    }
+  },
+  "per_measure": {
+    "PVPCS_Active_Power": {
+      "n_events_generated": 46395,
+      "n_unique_event_types_observed": 20,
+      "top1_ratio": 0.15661170384739734,
+      "rare_event_count": 9247,
+      "rare_event_ratio": 0.19931027050328698,
+      "high_rare_event_count": 6434,
+      "low_rare_event_count": 2813,
+      "rare_event_type_count": 8,
+      "high_rare_event_type_count": 4,
+      "low_rare_event_type_count": 4,
+      "high_rare_event_ratio": 0.13867873693285915,
+      "low_rare_event_ratio": 0.060631533570427845,
+      "mean_events_per_row_contributed": 0.011935197242672311,
+      "band_occupancy": {
+        "0_20": 2695578,
+        "20_40": 313569,
+        "40_60": 296812,
+        "60_80": 466333,
+        "80_100": 112379
+      },
+      "total_band_count": 3884671,
+      "n_active_bands": 5,
+      "max_band_count": 2695578,
+      "max_band_ratio": 0.693901233849662,
+      "min_nonzero_band_count": 112379,
+      "extreme_band_count": 2807957,
+      "extreme_band_ratio": 0.7228300672051764,
+      "middle_band_count": 1076714,
+      "middle_band_ratio": 0.27716993279482355,
+      "occupancy_entropy": 1.01018883142972,
+      "normalized_occupancy_entropy": 0.6276656114692358,
+      "is_eventless_measure": false,
+      "band_degeneracy_flag": false,
+      "extreme_occupancy_flag": false,
+      "jump_size_mean": 1.0925315227934045,
+      "measure_transition_score": 0.8909103677342127,
+      "high_target_candidate": true,
+      "low_target_candidate": true
+    }
+  },
+  "top_events": [
+    {
+      "event_id": 11,
+      "event_name": "PVPCS_Active_Power_40_60-to-60_80",
+      "count": 7266,
+      "ratio": 0.15661170384739734
+    },
+    {
+      "event_id": 15,
+      "event_name": "PVPCS_Active_Power_60_80-to-40_60",
+      "count": 7042,
+      "ratio": 0.15178359737040628
+    },
+    {
+      "event_id": 6,
+      "event_name": "PVPCS_Active_Power_20_40-to-40_60",
+      "count": 6169,
+      "ratio": 0.13296691453820456
+    },
+    {
+      "event_id": 10,
+      "event_name": "PVPCS_Active_Power_40_60-to-20_40",
+      "count": 6035,
+      "ratio": 0.13007867227071881
+    },
+    {
+      "event_id": 16,
+      "event_name": "PVPCS_Active_Power_60_80-to-80_100",
+      "count": 5577,
+      "ratio": 0.1202069188490139
+    },
+    {
+      "event_id": 20,
+      "event_name": "PVPCS_Active_Power_80_100-to-60_80",
+      "count": 5396,
+      "ratio": 0.11630563638323095
+    },
+    {
+      "event_id": 1,
+      "event_name": "PVPCS_Active_Power_0_20-to-20_40",
+      "count": 2673,
+      "ratio": 0.05761396702230844
+    },
+    {
+      "event_id": 5,
+      "event_name": "PVPCS_Active_Power_20_40-to-0_20",
+      "count": 2615,
+      "ratio": 0.05636383230951611
+    },
+    {
+      "event_id": 19,
+      "event_name": "PVPCS_Active_Power_80_100-to-40_60",
+      "count": 731,
+      "ratio": 0.015756008190537775
+    },
+    {
+      "event_id": 14,
+      "event_name": "PVPCS_Active_Power_60_80-to-20_40",
+      "count": 713,
+      "ratio": 0.015368035348636707
+    },
+    {
+      "event_id": 7,
+      "event_name": "PVPCS_Active_Power_20_40-to-60_80",
+      "count": 696,
+      "ratio": 0.01500161655350792
+    },
+    {
+      "event_id": 12,
+      "event_name": "PVPCS_Active_Power_40_60-to-80_100",
+      "count": 617,
+      "ratio": 0.013298846858497682
+    },
+    {
+      "event_id": 18,
+      "event_name": "PVPCS_Active_Power_80_100-to-20_40",
+      "count": 293,
+      "ratio": 0.0063153357042784785
+    },
+    {
+      "event_id": 8,
+      "event_name": "PVPCS_Active_Power_20_40-to-80_100",
+      "count": 234,
+      "ratio": 0.00504364694471387
+    },
+    {
+      "event_id": 9,
+      "event_name": "PVPCS_Active_Power_40_60-to-0_20",
+      "count": 119,
+      "ratio": 0.002564931565901498
+    },
+    {
+      "event_id": 2,
+      "event_name": "PVPCS_Active_Power_0_20-to-40_60",
+      "count": 95,
+      "ratio": 0.002047634443366742
+    },
+    {
+      "event_id": 13,
+      "event_name": "PVPCS_Active_Power_60_80-to-0_20",
+      "count": 65,
+      "ratio": 0.0014010130401982972
+    },
+    {
+      "event_id": 3,
+      "event_name": "PVPCS_Active_Power_0_20-to-60_80",
+      "count": 39,
+      "ratio": 0.0008406078241189783
+    },
+    {
+      "event_id": 17,
+      "event_name": "PVPCS_Active_Power_80_100-to-0_20",
+      "count": 14,
+      "ratio": 0.0003017566548119409
+    },
+    {
+      "event_id": 4,
+      "event_name": "PVPCS_Active_Power_0_20-to-80_100",
+      "count": 6,
+      "ratio": 0.00012932428063368897
+    }
+  ],
+  "band_occupancy": {
+    "PVPCS_Active_Power": {
+      "0_20": 2695578,
+      "20_40": 313569,
+      "40_60": 296812,
+      "60_80": 466333,
+      "80_100": 112379
+    }
+  },
+  "target_candidates": {
+    "PVPCS_Active_Power": {
+      "high": {
+        "candidate": true,
+        "extreme_event_count": 6434,
+        "extreme_event_ratio": 0.13867873693285915,
+        "reason": "passes high target candidate rules"
+      },
+      "low": {
+        "candidate": true,
+        "extreme_event_count": 2813,
+        "extreme_event_ratio": 0.060631533570427845,
+        "reason": "passes low target candidate rules"
+      }
+    }
+  }
+}
