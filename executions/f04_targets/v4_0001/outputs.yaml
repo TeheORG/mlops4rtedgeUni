@@ -1,0 +1,54 @@
+phase: f04_targets
+variant: v4_0001
+artifacts:
+  dataset:
+    path: 04_targets.parquet
+    sha256: fe8010de2156621a6f90d370dabb596b34997507963d6510e410aed8d2312d79
+  report:
+    path: 04_targets_report.html
+    sha256: 4da44226ae08cc7b5dfc9ea1090a21ae9f4aeb5c92a567361455911bdbcec329
+exports:
+  Tu: 10
+  OW: 50
+  LT: 10
+  PW: 10
+  prediction_name: ge_active_power_high_90_coarse_10
+  measure_name: GE_Active_Power
+  target_operator: OR
+  target_event_types:
+  - GE_Active_Power_0_10-to-90_100
+  - GE_Active_Power_10_20-to-90_100
+  - GE_Active_Power_20_30-to-90_100
+  - GE_Active_Power_30_40-to-90_100
+  - GE_Active_Power_40_50-to-90_100
+  - GE_Active_Power_50_60-to-90_100
+  - GE_Active_Power_60_70-to-90_100
+  - GE_Active_Power_70_80-to-90_100
+  - GE_Active_Power_80_90-to-90_100
+  target_event_count: 9
+  event_type_count: 90
+  window_strategy: synchro
+  parent_f03: v3_0001
+  parent_f02: v2_0001
+  n_windows: 1104434
+  n_windows_pos: 10
+  n_windows_neg: 1104424
+  class_balance_ratio: 9.054411580954589e-06
+  deduplication_stats:
+    total_sequences: 1104434
+    unique_ow_sequences: 2660
+    num_duplicate_sequences: 1101774
+    duplicate_ratio: 0.997591526519466
+    ambiguous_sequences: 2
+    ambiguous_samples: 50560
+    ambiguous_ratio: 0.0457791049533064
+    avg_label_consistency_per_ow: 0.9998119854550127
+  unique_ratio: 0.0024084734805339203
+  dup_ratio_ow_parent: 0.997591526519466
+  dup_ratio_pw_parent: 0.9996495942718171
+  seq_len_mean_ow_parent: 7.865974788896394
+metrics:
+  execution_time: 1.7284768600000007
+  positive_ratio: 9.054411580954589e-06
+provenance:
+  generated_at: '2026-06-20T12:24:22.731662+00:00'
