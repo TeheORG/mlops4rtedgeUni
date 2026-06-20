@@ -1,0 +1,16 @@
+phase: f02_events
+variant: v2_0006
+parent: v1_0000
+parameters:
+  parent_variant: v1_0000
+  Tu: 10
+  measure_name: PVPCS_Active_Power
+  strategy: transitions
+  bands:
+  - 20
+  - 40
+  - 60
+  - 80
+  nan_mode: discard
+parent_hashes:
+  v1_0000: 8eb682f62e5685abd2eb0737d6e8a7564dd77f72ed3ce45d8cd5c46419b0c871
