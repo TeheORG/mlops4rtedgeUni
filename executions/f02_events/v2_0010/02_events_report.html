@@ -1,0 +1,485 @@
+
+    <!doctype html>
+    <html lang="es">
+    <head>
+      <meta charset="utf-8">
+      <title>F02 Events - v2_0010</title>
+      <style>
+        :root {
+          --bg: #f6f8fb;
+          --panel: #ffffff;
+          --ink: #172033;
+          --muted: #667085;
+          --line: #d9e0ea;
+          --head: #eef3f8;
+          --ok-bg: #dcfce7;
+          --ok-fg: #166534;
+          --warn-bg: #fef3c7;
+          --warn-fg: #92400e;
+          --bad-bg: #fee2e2;
+          --bad-fg: #991b1b;
+          --code: #26364f;
+        }
+        * { box-sizing: border-box; }
+        body {
+          margin: 0;
+          background: var(--bg);
+          color: var(--ink);
+          font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+          line-height: 1.45;
+        }
+        main { max-width: 1480px; margin: 0 auto; padding: 28px; }
+        h1, h2, h3 { margin: 0 0 10px; color: var(--ink); }
+        h1 { font-size: 30px; letter-spacing: 0; }
+        h2 { font-size: 19px; margin-top: 4px; }
+        p { margin: 8px 0 0; }
+        code { color: var(--code); background: #eef3f8; border-radius: 4px; padding: 1px 4px; }
+        .hero {
+          background: linear-gradient(180deg, #ffffff 0%, #f9fbfd 100%);
+          border: 1px solid var(--line);
+          border-radius: 8px;
+          padding: 22px;
+          box-shadow: 0 10px 24px rgba(23, 32, 51, 0.06);
+        }
+        .meta {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px 14px;
+          color: var(--muted);
+          font-size: 13px;
+          margin-top: 10px;
+        }
+        .lead { color: var(--muted); max-width: 1120px; }
+        .kpi-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+          gap: 12px;
+          margin-top: 18px;
+        }
+        .card {
+          border: 1px solid var(--line);
+          border-radius: 8px;
+          padding: 14px;
+          background: var(--panel);
+        }
+        .card .k {
+          min-height: 32px;
+          color: var(--muted);
+          font-size: 11px;
+          font-weight: 700;
+          text-transform: uppercase;
+          overflow-wrap: anywhere;
+        }
+        .card .v { margin-top: 7px; font-size: 23px; font-weight: 800; overflow-wrap: anywhere; }
+        .panel {
+          margin-top: 22px;
+          padding: 18px;
+          background: var(--panel);
+          border: 1px solid var(--line);
+          border-radius: 8px;
+        }
+        .table-wrap { overflow-x: auto; margin-top: 12px; }
+        .tbl {
+          border-collapse: collapse;
+          width: 100%;
+          min-width: 760px;
+          font-size: 13px;
+        }
+        .tbl th, .tbl td {
+          border: 1px solid var(--line);
+          padding: 8px 10px;
+          text-align: left;
+          vertical-align: top;
+        }
+        .tbl th {
+          position: sticky;
+          top: 0;
+          z-index: 1;
+          background: var(--head);
+          color: #344054;
+          font-size: 11px;
+          text-transform: uppercase;
+          letter-spacing: 0;
+        }
+        .tbl tr:nth-child(even) td { background: #fbfdff; }
+        .target-table { min-width: 1360px; }
+        .compact { max-width: 720px; min-width: 520px; }
+        .mini { min-width: 260px; font-size: 12px; }
+        .mini th { position: static; }
+        .measure-name { font-weight: 700; color: #111827; }
+        .badge {
+          display: inline-flex;
+          align-items: center;
+          min-height: 22px;
+          padding: 2px 8px;
+          border-radius: 999px;
+          font-size: 12px;
+          font-weight: 800;
+          white-space: nowrap;
+        }
+        .badge.ok, .badge.candidate, .badge.true { background: var(--ok-bg); color: var(--ok-fg); }
+        .badge.warning { background: var(--warn-bg); color: var(--warn-fg); }
+        .badge.reject, .badge.false { background: var(--bad-bg); color: var(--bad-fg); }
+        details { margin: 0; }
+        details > summary {
+          cursor: pointer;
+          color: #2563eb;
+          font-weight: 700;
+          white-space: nowrap;
+        }
+        details[open] > summary { margin-bottom: 10px; }
+        .details-grid {
+          display: grid;
+          grid-template-columns: minmax(280px, 1fr) minmax(220px, 0.8fr);
+          gap: 12px;
+          min-width: 560px;
+        }
+        .muted { color: var(--muted); }
+        .global-details summary { font-size: 16px; }
+        @media (max-width: 760px) {
+          main { padding: 14px; }
+          .hero, .panel { padding: 14px; }
+          .details-grid { grid-template-columns: 1fr; min-width: 0; }
+        }
+      </style>
+    </head>
+    <body>
+      <main>
+        <section class="hero">
+          <h1>F02 Events - v2_0010</h1>
+          <div class="meta">
+            <span>Parent: <code>v1_0000</code></span>
+            <span>Strategy: <code>transitions</code></span>
+            <span>Bands: <code>[20, 40, 60, 80]</code></span>
+            <span>NaN mode: <code>discard</code></span>
+          </div>
+          <div class="kpi-grid"><div class="card"><div class="k">f02_gate_status</div><div class="v"><span class="badge reject">reject</span></div></div><div class="card"><div class="k">f02_quality_score</div><div class="v">0.833</div></div><div class="card"><div class="k">total_events_generated</div><div class="v">11,900</div></div><div class="card"><div class="k">normalized_event_entropy</div><div class="v">0.990</div></div><div class="card"><div class="k">catalog_coverage_ratio</div><div class="v">40.00%</div></div><div class="card"><div class="k">non_eventless_measure_ratio</div><div class="v">100.00%</div></div><div class="card"><div class="k">high_rare_measure_ratio</div><div class="v">100.00%</div></div><div class="card"><div class="k">low_rare_measure_ratio</div><div class="v">100.00%</div></div></div>
+        </section>
+
+        <section class="panel">
+          <h2>Criterio de decisión F02 → F03</h2>
+          <p class="lead">
+            La variante F02 se evalúa antes de construir ventanas para evitar pasar a F03 discretizaciones degeneradas.
+            No busca elegir la mejor variante, sino descartar las que no generan una representación de eventos mínimamente útil.
+            El criterio se aplica en dos niveles: validación global de la variante y validación por medida/dirección para posibles targets F04.
+          </p>
+          <div class="table-wrap"><table class="tbl decision-table"><thead><tr><th>Bloque</th><th>Métrica</th><th>Threshold</th><th>Interpretación</th><th>Valor actual</th><th>Estado</th></tr></thead><tbody><tr><td>Actividad</td><td><code>total_events_generated</code></td><td>&gt; 0</td><td>Debe generar algún evento</td><td>11900</td><td><span class="badge ok">OK</span></td></tr><tr><td>Actividad</td><td><code>empty_rows_ratio</code></td><td>&lt; 0.995</td><td>No puede estar prácticamente vacía</td><td>99.69%</td><td><span class="badge reject">FAIL</span></td></tr><tr><td>Diversidad</td><td><code>normalized_event_entropy</code></td><td>&gt;= 0.50</td><td>Debe haber diversidad suficiente</td><td>0.990</td><td><span class="badge ok">OK</span></td></tr><tr><td>Dominancia</td><td><code>top1_event_ratio</code></td><td>&lt;= 0.30</td><td>No debe dominar una única transición</td><td>15.52%</td><td><span class="badge ok">OK</span></td></tr><tr><td>Dominancia</td><td><code>top5_event_ratio</code></td><td>&lt;= 0.70</td><td>No deben dominar solo cinco eventos</td><td>70.47%</td><td><span class="badge reject">FAIL</span></td></tr><tr><td>Catálogo</td><td><code>catalog_coverage_ratio</code></td><td>&gt;= 0.20</td><td>Debe usarse una parte mínima del catálogo</td><td>40.00%</td><td><span class="badge ok">OK</span></td></tr><tr><td>Continuidad</td><td><code>pct_jump_eq_1</code></td><td>&gt;= 0.85</td><td>La mayoría de transiciones deben ser locales</td><td>100.00%</td><td><span class="badge ok">OK</span></td></tr><tr><td>Continuidad</td><td><code>pct_jump_ge_3</code></td><td>&lt;= 0.05</td><td>No debe haber demasiados saltos bruscos</td><td>0.00%</td><td><span class="badge ok">OK</span></td></tr><tr><td>Cobertura de medidas</td><td><code>non_eventless_measure_ratio</code></td><td>&gt;= 0.50</td><td>Al menos la mitad de medidas deben generar eventos</td><td>100.00%</td><td><span class="badge ok">OK</span></td></tr></tbody></table></div>
+        </section>
+
+        <section class="panel">
+          <h2>Decisión por medida/dirección</h2>
+          <p class="lead">
+            Una variante F02 puede pasar globalmente aunque algunas medidas no sean útiles.
+            Para decidir si una medida puede generar un target high o low en F04, se comprueba el soporte de eventos extremos en la dirección correspondiente.
+          </p>
+          <div class="table-wrap"><table class="tbl compact"><thead><tr><th>Target</th><th>Métrica</th><th>Threshold</th></tr></thead><tbody><tr><td>High</td><td><code>high_rare_event_count</code></td><td>&gt; 0</td></tr><tr><td>High</td><td><code>high_rare_event_ratio</code></td><td>&gt;= 0.001</td></tr><tr><td>Low</td><td><code>low_rare_event_count</code></td><td>&gt; 0</td></tr><tr><td>Low</td><td><code>low_rare_event_ratio</code></td><td>&gt;= 0.001</td></tr><tr><td>Ambos</td><td><code>n_unique_event_types_observed</code></td><td>&gt;= 3</td></tr></tbody></table></div>
+        </section>
+
+        <section class="panel">
+          <h2>Target candidates</h2>
+          <div class="table-wrap"><table class="tbl target-table"><thead><tr><th>measure_name</th><th>high_candidate</th><th>high_reason</th><th>high_rare_event_count</th><th>high_rare_event_ratio</th><th>low_candidate</th><th>low_reason</th><th>low_rare_event_count</th><th>low_rare_event_ratio</th><th>n_events_generated</th><th>n_unique_event_types_observed</th><th>Más info</th></tr></thead><tbody><tr><td class="measure-name">Inlet_Temperature_of_Chilled_Water</td><td><span class="badge ok">true</span></td><td>passes high target candidate rules</td><td>1665</td><td>13.99%</td><td><span class="badge ok">true</span></td><td>passes low target candidate rules</td><td>1363</td><td>11.45%</td><td>11900</td><td>8</td><td><details><summary>Más info</summary><div class="details-grid"><table class="tbl mini"><thead><tr><th>Métrica</th><th>Valor</th></tr></thead><tbody><tr><td><code>top1_ratio</code></td><td>15.52%</td></tr><tr><td><code>rare_event_ratio</code></td><td>25.45%</td></tr><tr><td><code>n_active_bands</code></td><td>5</td></tr><tr><td><code>max_band_ratio</code></td><td>28.35%</td></tr><tr><td><code>extreme_band_ratio</code></td><td>35.07%</td></tr><tr><td><code>occupancy_entropy</code></td><td>1.536</td></tr><tr><td><code>normalized_occupancy_entropy</code></td><td>0.954</td></tr><tr><td><code>band_degeneracy_flag</code></td><td><span class="badge ok">false</span></td></tr><tr><td><code>extreme_occupancy_flag</code></td><td><span class="badge ok">false</span></td></tr><tr><td><code>measure_transition_score</code></td><td>0.933</td></tr></tbody></table><table class="tbl mini"><thead><tr><th>Banda</th><th>Count</th></tr></thead><tbody><tr><td>0_20</td><td>1046543</td></tr><tr><td>20_40</td><td>737777</td></tr><tr><td>40_60</td><td>683221</td></tr><tr><td>60_80</td><td>1101294</td></tr><tr><td>80_100</td><td>315526</td></tr></tbody></table></div></details></td></tr></tbody></table></div>
+        </section>
+
+        <section class="panel">
+          <h2>Top events</h2>
+          <div class="table-wrap"><table border="1" class="dataframe tbl">
+  <thead>
+    <tr style="text-align: right;">
+      <th>event_id</th>
+      <th>event_name</th>
+      <th>count</th>
+      <th>ratio</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>10</td>
+      <td>Inlet_Temperature_of_Chilled_Water_40_60-to-20_40</td>
+      <td>1847</td>
+      <td>15.52%</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td>Inlet_Temperature_of_Chilled_Water_20_40-to-40_60</td>
+      <td>1846</td>
+      <td>15.51%</td>
+    </tr>
+    <tr>
+      <td>16</td>
+      <td>Inlet_Temperature_of_Chilled_Water_60_80-to-80_100</td>
+      <td>1665</td>
+      <td>13.99%</td>
+    </tr>
+    <tr>
+      <td>20</td>
+      <td>Inlet_Temperature_of_Chilled_Water_80_100-to-60_80</td>
+      <td>1665</td>
+      <td>13.99%</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td>Inlet_Temperature_of_Chilled_Water_20_40-to-0_20</td>
+      <td>1363</td>
+      <td>11.45%</td>
+    </tr>
+    <tr>
+      <td>1</td>
+      <td>Inlet_Temperature_of_Chilled_Water_0_20-to-20_40</td>
+      <td>1363</td>
+      <td>11.45%</td>
+    </tr>
+    <tr>
+      <td>11</td>
+      <td>Inlet_Temperature_of_Chilled_Water_40_60-to-60_80</td>
+      <td>1076</td>
+      <td>9.04%</td>
+    </tr>
+    <tr>
+      <td>15</td>
+      <td>Inlet_Temperature_of_Chilled_Water_60_80-to-40_60</td>
+      <td>1075</td>
+      <td>9.03%</td>
+    </tr>
+  </tbody>
+</table></div>
+        </section>
+
+        <section class="panel">
+          <details class="global-details">
+            <summary>Global metrics completas</summary>
+            <div class="table-wrap"><table border="1" class="dataframe tbl">
+  <thead>
+    <tr style="text-align: right;">
+      <th>metric</th>
+      <th>value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>total_events_generated</td>
+      <td>11900</td>
+    </tr>
+    <tr>
+      <td>mean_events_per_row</td>
+      <td>0.003061</td>
+    </tr>
+    <tr>
+      <td>std_events_per_row</td>
+      <td>0.055244</td>
+    </tr>
+    <tr>
+      <td>max_events_per_row</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <td>p95_events_per_row</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>empty_rows_ratio</td>
+      <td>0.996939</td>
+    </tr>
+    <tr>
+      <td>nonempty_rows_ratio</td>
+      <td>0.003061</td>
+    </tr>
+    <tr>
+      <td>n_event_types_catalog</td>
+      <td>20</td>
+    </tr>
+    <tr>
+      <td>n_event_types_observed</td>
+      <td>8</td>
+    </tr>
+    <tr>
+      <td>catalog_coverage_ratio</td>
+      <td>0.4</td>
+    </tr>
+    <tr>
+      <td>effective_catalog_unused_ratio</td>
+      <td>0.6</td>
+    </tr>
+    <tr>
+      <td>rare_event_count</td>
+      <td>3028</td>
+    </tr>
+    <tr>
+      <td>rare_event_ratio</td>
+      <td>0.254454</td>
+    </tr>
+    <tr>
+      <td>rare_event_types_observed</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <td>rare_event_type_ratio</td>
+      <td>0.25</td>
+    </tr>
+    <tr>
+      <td>top1_event_ratio</td>
+      <td>0.15521</td>
+    </tr>
+    <tr>
+      <td>top5_event_ratio</td>
+      <td>0.704706</td>
+    </tr>
+    <tr>
+      <td>event_entropy</td>
+      <td>2.059448</td>
+    </tr>
+    <tr>
+      <td>normalized_event_entropy</td>
+      <td>0.990385</td>
+    </tr>
+    <tr>
+      <td>n_consecutive_steps</td>
+      <td>3887230</td>
+    </tr>
+    <tr>
+      <td>consecutive_ratio</td>
+      <td>0.999997</td>
+    </tr>
+    <tr>
+      <td>n_broken_steps</td>
+      <td>11</td>
+    </tr>
+    <tr>
+      <td>broken_ratio</td>
+      <td>0.000003</td>
+    </tr>
+    <tr>
+      <td>n_level_events</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <td>n_unique_level_types_observed</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <td>n_measures_total</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <td>n_eventless_measures</td>
+      <td>0</td>
+    </tr>
+    <tr>
+      <td>eventless_measure_ratio</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>n_non_eventless_measures</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <td>non_eventless_measure_ratio</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <td>n_measures_with_high_rare_events</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <td>n_measures_with_low_rare_events</td>
+      <td>1</td>
+    </tr>
+    <tr>
+      <td>high_rare_measure_ratio</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <td>low_rare_measure_ratio</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <td>high_rare_event_count</td>
+      <td>1665</td>
+    </tr>
+    <tr>
+      <td>low_rare_event_count</td>
+      <td>1363</td>
+    </tr>
+    <tr>
+      <td>high_rare_event_ratio</td>
+      <td>0.139916</td>
+    </tr>
+    <tr>
+      <td>low_rare_event_ratio</td>
+      <td>0.114538</td>
+    </tr>
+    <tr>
+      <td>events_per_million_rows</td>
+      <td>3061.296415</td>
+    </tr>
+    <tr>
+      <td>n_transition_events</td>
+      <td>11900</td>
+    </tr>
+    <tr>
+      <td>n_unique_transition_types_observed</td>
+      <td>8</td>
+    </tr>
+    <tr>
+      <td>transition_coverage_ratio</td>
+      <td>0.4</td>
+    </tr>
+    <tr>
+      <td>jump_size_mean</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <td>jump_size_std</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>pct_jump_eq_1</td>
+      <td>1.0</td>
+    </tr>
+    <tr>
+      <td>pct_jump_ge_2</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>pct_jump_ge_3</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>f02_quality_score</td>
+      <td>0.832677</td>
+    </tr>
+    <tr>
+      <td>activity_flag</td>
+      <td>reject</td>
+    </tr>
+    <tr>
+      <td>diversity_flag</td>
+      <td>ok</td>
+    </tr>
+    <tr>
+      <td>catalog_flag</td>
+      <td>ok</td>
+    </tr>
+    <tr>
+      <td>dominance_flag</td>
+      <td>warning</td>
+    </tr>
+    <tr>
+      <td>continuity_flag</td>
+      <td>ok</td>
+    </tr>
+    <tr>
+      <td>measure_coverage_flag</td>
+      <td>ok</td>
+    </tr>
+    <tr>
+      <td>f02_gate_status</td>
+      <td>reject</td>
+    </tr>
+  </tbody>
+</table></div>
+          </details>
+        </section>
+      </main>
+    </body>
+    </html>
+    
