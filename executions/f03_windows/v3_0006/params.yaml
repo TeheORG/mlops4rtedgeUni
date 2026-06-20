@@ -1,0 +1,14 @@
+phase: f03_windows
+variant: v3_0006
+parent: v2_0006
+parameters:
+  parent_variant: v2_0006
+  Tu: 10
+  measure_name: PVPCS_Active_Power
+  OW: 50
+  LT: 10
+  PW: 10
+  window_strategy: synchro
+  nan_mode: discard
+parent_hashes:
+  v2_0006: 8ee39a3234d964dba10c111b0d01b64c3f5a0670ff76e5db4bb1e83f98f1a832
