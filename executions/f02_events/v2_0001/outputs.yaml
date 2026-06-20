@@ -1,0 +1,161 @@
+phase: f02_events
+variant: v2_0001
+artifacts:
+  events:
+    path: 02_events.parquet
+    sha256: 9b51fa3b19616d3e612869e0ecfe52b084aa226cad207e4691667e418835ca36
+  catalog:
+    path: 02_events_catalog.json
+    sha256: e6f0f1f99592d751feee21244d2930f67ad3823a9e37fa80f9f916646a1f684e
+  stats:
+    path: 02_events_stats.json
+    sha256: d0fb690fe0f5f3496f6e6f218241d99705459e291b9047a1c04f169af34a4ec9
+  report:
+    path: 02_events_report.html
+    sha256: 13100b897d47efb5d3f5a5d84b6a91c4f8e490a407004fbf040fa2a56dd84dc0
+exports:
+  Tu: 10
+  measure_name: GE_Active_Power
+  event_strategy: transitions
+  bands:
+  - 10
+  - 20
+  - 30
+  - 40
+  - 50
+  - 60
+  - 70
+  - 80
+  - 90
+  event_types:
+  - GE_Active_Power_0_10-to-10_20
+  - GE_Active_Power_0_10-to-20_30
+  - GE_Active_Power_0_10-to-30_40
+  - GE_Active_Power_0_10-to-40_50
+  - GE_Active_Power_0_10-to-50_60
+  - GE_Active_Power_0_10-to-60_70
+  - GE_Active_Power_0_10-to-70_80
+  - GE_Active_Power_0_10-to-80_90
+  - GE_Active_Power_0_10-to-90_100
+  - GE_Active_Power_10_20-to-0_10
+  - GE_Active_Power_10_20-to-20_30
+  - GE_Active_Power_10_20-to-30_40
+  - GE_Active_Power_10_20-to-40_50
+  - GE_Active_Power_10_20-to-50_60
+  - GE_Active_Power_10_20-to-60_70
+  - GE_Active_Power_10_20-to-70_80
+  - GE_Active_Power_10_20-to-80_90
+  - GE_Active_Power_10_20-to-90_100
+  - GE_Active_Power_20_30-to-0_10
+  - GE_Active_Power_20_30-to-10_20
+  - GE_Active_Power_20_30-to-30_40
+  - GE_Active_Power_20_30-to-40_50
+  - GE_Active_Power_20_30-to-50_60
+  - GE_Active_Power_20_30-to-60_70
+  - GE_Active_Power_20_30-to-70_80
+  - GE_Active_Power_20_30-to-80_90
+  - GE_Active_Power_20_30-to-90_100
+  - GE_Active_Power_30_40-to-0_10
+  - GE_Active_Power_30_40-to-10_20
+  - GE_Active_Power_30_40-to-20_30
+  - GE_Active_Power_30_40-to-40_50
+  - GE_Active_Power_30_40-to-50_60
+  - GE_Active_Power_30_40-to-60_70
+  - GE_Active_Power_30_40-to-70_80
+  - GE_Active_Power_30_40-to-80_90
+  - GE_Active_Power_30_40-to-90_100
+  - GE_Active_Power_40_50-to-0_10
+  - GE_Active_Power_40_50-to-10_20
+  - GE_Active_Power_40_50-to-20_30
+  - GE_Active_Power_40_50-to-30_40
+  - GE_Active_Power_40_50-to-50_60
+  - GE_Active_Power_40_50-to-60_70
+  - GE_Active_Power_40_50-to-70_80
+  - GE_Active_Power_40_50-to-80_90
+  - GE_Active_Power_40_50-to-90_100
+  - GE_Active_Power_50_60-to-0_10
+  - GE_Active_Power_50_60-to-10_20
+  - GE_Active_Power_50_60-to-20_30
+  - GE_Active_Power_50_60-to-30_40
+  - GE_Active_Power_50_60-to-40_50
+  - GE_Active_Power_50_60-to-60_70
+  - GE_Active_Power_50_60-to-70_80
+  - GE_Active_Power_50_60-to-80_90
+  - GE_Active_Power_50_60-to-90_100
+  - GE_Active_Power_60_70-to-0_10
+  - GE_Active_Power_60_70-to-10_20
+  - GE_Active_Power_60_70-to-20_30
+  - GE_Active_Power_60_70-to-30_40
+  - GE_Active_Power_60_70-to-40_50
+  - GE_Active_Power_60_70-to-50_60
+  - GE_Active_Power_60_70-to-70_80
+  - GE_Active_Power_60_70-to-80_90
+  - GE_Active_Power_60_70-to-90_100
+  - GE_Active_Power_70_80-to-0_10
+  - GE_Active_Power_70_80-to-10_20
+  - GE_Active_Power_70_80-to-20_30
+  - GE_Active_Power_70_80-to-30_40
+  - GE_Active_Power_70_80-to-40_50
+  - GE_Active_Power_70_80-to-50_60
+  - GE_Active_Power_70_80-to-60_70
+  - GE_Active_Power_70_80-to-80_90
+  - GE_Active_Power_70_80-to-90_100
+  - GE_Active_Power_80_90-to-0_10
+  - GE_Active_Power_80_90-to-10_20
+  - GE_Active_Power_80_90-to-20_30
+  - GE_Active_Power_80_90-to-30_40
+  - GE_Active_Power_80_90-to-40_50
+  - GE_Active_Power_80_90-to-50_60
+  - GE_Active_Power_80_90-to-60_70
+  - GE_Active_Power_80_90-to-70_80
+  - GE_Active_Power_80_90-to-90_100
+  - GE_Active_Power_90_100-to-0_10
+  - GE_Active_Power_90_100-to-10_20
+  - GE_Active_Power_90_100-to-20_30
+  - GE_Active_Power_90_100-to-30_40
+  - GE_Active_Power_90_100-to-40_50
+  - GE_Active_Power_90_100-to-50_60
+  - GE_Active_Power_90_100-to-60_70
+  - GE_Active_Power_90_100-to-70_80
+  - GE_Active_Power_90_100-to-80_90
+  n_event_types: 90
+  n_events: 3887242
+  n_types: 90
+  n_types_observed: 21
+  target_candidates:
+    GE_Active_Power:
+      high:
+        candidate: false
+        extreme_event_count: 1
+        extreme_event_ratio: 5.755428808223357e-06
+        reason: does not pass high target candidate rules
+      low:
+        candidate: false
+        extreme_event_count: 2
+        extreme_event_ratio: 1.1510857616446714e-05
+        reason: does not pass low target candidate rules
+metrics:
+  execution_time: 8.841667346000008
+  n_rows_in: 3887242
+  n_rows_out: 3887242
+  total_events_generated: 173749
+  mean_events_per_row: 0.04469724292956291
+  empty_rows_ratio: 0.9553027570704371
+  n_event_types_observed: 21
+  catalog_coverage_ratio: 0.23333333333333334
+  top1_event_ratio: 0.4288830439311881
+  rare_event_ratio: 1.726628642467007e-05
+  eventless_measure_ratio: 0.0
+  non_eventless_measure_ratio: 1.0
+  high_rare_measure_ratio: 1.0
+  low_rare_measure_ratio: 1.0
+  high_rare_event_ratio: 5.755428808223357e-06
+  low_rare_event_ratio: 1.1510857616446714e-05
+  f02_quality_score: 0.6459670267503328
+  f02_gate_status: warning
+  event_entropy: 1.2079051750154612
+  normalized_event_entropy: 0.39674701031886184
+  n_transition_events: 173749
+  jump_size_mean: 1.0013179931970833
+provenance:
+  generated_at: '2026-06-20T12:18:15.523170+00:00'
