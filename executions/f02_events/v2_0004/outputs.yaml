@@ -1,0 +1,86 @@
+phase: f02_events
+variant: v2_0004
+artifacts:
+  events:
+    path: 02_events.parquet
+    sha256: cf8b32e11924d0d66c9729f27030bcd7dc254d022c745c825a674da2caa2b1f6
+  catalog:
+    path: 02_events_catalog.json
+    sha256: 8642b1b26a3623d662a63b441cc55c484d7ee4a4b31538232f53c3c0fe1a4bd0
+  stats:
+    path: 02_events_stats.json
+    sha256: 661c690652dd2b25e22ef8b6671ece7f50d3911091871aa7a096b232891cb6ee
+  report:
+    path: 02_events_report.html
+    sha256: 63b0a8763e8c1782c5d9772b199807e28eb41a376d7e9471999c5459312889ad
+exports:
+  Tu: 10
+  measure_name: Outlet_Temperature
+  event_strategy: transitions
+  bands:
+  - 20
+  - 40
+  - 60
+  - 80
+  event_types:
+  - Outlet_Temperature_0_20-to-20_40
+  - Outlet_Temperature_0_20-to-40_60
+  - Outlet_Temperature_0_20-to-60_80
+  - Outlet_Temperature_0_20-to-80_100
+  - Outlet_Temperature_20_40-to-0_20
+  - Outlet_Temperature_20_40-to-40_60
+  - Outlet_Temperature_20_40-to-60_80
+  - Outlet_Temperature_20_40-to-80_100
+  - Outlet_Temperature_40_60-to-0_20
+  - Outlet_Temperature_40_60-to-20_40
+  - Outlet_Temperature_40_60-to-60_80
+  - Outlet_Temperature_40_60-to-80_100
+  - Outlet_Temperature_60_80-to-0_20
+  - Outlet_Temperature_60_80-to-20_40
+  - Outlet_Temperature_60_80-to-40_60
+  - Outlet_Temperature_60_80-to-80_100
+  - Outlet_Temperature_80_100-to-0_20
+  - Outlet_Temperature_80_100-to-20_40
+  - Outlet_Temperature_80_100-to-40_60
+  - Outlet_Temperature_80_100-to-60_80
+  n_event_types: 20
+  n_events: 3887242
+  n_types: 20
+  n_types_observed: 8
+  target_candidates:
+    Outlet_Temperature:
+      high:
+        candidate: true
+        extreme_event_count: 2518
+        extreme_event_ratio: 0.11125839519264757
+        reason: passes high target candidate rules
+      low:
+        candidate: true
+        extreme_event_count: 4563
+        extreme_event_ratio: 0.20161717921527042
+        reason: passes low target candidate rules
+metrics:
+  execution_time: 7.980310517000021
+  n_rows_in: 3887242
+  n_rows_out: 3887242
+  total_events_generated: 22632
+  mean_events_per_row: 0.005822122728659548
+  empty_rows_ratio: 0.9941778772713404
+  n_event_types_observed: 8
+  catalog_coverage_ratio: 0.4
+  top1_event_ratio: 0.20161717921527042
+  rare_event_ratio: 0.31287557440791797
+  eventless_measure_ratio: 0.0
+  non_eventless_measure_ratio: 1.0
+  high_rare_measure_ratio: 1.0
+  low_rare_measure_ratio: 1.0
+  high_rare_event_ratio: 0.11125839519264757
+  low_rare_event_ratio: 0.20161717921527042
+  f02_quality_score: 0.8229533470735196
+  f02_gate_status: warning
+  event_entropy: 2.0098429448571324
+  normalized_event_entropy: 0.9665301498370186
+  n_transition_events: 22632
+  jump_size_mean: 1.0
+provenance:
+  generated_at: '2026-06-20T12:18:34.720040+00:00'
