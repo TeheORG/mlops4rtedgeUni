@@ -1,0 +1,18 @@
+phase: f04_targets
+variant: v4_0004
+parent: v3_0002
+parameters:
+  parent_variant: v3_0002
+  Tu: 10
+  OW: 50
+  LT: 10
+  PW: 10
+  event_type_count: 20
+  prediction_name: ge_active_power_low_20_fine_4
+  target_operator: OR
+  target_event_types:
+  - GE_Active_Power_20_40-to-0_20
+  - GE_Active_Power_40_60-to-0_20
+  - GE_Active_Power_60_80-to-0_20
+parent_hashes:
+  v3_0002: 90732a9800965ff177934b8f24b2381e01e6668f584441c2d02e783efe0a1ea8
