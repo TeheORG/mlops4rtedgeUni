@@ -1,0 +1,24 @@
+phase: f04_targets
+variant: v4_0005
+parent: v3_0003
+parameters:
+  parent_variant: v3_0003
+  Tu: 10
+  OW: 50
+  LT: 10
+  PW: 10
+  event_type_count: 90
+  prediction_name: outlet_temperature_high_90_coarse_10
+  target_operator: OR
+  target_event_types:
+  - Outlet_Temperature_0_10-to-90_100
+  - Outlet_Temperature_10_20-to-90_100
+  - Outlet_Temperature_20_30-to-90_100
+  - Outlet_Temperature_30_40-to-90_100
+  - Outlet_Temperature_40_50-to-90_100
+  - Outlet_Temperature_50_60-to-90_100
+  - Outlet_Temperature_60_70-to-90_100
+  - Outlet_Temperature_70_80-to-90_100
+  - Outlet_Temperature_80_90-to-90_100
+parent_hashes:
+  v3_0003: 2de821ae8cab08aa6925cf03dd7fca997163f22f1841d9369c439acc77688d0d
