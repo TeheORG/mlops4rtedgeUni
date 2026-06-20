@@ -1,0 +1,38 @@
+phase: f03_windows
+variant: v3_0007
+artifacts:
+  dataset:
+    path: 03_windows.parquet
+    sha256: aa00066e99b892e4e6b7c921157b187ebf2a91a67e4785e6fba02655c5d7f547
+  catalog:
+    path: 03_events_catalog.json
+    sha256: d46ec6c5dfc5229597fa583fd6344dfd15886dcd0389fcdecd41f3d49775ef97
+  report:
+    path: 03_windows_report.html
+    sha256: 8a1a3a81ee87985b4bac456de58b879da6f19f1699f8c7c13e449f5fd3ab0ed1
+exports:
+  Tu: 10
+  OW: 50
+  LT: 10
+  PW: 10
+  Ratio_PW_OW: 0.2
+  event_type_count: 90
+  window_strategy: synchro
+  nan_mode: discard
+  measure_name: MG-LV-MSB_AC_Voltage
+  parent_f02: v2_0007
+  n_windows: 679593
+  n_unique_ow_hash: 232
+  n_unique_pw_hash: 71
+  dup_ratio_ow: 0.9996586192029642
+  dup_ratio_pw: 0.9998955257043554
+  seq_len_mean_ow: 4.238492744922328
+  seq_len_mean_pw: 0.8476985489844657
+  seq_len_std_ow: 4.076256614468574
+  seq_len_std_pw: 1.404549465083903
+metrics:
+  execution_time: 11.916233516000005
+  n_events_in: 3887242
+  n_windows_out: 679593
+provenance:
+  generated_at: '2026-06-20T12:22:06.303484+00:00'
