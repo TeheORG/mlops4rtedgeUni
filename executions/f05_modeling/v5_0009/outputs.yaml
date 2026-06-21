@@ -194,3 +194,7 @@ mlflow_registration:
   - /__w/mlops4rtedgeUni/mlops4rtedgeUni/executions/f05_modeling/v5_0009/05_modeling_model.h5
   - /__w/mlops4rtedgeUni/mlops4rtedgeUni/executions/f05_modeling/v5_0009/05_modeling_history.json
   - /__w/mlops4rtedgeUni/mlops4rtedgeUni/executions/f05_modeling/v5_0009/05_modeling_trials_summary.json
+mlflow:
+  run_id: 2d0113f6f79c417ebaa3a068b88bd491
+  experiment_id: '16'
+  experiment_name: F05_pvpcs_active_power_high_90_coarse_10
