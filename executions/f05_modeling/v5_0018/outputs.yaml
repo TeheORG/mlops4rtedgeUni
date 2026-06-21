@@ -194,3 +194,7 @@ mlflow_registration:
   - /__w/mlops4rtedgeUni/mlops4rtedgeUni/executions/f05_modeling/v5_0018/05_modeling_model.h5
   - /__w/mlops4rtedgeUni/mlops4rtedgeUni/executions/f05_modeling/v5_0018/05_modeling_history.json
   - /__w/mlops4rtedgeUni/mlops4rtedgeUni/executions/f05_modeling/v5_0018/05_modeling_trials_summary.json
+mlflow:
+  run_id: e389564e6dc54540865dbde66ec9b678
+  experiment_id: '12'
+  experiment_name: F05_inlet_temperature_of_chilled_water_high_80_fine_4
