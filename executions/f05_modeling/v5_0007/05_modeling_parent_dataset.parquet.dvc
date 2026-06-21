@@ -1,0 +1,5 @@
+outs:
+- md5: 9ede6ea60cb6d3c4ed2ba4e553d7924f
+  size: 391399
+  hash: md5
+  path: 05_modeling_parent_dataset.parquet
