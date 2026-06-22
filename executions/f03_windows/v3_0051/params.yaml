@@ -1,0 +1,14 @@
+phase: f03_windows
+variant: v3_0051
+parent: v2_0024
+parameters:
+  parent_variant: v2_0024
+  Tu: 10
+  measure_name: Island_mode_MCCB_AC_Voltage
+  OW: 90
+  LT: 10
+  PW: 10
+  window_strategy: synchro
+  nan_mode: discard
+parent_hashes:
+  v2_0024: eb25917288f35d12130d901049ee1a4e00f37569ad997bf4865d4952eff23fd6
