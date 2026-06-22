@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 """
-F05 — MODELING
+F05 â€” MODELING
 
 Lee:
   - params.yaml de f05_modeling (incluye model_family, automl, search_space, evaluation, training, etc.)
-  - outputs.yaml del parent f04_targets (dataset etiquetado, prediction_name, Tu/OW/LT/PW…)
+  - outputs.yaml del parent f04_targets (dataset etiquetado, prediction_name, Tu/OW/LT/PWâ€¦)
 
 Entrena un modelo binario con AutoML simple (random search sobre search_space),
-selecciona el mejor por recall en validación, calcula métricas en test,
-calcula umbral óptimo (por F1), guarda el modelo y genera outputs.yaml
+selecciona el mejor por recall en validaciÃ³n, calcula mÃ©tricas en test,
+calcula umbral Ã³ptimo (por F1), guarda el modelo y genera outputs.yaml
 conforme a traceability_schema.yaml.
 
-Este código está diseñado para:
-  - encajar con el patrón de F01–F04,
-  - dejar todo listo para F06 (cuantización y edge unit),
+Este cÃ³digo estÃ¡ diseÃ±ado para:
+  - encajar con el patrÃ³n de F01â€“F04,
+  - dejar todo listo para F06 (cuantizaciÃ³n y edge unit),
   - mantener MLflow en Makefile (solo se deja bloque mlflow_registration).
 """
 
@@ -112,14 +112,14 @@ def event_id_dtype_metadata(event_type_count: int) -> dict:
     }
 
 
-# ── Análisis opcionales (desactivar para acelerar ejecución) ──────────────────
-ENABLE_EXACT_DUPLICATE_ANALYSIS    = False   # set operations, rápido
-ENABLE_UNORDERED_DUPLICATE_ANALYSIS = False  # set operations, rápido
-ENABLE_NEAR_DUPLICATE_ANALYSIS     = False  # O(n²) Jaccard, muy lento en datasets grandes
+# â”€â”€ AnÃ¡lisis opcionales (desactivar para acelerar ejecuciÃ³n) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+ENABLE_EXACT_DUPLICATE_ANALYSIS    = False   # set operations, rÃ¡pido
+ENABLE_UNORDERED_DUPLICATE_ANALYSIS = False  # set operations, rÃ¡pido
+ENABLE_NEAR_DUPLICATE_ANALYSIS     = False  # O(nÂ²) Jaccard, muy lento en datasets grandes
 
 
 def build_adam_optimizer(learning_rate: float):
-    # Ruta única para todos los OS: evita divergencias por elegir optimizadores distintos.
+    # Ruta Ãºnica para todos los OS: evita divergencias por elegir optimizadores distintos.
     return tf.keras.optimizers.Adam(learning_rate=learning_rate)
 
 
@@ -134,7 +134,7 @@ def configure_reproducibility(seed: int, strict_cross_os: bool = False):
     """Configura semillas globales y, opcionalmente, modo determinista estricto.
 
     strict_cross_os=True intenta minimizar diferencias entre SOs:
-      - activa operaciones deterministas de TensorFlow cuando están disponibles,
+      - activa operaciones deterministas de TensorFlow cuando estÃ¡n disponibles,
       - fija paralelismo a 1 hilo intra/inter-op para reducir no determinismo.
     """
     random.seed(seed)
@@ -194,7 +194,7 @@ def ensure_observation_hash_series(df: pd.DataFrame) -> tuple[pd.Series, str]:
 
     if "OW_events" not in df.columns:
         raise RuntimeError(
-            "No se encontró columna hash de observación (OW_hash/hash_window/...) "
+            "No se encontrÃ³ columna hash de observaciÃ³n (OW_hash/hash_window/...) "
             "ni la columna OW_events para calcularla."
         )
 
@@ -208,7 +208,7 @@ def deduplicate_labeled_windows(df: pd.DataFrame, mode: str):
       - none: no deduplicar
       - all: deduplicar todas las ventanas por OW_events
       - neg_only: deduplicar solo las negativas
-      - auto: usa neg_only por defecto; si hay suficientes positivos únicos,
+      - auto: usa neg_only por defecto; si hay suficientes positivos Ãºnicos,
               puede pasar a all
     """
     if mode == "none":
@@ -235,8 +235,8 @@ def deduplicate_labeled_windows(df: pd.DataFrame, mode: str):
     this indicates instability or noise in the target.
 
     We apply a strict consistency threshold (>= 0.995):
-    - Highly consistent sequences → resolved via majority voting
-    - Low consistency sequences → removed entirely
+    - Highly consistent sequences â†’ resolved via majority voting
+    - Low consistency sequences â†’ removed entirely
 
     This avoids corrupting the model with contradictory supervision.
     """
@@ -285,7 +285,7 @@ def deduplicate_labeled_windows(df: pd.DataFrame, mode: str):
         n_pos = len(pos)
         n_pos_unique = pos["_ow_hash"].nunique()
 
-        # Heurística simple: si hay muy pocos positivos o demasiados duplicados positivos,
+        # HeurÃ­stica simple: si hay muy pocos positivos o demasiados duplicados positivos,
         # no tocar positivos y deduplicar solo negativos.
         if n_pos < 50 or n_pos_unique < max(10, int(0.5 * n_pos)):
             neg = neg.drop_duplicates(subset=["_ow_hash"], keep="first")
@@ -427,7 +427,7 @@ def vectorize_sequence(df: pd.DataFrame, label_col: str, event_type_count: int):
         cur = []
         for event_id in seq:
             v = int(event_id)
-            # Convención del catálogo: IDs reales en 1..n; 0 reservado para padding/no-evento.
+            # ConvenciÃ³n del catÃ¡logo: IDs reales en 1..n; 0 reservado para padding/no-evento.
             if v < 0 or v > event_type_count:
                 raise RuntimeError(
                     f"event_id fuera de rango para secuencia: {v} "
@@ -702,11 +702,11 @@ def print_hash_leakage_report(leakage_report: dict, hash_source: str) -> None:
         print(pd.DataFrame(top_shared).to_string(index=False))
 
     if leakage_report.get("high_leakage_warning", False):
-        print("⚠️ Posible leakage entre splits")
+        print("âš ï¸ Posible leakage entre splits")
     elif leakage_report.get("possible_leakage", False):
         print("[WARN] Hay hashes compartidos entre splits, aunque el solape es bajo.")
     else:
-        print("[INFO] No se detectó solape de hashes entre train/val/test.")
+        print("[INFO] No se detectÃ³ solape de hashes entre train/val/test.")
 
 def canonicalize_events_sequence(seq) -> tuple[int, ...]:
     if isinstance(seq, np.ndarray):
@@ -1138,7 +1138,7 @@ def build_split_leakage_report(
         print("[INFO] Analyzing near duplicates (similarity >= 0.80)...")
         near_duplicates = build_near_duplicate_section(metadata_df, threshold=0.80, top_k_examples=20)
     else:
-        print("[INFO] Near duplicate analysis disabled (O(n²) — activate with ENABLE_NEAR_DUPLICATE_ANALYSIS=True)")
+        print("[INFO] Near duplicate analysis disabled (O(nÂ²) â€” activate with ENABLE_NEAR_DUPLICATE_ANALYSIS=True)")
         near_duplicates = _SKIPPED_NEAR
 
     print("[INFO] Leakage report generation complete")
@@ -1192,7 +1192,7 @@ def build_skipped_leakage_report() -> dict:
 
 def print_overlap_section(section_name: str, section: dict) -> None:
     if section.get("skipped"):
-        print(f"[INFO] Leakage audit: {section_name} — skipped")
+        print(f"[INFO] Leakage audit: {section_name} â€” skipped")
         return
     sizes = section["split_sizes_unique_keys"]
     train_size = next(v for k, v in sizes.items() if k.endswith("_train"))
@@ -1227,7 +1227,7 @@ def print_split_leakage_report(leakage_report: dict) -> None:
 
     near_duplicates = leakage_report.get("near_duplicates", {})
     if near_duplicates.get("skipped"):
-        print("[INFO] Leakage audit: near_duplicates — skipped")
+        print("[INFO] Leakage audit: near_duplicates â€” skipped")
         return
     print("[INFO] Leakage audit: near_duplicates")
     print(f"[INFO] similarity_definition={near_duplicates.get('similarity_definition')}")
@@ -1262,7 +1262,7 @@ def print_split_leakage_report(leakage_report: dict) -> None:
 
 def render_overlap_html(section_title: str, section: dict) -> str:
     if section.get("skipped"):
-        return f"<h3>{escape(section_title)}</h3><p><em>Análisis desactivado.</em></p>"
+        return f"<h3>{escape(section_title)}</h3><p><em>AnÃ¡lisis desactivado.</em></p>"
     summary_html = pd.DataFrame(section["summary_rows"]).to_html(index=False, escape=True)
     top_shared = section.get("top_shared_keys", [])
     top_shared_html = (
@@ -1297,7 +1297,7 @@ def render_overlap_html(section_title: str, section: dict) -> str:
 
 def render_near_duplicates_html(near_duplicates: dict) -> str:
     if near_duplicates.get("skipped"):
-        return "<h3>near_duplicates</h3><p><em>Análisis desactivado.</em></p>"
+        return "<h3>near_duplicates</h3><p><em>AnÃ¡lisis desactivado.</em></p>"
     pairwise = near_duplicates.get("pairwise", {})
     summary_rows = []
     example_rows = []
@@ -1340,7 +1340,7 @@ def render_near_duplicates_html(near_duplicates: dict) -> str:
 
 def sample_hyperparams(search_space: dict, model_family: str, rng: np.random.Generator):
     """
-    Genera una configuración de hiperparámetros a partir de search_space:
+    Genera una configuraciÃ³n de hiperparÃ¡metros a partir de search_space:
 
     search_space:
       common:
@@ -1353,7 +1353,7 @@ def sample_hyperparams(search_space: dict, model_family: str, rng: np.random.Gen
       sequence_embedding: { ... }
       cnn1d: { ... }
 
-    Aquí solo usamos 'common' y, opcionalmente, bloque específico de la familia.
+    AquÃ­ solo usamos 'common' y, opcionalmente, bloque especÃ­fico de la familia.
     """
     common = search_space.get("common", {})
     family_space = search_space.get(model_family, {})
@@ -1373,7 +1373,7 @@ def sample_hyperparams(search_space: dict, model_family: str, rng: np.random.Gen
     hp["units"] = int(pick("units", common) or 64)
     hp["dropout"] = float(pick("dropout", common) or 0.0)
 
-    # Podrías extender con params específicos de la familia si quieres
+    # PodrÃ­as extender con params especÃ­ficos de la familia si quieres
     for key, values in family_space.items():
         if isinstance(values, list) and values:
             hp[key] = rng.choice(values)
@@ -1854,7 +1854,7 @@ def stratified_cap_indices(indices, y_full, max_samples, seed: int):
 
 
 def sanitize_probabilities(y_prob, context=""):
-    """Normaliza scores a un rango válido [0,1] y elimina NaN/Inf."""
+    """Normaliza scores a un rango vÃ¡lido [0,1] y elimina NaN/Inf."""
     arr = np.asarray(y_prob, dtype=np.float64)
     non_finite = ~np.isfinite(arr)
     if non_finite.any():
@@ -1877,7 +1877,7 @@ def explain_split_incompatibility(y) -> str | None:
     if len(y) < 3:
         return (
             f"Dataset con {len(y)} muestra(s): no alcanza para generar "
-            "splits train/val/test no vacíos"
+            "splits train/val/test no vacÃ­os"
         )
 
     if len(label_distribution) < 2:
@@ -1928,7 +1928,7 @@ def write_non_trainable_outputs(
     report_html = f"""
     <html>
     <body>
-      <h1>F05 Modeling — {variant}</h1>
+      <h1>F05 Modeling â€” {variant}</h1>
       <p><b>Parent F04:</b> {parent_variant}</p>
       <p><b>Prediction:</b> {prediction_name}</p>
       <p><b>Model family:</b> {model_family}</p>
@@ -2010,7 +2010,102 @@ def write_non_trainable_outputs(
     validate_outputs(PHASE, outputs_content)
 
     print(f"[WARN] Modelo no entrenable para {variant}: {reason}")
-    print(f"===== FASE {PHASE} COMPLETADA SIN ENTRENAMIENTO — variante {variant} =====")
+    print(f"===== FASE {PHASE} COMPLETADA SIN ENTRENAMIENTO - variante {variant} =====")
+
+
+def write_parent_incompatible_outputs(
+    *,
+    variant_dir,
+    variant: str,
+    parent_variant: str,
+    prediction_name: str,
+    model_family: str,
+    Tu: int,
+    OW: int,
+    LT: int,
+    PW: int,
+    event_type_count: int,
+    reason: str,
+    start_time: float,
+):
+    execution_time = float(time.perf_counter() - start_time)
+    event_dtype_metadata = (
+        event_id_dtype_metadata(event_type_count)
+        if model_family in {"sequence_embedding", "cnn1d"}
+        else {}
+    )
+
+    report_path = variant_dir / "05_modeling_report.html"
+    report_html = f"""
+    <html>
+    <body>
+      <h1>F05 Modeling - {variant}</h1>
+      <p><b>Parent F04:</b> {parent_variant}</p>
+      <p><b>Prediction:</b> {prediction_name}</p>
+      <p><b>Model family:</b> {model_family}</p>
+      <h2>Status</h2>
+      <ul>
+        <li>trainable = False</li>
+        <li>reason = {reason}</li>
+      </ul>
+      <h2>Execution</h2>
+      <p>execution_time = {execution_time:.1f} s</p>
+    </body>
+    </html>
+    """
+    report_path.write_text(report_html, encoding="utf-8")
+
+    outputs_content = {
+        "phase": PHASE,
+        "variant": variant,
+        "artifacts": {
+            "report": {
+                "path": report_path.name,
+                "sha256": sha256_of_file(report_path),
+            },
+        },
+        "exports": {
+            "Tu": int(Tu),
+            "OW": int(OW),
+            "LT": int(LT),
+            "PW": int(PW),
+            "event_type_count": int(event_type_count),
+            **event_dtype_metadata,
+            "prediction_name": str(prediction_name),
+            "model_family": str(model_family),
+            "trainable": False,
+            "incompatibility_reason": str(reason),
+            "parent_f04": str(parent_variant),
+        },
+        "metrics": {
+            "execution_time": float(execution_time),
+            "mejor_modelo_f1": None,
+            "mejor_modelo_precision": None,
+            "mejor_modelo_recall": None,
+            "n_train": 0,
+            "n_val": 0,
+            "n_test": 0,
+            "positive_ratio_train": 0.0,
+            "tp": 0,
+            "tn": 0,
+            "fp": 0,
+            "fn": 0,
+            "n_samples_total": 0,
+            "positive_samples": 0,
+            "negative_samples": 0,
+        },
+        "provenance": {
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "parent_phase": PARENT_PHASE,
+            "parent_variant": parent_variant,
+        },
+    }
+
+    save_outputs_yaml(variant_dir, outputs_content)
+    validate_outputs(PHASE, outputs_content)
+
+    print(f"[WARN] Parent F04 target is incompatible: {reason}")
+    print(f"===== FASE {PHASE} COMPLETADA SIN ENTRENAMIENTO - variante {variant} =====")
 
 
 # ============================================================
@@ -2025,14 +2120,14 @@ def main():
     variant = args.variant
     start_time = time.perf_counter()
 
-    print(f"===== FASE {PHASE} — MODELING — variante {variant} =====")
+    print(f"===== FASE {PHASE} â€” MODELING â€” variante {variant} =====")
 
     # ---------------------------------------------
-    # 1. Cargar parámetros de F05 y parent F04
+    # 1. Cargar parÃ¡metros de F05 y parent F04
     # ---------------------------------------------
     params_data = load_variant_params(get_variant_dir, PHASE, variant, "F05")
     if not isinstance(params_data, dict):
-        raise RuntimeError(f"params.yaml inválido para {PHASE}:{variant}")
+        raise RuntimeError(f"params.yaml invÃ¡lido para {PHASE}:{variant}")
 
     params = params_data.get("parameters", {})
     parent_variant = params_data.get("parent")
@@ -2055,16 +2150,6 @@ def main():
     parent_f02 = exports_parent.get("parent_f02")
     window_strategy = exports_parent.get("window_strategy")
 
-    dataset_rel = artifacts_parent.get("dataset", {}).get("path")
-    if not dataset_rel:
-        raise RuntimeError("outputs.yaml de F04 no contiene artifacts.dataset.path")
-
-    dataset_path = parent_dir / dataset_rel
-    if not dataset_path.exists():
-        raise FileNotFoundError(f"No se encuentra dataset etiquetado de F04 en {dataset_path}")
-
-    # Label column: si F04 lo expone, lo usamos; si no, usamos 'target'
-    label_col = exports_parent.get("target_column", "label")
     event_type_count = params.get("event_type_count")
     if event_type_count is None:
         event_type_count = exports_parent.get("event_type_count")
@@ -2076,6 +2161,42 @@ def main():
     PW = int(params.get("PW", exports_parent.get("PW", 0)))
 
     model_family = params["model_family"]
+
+    variant_dir = get_variant_dir(PHASE, variant)
+    variant_dir.mkdir(parents=True, exist_ok=True)
+
+    if exports_parent.get("target_compatible") is False:
+        parent_reason = (
+            exports_parent.get("incompatibility_reason")
+            or "target_compatible=False"
+        )
+        reason = f"Parent F04 target is incompatible: {parent_reason}"
+        write_parent_incompatible_outputs(
+            variant_dir=variant_dir,
+            variant=variant,
+            parent_variant=parent_variant,
+            prediction_name=prediction_name,
+            model_family=model_family,
+            Tu=Tu,
+            OW=OW,
+            LT=LT,
+            PW=PW,
+            event_type_count=int(event_type_count),
+            reason=reason,
+            start_time=start_time,
+        )
+        return
+
+    dataset_rel = artifacts_parent.get("dataset", {}).get("path")
+    if not dataset_rel:
+        raise RuntimeError("outputs.yaml de F04 no contiene artifacts.dataset.path")
+
+    dataset_path = parent_dir / dataset_rel
+    if not dataset_path.exists():
+        raise FileNotFoundError(f"No se encuentra dataset etiquetado de F04 en {dataset_path}")
+
+    # Label column: si F04 lo expone, lo usamos; si no, usamos 'target'
+    label_col = exports_parent.get("target_column", "label")
     event_dtype_metadata = (
         event_id_dtype_metadata(int(event_type_count))
         if model_family in {"sequence_embedding", "cnn1d"}
@@ -2119,8 +2240,9 @@ def main():
         imbalance_max_majority = imbalance_cfg.get("max_majority_samples")
 
     automl_seed = int(params.get("seed", automl_cfg.get("seed", 42)))
-    configure_reproducibility(automl_seed, strict_cross_os=True)
-    print(f"[INFO] reproducibility seed={automl_seed}, strict_cross_os=True")
+    strict_cross_os = not use_gpu_safeguards
+    configure_reproducibility(automl_seed, strict_cross_os=strict_cross_os)
+    print(f"[INFO] reproducibility seed={automl_seed}, strict_cross_os={strict_cross_os}")
 
     # ---------------------------------------------
     # 2. Cargar dataset etiquetado
@@ -2129,7 +2251,7 @@ def main():
     df = pd.read_parquet(dataset_path)
 
     if label_col not in df.columns:
-        raise RuntimeError(f"La columna de etiqueta '{label_col}' no está en el dataset")
+        raise RuntimeError(f"La columna de etiqueta '{label_col}' no estÃ¡ en el dataset")
     
 
     if dedup_mode not in {"none", "all", "neg_only", "auto"}:
@@ -2166,7 +2288,7 @@ def main():
     print(f"[INFO] dataset_parent_snapshot={parent_dataset_snapshot_path}")
 
     # ---------------------------------------------
-    # 3. Vectorización por familia + splits train/val/test
+    # 3. VectorizaciÃ³n por familia + splits train/val/test
     # ---------------------------------------------
     y_full = df[label_col].astype("int32").values
     label_distribution = summarize_label_distribution(y_full)
@@ -2323,7 +2445,7 @@ def main():
     print(f"[INFO] vectorization={vectorization_info.get('vectorization')}")
 
     # ---------------------------------------------
-    # 4. AutoML — entrenamiento y selección
+    # 4. AutoML â€” entrenamiento y selecciÃ³n
     # ---------------------------------------------
     print(f"[INFO] Starting AutoML training...")
     experiments_dir = variant_dir / "experiments"
@@ -2345,7 +2467,7 @@ def main():
     print(f"[INFO] AutoML training complete (best trial: {best_trial_id}, best_val_recall: {best_val_recall:.4f})")
 
     # ---------------------------------------------
-    # 5. Evaluación final en test + thresholds
+    # 5. EvaluaciÃ³n final en test + thresholds
     # ---------------------------------------------
     print(f"[INFO] Evaluating on test set...")
     threshold_policy = str(
@@ -2428,7 +2550,7 @@ def main():
     report_html = f"""
     <html>
     <body>
-      <h1>F05 Modeling — {variant}</h1>
+      <h1>F05 Modeling â€” {variant}</h1>
       <p><b>Parent F04:</b> {parent_variant}</p>
       <p><b>Prediction:</b> {prediction_name}</p>
       <p><b>Model family:</b> {model_family}</p>
@@ -2623,7 +2745,7 @@ def main():
             "parent_phase": PARENT_PHASE,
             "parent_variant": parent_variant,
         },
-        # Bloque para MLflow — Makefile se encarga
+        # Bloque para MLflow â€” Makefile se encarga
         "mlflow_registration": {
             "experiment_name": f"F05_{prediction_name}",
             "run_name": f"{prediction_name}__{variant}",
@@ -2667,10 +2789,12 @@ def main():
     save_outputs_yaml(variant_dir, outputs_content)
     validate_outputs(PHASE, outputs_content)
 
-    print(f"===== FASE {PHASE} COMPLETADA — variante {variant} =====")
+    print(f"===== FASE {PHASE} COMPLETADA â€” variante {variant} =====")
 
 
 if __name__ == "__main__":
     main()
+
+
 
 

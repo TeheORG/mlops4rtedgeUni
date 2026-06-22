@@ -469,7 +469,7 @@ phases:
 
         dataset:
           type: file
-          required: true
+          required: false
           extension: parquet
 
         report:
@@ -528,15 +528,59 @@ phases:
           type: integer
           required: true
 
+        n_positive:
+          type: integer
+          required: false
+
+        n_negative:
+          type: integer
+          required: false
+
+        target_compatible:
+          type: boolean
+          required: true
+
+        incompatibility_reason:
+          type: string
+          required: false
+          nullable: true
+
+        target_candidate_checks:
+          type: list
+          required: false
+          items:
+            type: dict
+
       metrics:
 
         execution_time:
           type: float
           required: true
 
+        n_windows:
+          type: integer
+          required: false
+
+        n_positive:
+          type: integer
+          required: false
+
+        n_negative:
+          type: integer
+          required: false
+
         positive_ratio:
           type: float
           required: true
+
+        target_compatible:
+          type: boolean
+          required: false
+
+        incompatibility_reason:
+          type: string
+          required: false
+          nullable: true
 
   # ------------------------------------------------------------
   # F05 — MODELING
@@ -708,7 +752,7 @@ phases:
 
         labeled_dataset:
           type: file
-          required: true
+          required: false
           extension: parquet
 
         report:
