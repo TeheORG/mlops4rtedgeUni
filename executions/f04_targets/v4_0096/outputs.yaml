@@ -1,0 +1,60 @@
+phase: f04_targets
+variant: v4_0096
+artifacts:
+  dataset:
+    path: 04_targets.parquet
+    sha256: 9df5c7b3bb09284298629b1a6e5c585882ad8377014a765da5e9e10d007bd9c3
+  report:
+    path: 04_targets_report.html
+    sha256: 5a7e4bb284245ceff7566c346738d8b3b1171cbb5b14d967a1c2f11bd545f72b
+exports:
+  Tu: 10
+  OW: 90
+  LT: 10
+  PW: 10
+  prediction_name: fc_active_power_low_20_fine_4
+  measure_name: FC_Active_Power
+  target_operator: OR
+  target_event_types:
+  - FC_Active_Power_20_40-to-0_20
+  - FC_Active_Power_40_60-to-0_20
+  - FC_Active_Power_60_80-to-0_20
+  target_event_count: 3
+  target_compatible: true
+  incompatibility_reason: null
+  target_candidate_checks:
+  - measure: FC_Active_Power
+    direction: low
+  event_type_count: 20
+  window_strategy: synchro
+  parent_f03: v3_0048
+  parent_f02: v2_0021
+  n_windows: 27415
+  n_windows_pos: 309
+  n_windows_neg: 27106
+  n_positive: 309
+  n_negative: 27106
+  class_balance_ratio: 0.01127120189677184
+  deduplication_stats:
+    total_sequences: 27415
+    unique_ow_sequences: 111
+    num_duplicate_sequences: 27304
+    duplicate_ratio: 0.9959511216487325
+    ambiguous_sequences: 8
+    ambiguous_samples: 2498
+    ambiguous_ratio: 0.09111800109429144
+    avg_label_consistency_per_ow: 0.9858891928915898
+  unique_ratio: 0.004048878351267555
+  dup_ratio_ow_parent: 0.9959511216487325
+  dup_ratio_pw_parent: 0.9986138975013679
+  seq_len_mean_ow_parent: 1.7924493890206092
+metrics:
+  execution_time: 0.07411924999999542
+  n_windows: 27415
+  n_positive: 309
+  n_negative: 27106
+  positive_ratio: 0.01127120189677184
+  target_compatible: true
+  incompatibility_reason: null
+provenance:
+  generated_at: '2026-06-22T22:10:01.693098+00:00'
