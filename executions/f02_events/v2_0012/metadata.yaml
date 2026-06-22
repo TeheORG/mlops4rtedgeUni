@@ -1,8 +1,8 @@
 created_at: '2026-06-22T15:19:13.296049+00:00'
 params_path: executions/f02_events/v2_0012/params.yaml
-lifecycle_state: VARIANT_CREATED
-lifecycle_updated_at: '2026-06-22T15:19:13.703687+00:00'
+lifecycle_state: EXECUTION_COMPLETED
+lifecycle_updated_at: '2026-06-22T15:19:38.822160+00:00'
 verified: none
-verified_updated_at: '2026-06-22T15:19:13.568215+00:00'
+verified_updated_at: '2026-06-22T15:19:27.426972+00:00'
 registred: none
 runner: GithubActions
