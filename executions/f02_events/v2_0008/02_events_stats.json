@@ -1,0 +1,368 @@
+{
+  "global": {
+    "total_events_generated": 45660,
+    "mean_events_per_row": 0.011746117169962662,
+    "std_events_per_row": 0.10774110590388475,
+    "max_events_per_row": 1,
+    "p95_events_per_row": 0.0,
+    "empty_rows_ratio": 0.9882538828300373,
+    "nonempty_rows_ratio": 0.011746117169962662,
+    "n_event_types_catalog": 30,
+    "n_event_types_observed": 29,
+    "catalog_coverage_ratio": 0.9666666666666667,
+    "effective_catalog_unused_ratio": 0.033333333333333326,
+    "rare_event_count": 3754,
+    "rare_event_ratio": 0.08221638195356987,
+    "rare_event_types_observed": 9,
+    "rare_event_type_ratio": 0.3103448275862069,
+    "top1_event_ratio": 0.16329391151992992,
+    "top5_event_ratio": 0.7153745072273324,
+    "event_entropy": 2.3689303475886008,
+    "normalized_event_entropy": 0.7035112051910557,
+    "n_consecutive_steps": 3887230,
+    "consecutive_ratio": 0.9999971702294764,
+    "n_broken_steps": 11,
+    "broken_ratio": 2.829770523618165e-06,
+    "n_level_events": 0,
+    "n_unique_level_types_observed": 0,
+    "n_measures_total": 1,
+    "n_eventless_measures": 0,
+    "eventless_measure_ratio": 0.0,
+    "n_non_eventless_measures": 1,
+    "non_eventless_measure_ratio": 1.0,
+    "n_measures_with_high_rare_events": 1,
+    "n_measures_with_low_rare_events": 1,
+    "high_rare_measure_ratio": 1.0,
+    "low_rare_measure_ratio": 1.0,
+    "high_rare_event_count": 2373,
+    "low_rare_event_count": 1381,
+    "high_rare_event_ratio": 0.051971090670170826,
+    "low_rare_event_ratio": 0.030245291283399037,
+    "events_per_million_rows": 11746.117169962663,
+    "n_transition_events": 45660,
+    "n_unique_transition_types_observed": 29,
+    "transition_coverage_ratio": 0.9666666666666667,
+    "jump_size_mean": 1.0809242225142357,
+    "jump_size_std": 0.3130252046590808,
+    "pct_jump_eq_1": 0.9303547963206308,
+    "pct_jump_ge_2": 0.06964520367936924,
+    "pct_jump_ge_3": 0.010775295663600526,
+    "f02_quality_score": 0.8062644727817978,
+    "activity_flag": "ok",
+    "diversity_flag": "ok",
+    "catalog_flag": "ok",
+    "dominance_flag": "warning",
+    "continuity_flag": "ok",
+    "measure_coverage_flag": "ok",
+    "f02_gate_status": "warning"
+  },
+  "event_frequency": {
+    "13": {
+      "event_name": "PVPCS_Active_Power_25_50-to-50_75",
+      "count": 7456
+    },
+    "18": {
+      "event_name": "PVPCS_Active_Power_50_75-to-25_50",
+      "count": 7220
+    },
+    "19": {
+      "event_name": "PVPCS_Active_Power_50_75-to-75_90",
+      "count": 7139
+    },
+    "24": {
+      "event_name": "PVPCS_Active_Power_75_90-to-50_75",
+      "count": 6950
+    },
+    "7": {
+      "event_name": "PVPCS_Active_Power_10_25-to-25_50",
+      "count": 3899
+    },
+    "12": {
+      "event_name": "PVPCS_Active_Power_25_50-to-10_25",
+      "count": 3787
+    },
+    "25": {
+      "event_name": "PVPCS_Active_Power_75_90-to-90_100",
+      "count": 1703
+    },
+    "30": {
+      "event_name": "PVPCS_Active_Power_90_100-to-75_90",
+      "count": 1647
+    },
+    "1": {
+      "event_name": "PVPCS_Active_Power_0_10-to-10_25",
+      "count": 1344
+    },
+    "6": {
+      "event_name": "PVPCS_Active_Power_10_25-to-0_10",
+      "count": 1335
+    },
+    "23": {
+      "event_name": "PVPCS_Active_Power_75_90-to-25_50",
+      "count": 619
+    },
+    "29": {
+      "event_name": "PVPCS_Active_Power_90_100-to-50_75",
+      "count": 529
+    },
+    "14": {
+      "event_name": "PVPCS_Active_Power_25_50-to-75_90",
+      "count": 506
+    },
+    "20": {
+      "event_name": "PVPCS_Active_Power_50_75-to-90_100",
+      "count": 484
+    },
+    "17": {
+      "event_name": "PVPCS_Active_Power_50_75-to-10_25",
+      "count": 289
+    },
+    "8": {
+      "event_name": "PVPCS_Active_Power_10_25-to-50_75",
+      "count": 203
+    },
+    "28": {
+      "event_name": "PVPCS_Active_Power_90_100-to-25_50",
+      "count": 188
+    },
+    "15": {
+      "event_name": "PVPCS_Active_Power_25_50-to-90_100",
+      "count": 178
+    },
+    "22": {
+      "event_name": "PVPCS_Active_Power_75_90-to-10_25",
+      "count": 51
+    },
+    "9": {
+      "event_name": "PVPCS_Active_Power_10_25-to-75_90",
+      "count": 34
+    },
+    "11": {
+      "event_name": "PVPCS_Active_Power_25_50-to-0_10",
+      "count": 29
+    },
+    "2": {
+      "event_name": "PVPCS_Active_Power_0_10-to-25_50",
+      "count": 29
+    },
+    "16": {
+      "event_name": "PVPCS_Active_Power_50_75-to-0_10",
+      "count": 12
+    },
+    "10": {
+      "event_name": "PVPCS_Active_Power_10_25-to-90_100",
+      "count": 8
+    },
+    "27": {
+      "event_name": "PVPCS_Active_Power_90_100-to-10_25",
+      "count": 8
+    },
+    "3": {
+      "event_name": "PVPCS_Active_Power_0_10-to-50_75",
+      "count": 7
+    },
+    "21": {
+      "event_name": "PVPCS_Active_Power_75_90-to-0_10",
+      "count": 4
+    },
+    "26": {
+      "event_name": "PVPCS_Active_Power_90_100-to-0_10",
+      "count": 1
+    },
+    "4": {
+      "event_name": "PVPCS_Active_Power_0_10-to-75_90",
+      "count": 1
+    }
+  },
+  "per_measure": {
+    "PVPCS_Active_Power": {
+      "n_events_generated": 45660,
+      "n_unique_event_types_observed": 29,
+      "top1_ratio": 0.16329391151992992,
+      "rare_event_count": 3754,
+      "rare_event_ratio": 0.08221638195356987,
+      "high_rare_event_count": 2373,
+      "low_rare_event_count": 1381,
+      "rare_event_type_count": 9,
+      "high_rare_event_type_count": 4,
+      "low_rare_event_type_count": 5,
+      "high_rare_event_ratio": 0.051971090670170826,
+      "low_rare_event_ratio": 0.030245291283399037,
+      "mean_events_per_row_contributed": 0.011746117169962662,
+      "band_occupancy": {
+        "0_10": 2517703,
+        "10_25": 272529,
+        "25_50": 344678,
+        "50_75": 485470,
+        "75_90": 248434,
+        "90_100": 15857
+      },
+      "total_band_count": 3884671,
+      "n_active_bands": 6,
+      "max_band_count": 2517703,
+      "max_band_ratio": 0.6481122854419332,
+      "min_nonzero_band_count": 15857,
+      "extreme_band_count": 2533560,
+      "extreme_band_ratio": 0.6521942270014629,
+      "middle_band_count": 1351111,
+      "middle_band_ratio": 0.34780577299853704,
+      "occupancy_entropy": 1.1405992089113066,
+      "normalized_occupancy_entropy": 0.6365805391293463,
+      "is_eventless_measure": false,
+      "band_degeneracy_flag": false,
+      "extreme_occupancy_flag": false,
+      "jump_size_mean": 1.0809242225142357,
+      "measure_transition_score": 0.8339239346071285,
+      "high_target_candidate": true,
+      "low_target_candidate": true
+    }
+  },
+  "top_events": [
+    {
+      "event_id": 13,
+      "event_name": "PVPCS_Active_Power_25_50-to-50_75",
+      "count": 7456,
+      "ratio": 0.16329391151992992
+    },
+    {
+      "event_id": 18,
+      "event_name": "PVPCS_Active_Power_50_75-to-25_50",
+      "count": 7220,
+      "ratio": 0.15812527376259308
+    },
+    {
+      "event_id": 19,
+      "event_name": "PVPCS_Active_Power_50_75-to-75_90",
+      "count": 7139,
+      "ratio": 0.15635129215943933
+    },
+    {
+      "event_id": 24,
+      "event_name": "PVPCS_Active_Power_75_90-to-50_75",
+      "count": 6950,
+      "ratio": 0.1522120017520806
+    },
+    {
+      "event_id": 7,
+      "event_name": "PVPCS_Active_Power_10_25-to-25_50",
+      "count": 3899,
+      "ratio": 0.08539202803328953
+    },
+    {
+      "event_id": 12,
+      "event_name": "PVPCS_Active_Power_25_50-to-10_25",
+      "count": 3787,
+      "ratio": 0.08293911519929917
+    },
+    {
+      "event_id": 25,
+      "event_name": "PVPCS_Active_Power_75_90-to-90_100",
+      "count": 1703,
+      "ratio": 0.03729741568112133
+    },
+    {
+      "event_id": 30,
+      "event_name": "PVPCS_Active_Power_90_100-to-75_90",
+      "count": 1647,
+      "ratio": 0.03607095926412615
+    },
+    {
+      "event_id": 1,
+      "event_name": "PVPCS_Active_Power_0_10-to-10_25",
+      "count": 1344,
+      "ratio": 0.029434954007884363
+    },
+    {
+      "event_id": 6,
+      "event_name": "PVPCS_Active_Power_10_25-to-0_10",
+      "count": 1335,
+      "ratio": 0.02923784494086728
+    },
+    {
+      "event_id": 23,
+      "event_name": "PVPCS_Active_Power_75_90-to-25_50",
+      "count": 619,
+      "ratio": 0.013556723609286028
+    },
+    {
+      "event_id": 29,
+      "event_name": "PVPCS_Active_Power_90_100-to-50_75",
+      "count": 529,
+      "ratio": 0.011585632939115199
+    },
+    {
+      "event_id": 14,
+      "event_name": "PVPCS_Active_Power_25_50-to-75_90",
+      "count": 506,
+      "ratio": 0.011081909767849321
+    },
+    {
+      "event_id": 20,
+      "event_name": "PVPCS_Active_Power_50_75-to-90_100",
+      "count": 484,
+      "ratio": 0.010600087604029786
+    },
+    {
+      "event_id": 17,
+      "event_name": "PVPCS_Active_Power_50_75-to-10_25",
+      "count": 289,
+      "ratio": 0.006329391151992991
+    },
+    {
+      "event_id": 8,
+      "event_name": "PVPCS_Active_Power_10_25-to-50_75",
+      "count": 203,
+      "ratio": 0.004445904511607534
+    },
+    {
+      "event_id": 28,
+      "event_name": "PVPCS_Active_Power_90_100-to-25_50",
+      "count": 188,
+      "ratio": 0.004117389399912396
+    },
+    {
+      "event_id": 15,
+      "event_name": "PVPCS_Active_Power_25_50-to-90_100",
+      "count": 178,
+      "ratio": 0.0038983793254489707
+    },
+    {
+      "event_id": 22,
+      "event_name": "PVPCS_Active_Power_75_90-to-10_25",
+      "count": 51,
+      "ratio": 0.001116951379763469
+    },
+    {
+      "event_id": 9,
+      "event_name": "PVPCS_Active_Power_10_25-to-75_90",
+      "count": 34,
+      "ratio": 0.0007446342531756461
+    }
+  ],
+  "band_occupancy": {
+    "PVPCS_Active_Power": {
+      "0_10": 2517703,
+      "10_25": 272529,
+      "25_50": 344678,
+      "50_75": 485470,
+      "75_90": 248434,
+      "90_100": 15857
+    }
+  },
+  "target_candidates": {
+    "PVPCS_Active_Power": {
+      "high": {
+        "candidate": true,
+        "extreme_event_count": 2373,
+        "extreme_event_ratio": 0.051971090670170826,
+        "reason": "passes high target candidate rules"
+      },
+      "low": {
+        "candidate": true,
+        "extreme_event_count": 1381,
+        "extreme_event_ratio": 0.030245291283399037,
+        "reason": "passes low target candidate rules"
+      }
+    }
+  }
+}
