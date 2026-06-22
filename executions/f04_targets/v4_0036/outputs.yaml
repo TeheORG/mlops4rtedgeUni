@@ -1,0 +1,60 @@
+phase: f04_targets
+variant: v4_0036
+artifacts:
+  dataset:
+    path: 04_targets.parquet
+    sha256: 96cf507fc3643d5e85a42b41166d6bda3ce7b69f9026cbc5953b263e4fdeb596
+  report:
+    path: 04_targets_report.html
+    sha256: fd35a90c1fa9bb759a1865e3f8109bc225d70e1648b30859496310edec168b0c
+exports:
+  Tu: 10
+  OW: 50
+  LT: 10
+  PW: 10
+  prediction_name: battery_active_power_low_20_fine_4
+  measure_name: Battery_Active_Power
+  target_operator: OR
+  target_event_types:
+  - Battery_Active_Power_20_40-to-0_20
+  - Battery_Active_Power_40_60-to-0_20
+  - Battery_Active_Power_60_80-to-0_20
+  target_event_count: 3
+  target_compatible: true
+  incompatibility_reason: null
+  target_candidate_checks:
+  - measure: Battery_Active_Power
+    direction: low
+  event_type_count: 20
+  window_strategy: synchro
+  parent_f03: v3_0018
+  parent_f02: v2_0018
+  n_windows: 39290
+  n_windows_pos: 40
+  n_windows_neg: 39250
+  n_positive: 40
+  n_negative: 39250
+  class_balance_ratio: 0.0010180707559175363
+  deduplication_stats:
+    total_sequences: 39290
+    unique_ow_sequences: 558
+    num_duplicate_sequences: 38732
+    duplicate_ratio: 0.9857979129549503
+    ambiguous_sequences: 1
+    ambiguous_samples: 4592
+    ambiguous_ratio: 0.11687452277933316
+    avg_label_consistency_per_ow: 0.9999843892448141
+  unique_ratio: 0.014202087045049631
+  dup_ratio_ow_parent: 0.9857979129549503
+  dup_ratio_pw_parent: 0.9940442860778824
+  seq_len_mean_ow_parent: 3.181471112242301
+metrics:
+  execution_time: 0.09060825099999192
+  n_windows: 39290
+  n_positive: 40
+  n_negative: 39250
+  positive_ratio: 0.0010180707559175363
+  target_compatible: true
+  incompatibility_reason: null
+provenance:
+  generated_at: '2026-06-22T21:51:33.933907+00:00'
