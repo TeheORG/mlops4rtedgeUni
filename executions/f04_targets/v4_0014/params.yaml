@@ -1,0 +1,20 @@
+phase: f04_targets
+variant: v4_0014
+parent: v3_0008
+parameters:
+  parent_variant: v3_0008
+  Tu: 10
+  OW: 50
+  LT: 10
+  PW: 10
+  event_type_count: 30
+  prediction_name: pvpcs_active_power_high_90_coarse_5
+  target_operator: OR
+  target_event_types:
+  - PVPCS_Active_Power_0_10-to-90_100
+  - PVPCS_Active_Power_10_25-to-90_100
+  - PVPCS_Active_Power_25_50-to-90_100
+  - PVPCS_Active_Power_50_75-to-90_100
+  - PVPCS_Active_Power_75_90-to-90_100
+parent_hashes:
+  v3_0008: 61d57aa9270009ea3a9079fc29511b6497694ad2694f5c12a94c86fbf379adef
