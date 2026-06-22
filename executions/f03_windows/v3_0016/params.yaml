@@ -1,0 +1,14 @@
+phase: f03_windows
+variant: v3_0016
+parent: v2_0016
+parameters:
+  parent_variant: v2_0016
+  Tu: 10
+  measure_name: Battery_Active_Power
+  OW: 50
+  LT: 10
+  PW: 10
+  window_strategy: synchro
+  nan_mode: discard
+parent_hashes:
+  v2_0016: debdf81129322cdbbcedfd4d0c408e638bb608f3bea4fbf002c8cc44fd03495c
