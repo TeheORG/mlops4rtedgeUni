@@ -1,0 +1,53 @@
+phase: f04_targets
+variant: v4_0056
+artifacts:
+  report:
+    path: 04_targets_report.html
+    sha256: 9ba0aa7e3195090dea3ed02758a8b26867783563e2dfcb6a07c4ec7067359a94
+exports:
+  Tu: 10
+  OW: 90
+  LT: 10
+  PW: 10
+  event_type_count: 30
+  prediction_name: ge_active_power_high_90_coarse_5
+  measure_name: GE_Active_Power
+  target_operator: OR
+  target_event_types:
+  - GE_Active_Power_0_10-to-90_100
+  - GE_Active_Power_10_25-to-90_100
+  - GE_Active_Power_25_50-to-90_100
+  - GE_Active_Power_50_75-to-90_100
+  - GE_Active_Power_75_90-to-90_100
+  target_event_count: 5
+  n_windows: 0
+  n_windows_pos: 0
+  n_windows_neg: 0
+  n_positive: 0
+  n_negative: 0
+  target_compatible: false
+  incompatibility_reason: 'F04 target incompatible segun target_candidates de F02.
+    parent_f02=v2_0002. GE_Active_Power.high: candidate=false (does not pass high
+    target candidate rules)'
+  target_candidate_checks:
+  - measure: GE_Active_Power
+    direction: high
+  target_candidate_failures:
+  - measure: GE_Active_Power
+    direction: high
+    reason: does not pass high target candidate rules
+  parent_f03: v3_0029
+  parent_f02: v2_0002
+  parent_f01: null
+metrics:
+  execution_time: 0.008489539999999351
+  n_windows: 0
+  n_positive: 0
+  n_negative: 0
+  positive_ratio: 0.0
+  target_compatible: false
+  incompatibility_reason: 'F04 target incompatible segun target_candidates de F02.
+    parent_f02=v2_0002. GE_Active_Power.high: candidate=false (does not pass high
+    target candidate rules)'
+provenance:
+  generated_at: '2026-06-22T21:51:23.133408+00:00'
