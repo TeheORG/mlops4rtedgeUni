@@ -1,0 +1,16 @@
+
+===== CHECKING f03_windows (v3_0015) with spec =====
+[INFO] Spec: makefile_check_phases.yml
+[⭕️FAIL] missing required file: 03_events_catalog.json
+[⭕️FAIL] missing required file: 03_windows_report.html
+[⭕️FAIL] missing required file: 03_windows.parquet
+[⭕️FAIL] missing required file: outputs.yaml
+[OK] exists: metadata.yaml
+[OK] exists: params.yaml
+[OK] not empty: metadata.yaml
+[OK] size: params.yaml (> 0B & < 1KB)
+
+======####@@@@@@@@@@@@####======
+❌[ERROR] Validation failed with 4 issue(s)
+======####@@@@@@@@@@@@####======
+
