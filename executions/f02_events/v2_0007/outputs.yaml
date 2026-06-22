@@ -1,0 +1,161 @@
+phase: f02_events
+variant: v2_0007
+artifacts:
+  events:
+    path: 02_events.parquet
+    sha256: 7eb7516a93e714c6333471523b7d4217e73578baf1329a1275e25eb1512630e9
+  catalog:
+    path: 02_events_catalog.json
+    sha256: 262215e65d138d1c00d9053b5a5b7dbacf4c53a37b81f187c9ad06eda2ae0621
+  stats:
+    path: 02_events_stats.json
+    sha256: 1bca5b243b70f61f4d4285a98535f218fbaadffe8f048bf771c755dbfec4ddf5
+  report:
+    path: 02_events_report.html
+    sha256: 4362d51c576b1a0260a2b00ad0ac720398c42d639fb000881699b205d5ca36ac
+exports:
+  Tu: 10
+  measure_name: PVPCS_Active_Power
+  event_strategy: transitions
+  bands:
+  - 10
+  - 20
+  - 30
+  - 40
+  - 50
+  - 60
+  - 70
+  - 80
+  - 90
+  event_types:
+  - PVPCS_Active_Power_0_10-to-10_20
+  - PVPCS_Active_Power_0_10-to-20_30
+  - PVPCS_Active_Power_0_10-to-30_40
+  - PVPCS_Active_Power_0_10-to-40_50
+  - PVPCS_Active_Power_0_10-to-50_60
+  - PVPCS_Active_Power_0_10-to-60_70
+  - PVPCS_Active_Power_0_10-to-70_80
+  - PVPCS_Active_Power_0_10-to-80_90
+  - PVPCS_Active_Power_0_10-to-90_100
+  - PVPCS_Active_Power_10_20-to-0_10
+  - PVPCS_Active_Power_10_20-to-20_30
+  - PVPCS_Active_Power_10_20-to-30_40
+  - PVPCS_Active_Power_10_20-to-40_50
+  - PVPCS_Active_Power_10_20-to-50_60
+  - PVPCS_Active_Power_10_20-to-60_70
+  - PVPCS_Active_Power_10_20-to-70_80
+  - PVPCS_Active_Power_10_20-to-80_90
+  - PVPCS_Active_Power_10_20-to-90_100
+  - PVPCS_Active_Power_20_30-to-0_10
+  - PVPCS_Active_Power_20_30-to-10_20
+  - PVPCS_Active_Power_20_30-to-30_40
+  - PVPCS_Active_Power_20_30-to-40_50
+  - PVPCS_Active_Power_20_30-to-50_60
+  - PVPCS_Active_Power_20_30-to-60_70
+  - PVPCS_Active_Power_20_30-to-70_80
+  - PVPCS_Active_Power_20_30-to-80_90
+  - PVPCS_Active_Power_20_30-to-90_100
+  - PVPCS_Active_Power_30_40-to-0_10
+  - PVPCS_Active_Power_30_40-to-10_20
+  - PVPCS_Active_Power_30_40-to-20_30
+  - PVPCS_Active_Power_30_40-to-40_50
+  - PVPCS_Active_Power_30_40-to-50_60
+  - PVPCS_Active_Power_30_40-to-60_70
+  - PVPCS_Active_Power_30_40-to-70_80
+  - PVPCS_Active_Power_30_40-to-80_90
+  - PVPCS_Active_Power_30_40-to-90_100
+  - PVPCS_Active_Power_40_50-to-0_10
+  - PVPCS_Active_Power_40_50-to-10_20
+  - PVPCS_Active_Power_40_50-to-20_30
+  - PVPCS_Active_Power_40_50-to-30_40
+  - PVPCS_Active_Power_40_50-to-50_60
+  - PVPCS_Active_Power_40_50-to-60_70
+  - PVPCS_Active_Power_40_50-to-70_80
+  - PVPCS_Active_Power_40_50-to-80_90
+  - PVPCS_Active_Power_40_50-to-90_100
+  - PVPCS_Active_Power_50_60-to-0_10
+  - PVPCS_Active_Power_50_60-to-10_20
+  - PVPCS_Active_Power_50_60-to-20_30
+  - PVPCS_Active_Power_50_60-to-30_40
+  - PVPCS_Active_Power_50_60-to-40_50
+  - PVPCS_Active_Power_50_60-to-60_70
+  - PVPCS_Active_Power_50_60-to-70_80
+  - PVPCS_Active_Power_50_60-to-80_90
+  - PVPCS_Active_Power_50_60-to-90_100
+  - PVPCS_Active_Power_60_70-to-0_10
+  - PVPCS_Active_Power_60_70-to-10_20
+  - PVPCS_Active_Power_60_70-to-20_30
+  - PVPCS_Active_Power_60_70-to-30_40
+  - PVPCS_Active_Power_60_70-to-40_50
+  - PVPCS_Active_Power_60_70-to-50_60
+  - PVPCS_Active_Power_60_70-to-70_80
+  - PVPCS_Active_Power_60_70-to-80_90
+  - PVPCS_Active_Power_60_70-to-90_100
+  - PVPCS_Active_Power_70_80-to-0_10
+  - PVPCS_Active_Power_70_80-to-10_20
+  - PVPCS_Active_Power_70_80-to-20_30
+  - PVPCS_Active_Power_70_80-to-30_40
+  - PVPCS_Active_Power_70_80-to-40_50
+  - PVPCS_Active_Power_70_80-to-50_60
+  - PVPCS_Active_Power_70_80-to-60_70
+  - PVPCS_Active_Power_70_80-to-80_90
+  - PVPCS_Active_Power_70_80-to-90_100
+  - PVPCS_Active_Power_80_90-to-0_10
+  - PVPCS_Active_Power_80_90-to-10_20
+  - PVPCS_Active_Power_80_90-to-20_30
+  - PVPCS_Active_Power_80_90-to-30_40
+  - PVPCS_Active_Power_80_90-to-40_50
+  - PVPCS_Active_Power_80_90-to-50_60
+  - PVPCS_Active_Power_80_90-to-60_70
+  - PVPCS_Active_Power_80_90-to-70_80
+  - PVPCS_Active_Power_80_90-to-90_100
+  - PVPCS_Active_Power_90_100-to-0_10
+  - PVPCS_Active_Power_90_100-to-10_20
+  - PVPCS_Active_Power_90_100-to-20_30
+  - PVPCS_Active_Power_90_100-to-30_40
+  - PVPCS_Active_Power_90_100-to-40_50
+  - PVPCS_Active_Power_90_100-to-50_60
+  - PVPCS_Active_Power_90_100-to-60_70
+  - PVPCS_Active_Power_90_100-to-70_80
+  - PVPCS_Active_Power_90_100-to-80_90
+  n_event_types: 90
+  n_events: 3887242
+  n_types: 90
+  n_types_observed: 87
+  target_candidates:
+    PVPCS_Active_Power:
+      high:
+        candidate: true
+        extreme_event_count: 2373
+        extreme_event_ratio: 0.02920327844642989
+        reason: passes high target candidate rules
+      low:
+        candidate: true
+        extreme_event_count: 1381
+        extreme_event_ratio: 0.016995249698491227
+        reason: passes low target candidate rules
+metrics:
+  execution_time: 7.383181111999988
+  n_rows_in: 3887242
+  n_rows_out: 3887242
+  total_events_generated: 81258
+  mean_events_per_row: 0.020903766732300176
+  empty_rows_ratio: 0.9790962332676998
+  n_event_types_observed: 87
+  catalog_coverage_ratio: 0.9666666666666667
+  top1_event_ratio: 0.06913780796967683
+  rare_event_ratio: 0.04619852814492111
+  eventless_measure_ratio: 0.0
+  non_eventless_measure_ratio: 1.0
+  high_rare_measure_ratio: 1.0
+  low_rare_measure_ratio: 1.0
+  high_rare_event_ratio: 0.02920327844642989
+  low_rare_event_ratio: 0.016995249698491227
+  f02_quality_score: 0.8426589519146713
+  f02_gate_status: warning
+  event_entropy: 3.3336158145220445
+  normalized_event_entropy: 0.7464586655057163
+  n_transition_events: 81258
+  jump_size_mean: 1.2592852396071772
+provenance:
+  generated_at: '2026-06-22T15:18:53.055726+00:00'
