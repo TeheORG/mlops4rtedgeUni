@@ -1,0 +1,38 @@
+phase: f03_windows
+variant: v3_0009
+artifacts:
+  dataset:
+    path: 03_windows.parquet
+    sha256: 7b6785f74977d83fe7557b0d7d2131c3fe6e9b96c6d91fae5545c1c226b03503
+  catalog:
+    path: 03_events_catalog.json
+    sha256: 29164d5a74c131b01ef5e0163c93f9c67a80d864a0db3b310bc498cedbc19980
+  report:
+    path: 03_windows_report.html
+    sha256: 90ed1f29697cd5289a28427c8fb138f545e7a39b606f14ec3abe329cf459856d
+exports:
+  Tu: 10
+  OW: 50
+  LT: 10
+  PW: 10
+  Ratio_PW_OW: 0.2
+  event_type_count: 20
+  window_strategy: synchro
+  nan_mode: discard
+  measure_name: PVPCS_Active_Power
+  parent_f02: v2_0009
+  n_windows: 526283
+  n_unique_ow_hash: 26617
+  n_unique_pw_hash: 4166
+  dup_ratio_ow: 0.949424549149412
+  dup_ratio_pw: 0.9920841068398562
+  seq_len_mean_ow: 4.407799605915448
+  seq_len_mean_pw: 0.8815599211830897
+  seq_len_std_ow: 4.3614652739842095
+  seq_len_std_pw: 1.3863322318658535
+metrics:
+  execution_time: 13.167526191000007
+  n_events_in: 3887242
+  n_windows_out: 526283
+provenance:
+  generated_at: '2026-06-22T16:20:59.032136+00:00'
