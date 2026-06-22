@@ -1,0 +1,65 @@
+phase: f04_targets
+variant: v4_0106
+artifacts:
+  dataset:
+    path: 04_targets.parquet
+    sha256: 3d926423c73aef2e2d73a39c8be83c583b6a65cfdf2349eb63fc4dfbdf80fe5a
+  report:
+    path: 04_targets_report.html
+    sha256: 3ae78c4a9e25ebc81f9c0f5b4a6753e9521eb03cdaa9c8cf8e300b316b44b86c
+exports:
+  Tu: 10
+  OW: 90
+  LT: 10
+  PW: 10
+  prediction_name: island_mode_mccb_active_power_low_10_coarse_10
+  measure_name: Island_mode_MCCB_Active_Power
+  target_operator: OR
+  target_event_types:
+  - Island_mode_MCCB_Active_Power_10_20-to-0_10
+  - Island_mode_MCCB_Active_Power_20_30-to-0_10
+  - Island_mode_MCCB_Active_Power_30_40-to-0_10
+  - Island_mode_MCCB_Active_Power_40_50-to-0_10
+  - Island_mode_MCCB_Active_Power_50_60-to-0_10
+  - Island_mode_MCCB_Active_Power_60_70-to-0_10
+  - Island_mode_MCCB_Active_Power_70_80-to-0_10
+  - Island_mode_MCCB_Active_Power_80_90-to-0_10
+  target_event_count: 8
+  target_compatible: true
+  incompatibility_reason: null
+  target_candidate_checks:
+  - measure: Island_mode_MCCB_Active_Power
+    direction: low
+  event_type_count: 90
+  window_strategy: synchro
+  parent_f03: v3_0052
+  parent_f02: v2_0025
+  n_windows: 646741
+  n_windows_pos: 3503
+  n_windows_neg: 643238
+  n_positive: 3503
+  n_negative: 643238
+  class_balance_ratio: 0.005416387703887646
+  deduplication_stats:
+    total_sequences: 646741
+    unique_ow_sequences: 9859
+    num_duplicate_sequences: 636882
+    duplicate_ratio: 0.9847558759998206
+    ambiguous_sequences: 217
+    ambiguous_samples: 71039
+    ambiguous_ratio: 0.10984149760104896
+    avg_label_consistency_per_ow: 0.9947124326828057
+  unique_ratio: 0.015244124000179361
+  dup_ratio_ow_parent: 0.9847558759998206
+  dup_ratio_pw_parent: 0.9987908606381843
+  seq_len_mean_ow_parent: 5.890889861629308
+metrics:
+  execution_time: 1.0112125160000005
+  n_windows: 646741
+  n_positive: 3503
+  n_negative: 643238
+  positive_ratio: 0.005416387703887646
+  target_compatible: true
+  incompatibility_reason: null
+provenance:
+  generated_at: '2026-06-22T22:08:15.055659+00:00'
