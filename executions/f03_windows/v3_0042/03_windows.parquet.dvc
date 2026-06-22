@@ -1,0 +1,5 @@
+outs:
+- md5: 0f53b1e16fcfdb0da3e632a8e6920bdd
+  size: 171441
+  hash: md5
+  path: 03_windows.parquet
