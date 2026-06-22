@@ -1,0 +1,19 @@
+phase: f04_targets
+variant: v4_0083
+parent: v3_0041
+parameters:
+  parent_variant: v3_0041
+  Tu: 10
+  OW: 90
+  LT: 10
+  PW: 10
+  event_type_count: 30
+  prediction_name: inlet_temperature_of_chilled_water_low_10_coarse_5
+  target_operator: OR
+  target_event_types:
+  - Inlet_Temperature_of_Chilled_Water_10_25-to-0_10
+  - Inlet_Temperature_of_Chilled_Water_25_50-to-0_10
+  - Inlet_Temperature_of_Chilled_Water_50_75-to-0_10
+  - Inlet_Temperature_of_Chilled_Water_75_90-to-0_10
+parent_hashes:
+  v3_0041: 0a104a14ac61cb080298f5956607241bd8aa9b5215cfaaac23023e9d91bf6bba
