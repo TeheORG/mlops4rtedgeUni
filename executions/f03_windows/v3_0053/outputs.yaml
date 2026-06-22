@@ -1,0 +1,38 @@
+phase: f03_windows
+variant: v3_0053
+artifacts:
+  dataset:
+    path: 03_windows.parquet
+    sha256: 77ed563372b931f4db94f3eb06399c66cd4c4588e08625e65df19e018b40b924
+  catalog:
+    path: 03_events_catalog.json
+    sha256: 745e0c8511753114a4385ad009dba9c266134c7a1c97c10d4e41fad2148589e2
+  report:
+    path: 03_windows_report.html
+    sha256: 988227672d0d5bdaec45de19ed36da86efe30a5ecb5d0b2779da80abf13b70b1
+exports:
+  Tu: 10
+  OW: 90
+  LT: 10
+  PW: 10
+  Ratio_PW_OW: 0.1111111111111111
+  event_type_count: 30
+  window_strategy: synchro
+  nan_mode: discard
+  measure_name: Island_mode_MCCB_Active_Power
+  parent_f02: v2_0026
+  n_windows: 218176
+  n_unique_ow_hash: 761
+  n_unique_pw_hash: 147
+  dup_ratio_ow: 0.9965119903197419
+  dup_ratio_pw: 0.9993262320328542
+  seq_len_mean_ow: 6.046998753300088
+  seq_len_mean_pw: 0.6718887503666764
+  seq_len_std_ow: 5.628687179613159
+  seq_len_std_pw: 1.1398156386782852
+metrics:
+  execution_time: 10.211434362999995
+  n_events_in: 3887242
+  n_windows_out: 218176
+provenance:
+  generated_at: '2026-06-22T21:41:30.228147+00:00'
