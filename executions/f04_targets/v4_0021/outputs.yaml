@@ -1,0 +1,61 @@
+phase: f04_targets
+variant: v4_0021
+artifacts:
+  dataset:
+    path: 04_targets.parquet
+    sha256: 4a177a81b3ae1dc9c6da618c26f8a0c19275b589b3f03f402ff33d93c0f72e5b
+  report:
+    path: 04_targets_report.html
+    sha256: 3ae5ed0c54f0d53bd1d62cc3e1b2832194b4ade73315a7b053b56fb10ee7b4ac
+exports:
+  Tu: 10
+  OW: 50
+  LT: 10
+  PW: 10
+  prediction_name: mg_lv_msb_ac_voltage_high_80_fine_4
+  measure_name: MG-LV-MSB_AC_Voltage
+  target_operator: OR
+  target_event_types:
+  - MG-LV-MSB_AC_Voltage_0_20-to-80_100
+  - MG-LV-MSB_AC_Voltage_20_40-to-80_100
+  - MG-LV-MSB_AC_Voltage_40_60-to-80_100
+  - MG-LV-MSB_AC_Voltage_60_80-to-80_100
+  target_event_count: 4
+  target_compatible: true
+  incompatibility_reason: null
+  target_candidate_checks:
+  - measure: MG-LV-MSB_AC_Voltage
+    direction: high
+  event_type_count: 20
+  window_strategy: synchro
+  parent_f03: v3_0012
+  parent_f02: v2_0012
+  n_windows: 273463
+  n_windows_pos: 84106
+  n_windows_neg: 189357
+  n_positive: 84106
+  n_negative: 189357
+  class_balance_ratio: 0.3075589750715819
+  deduplication_stats:
+    total_sequences: 273463
+    unique_ow_sequences: 65
+    num_duplicate_sequences: 273398
+    duplicate_ratio: 0.9997623078807736
+    ambiguous_sequences: 55
+    ambiguous_samples: 273390
+    ambiguous_ratio: 0.9997330534660996
+    avg_label_consistency_per_ow: 0.6983385332757213
+  unique_ratio: 0.000237692119226367
+  dup_ratio_ow_parent: 0.9997623078807736
+  dup_ratio_pw_parent: 0.9999085799541437
+  seq_len_mean_ow_parent: 4.19965406654648
+metrics:
+  execution_time: 0.415022239999999
+  n_windows: 273463
+  n_positive: 84106
+  n_negative: 189357
+  positive_ratio: 0.3075589750715819
+  target_compatible: true
+  incompatibility_reason: null
+provenance:
+  generated_at: '2026-06-22T22:14:19.778686+00:00'
