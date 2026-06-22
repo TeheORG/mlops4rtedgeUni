@@ -1,0 +1,20 @@
+phase: f04_targets
+variant: v4_0056
+parent: v3_0029
+parameters:
+  parent_variant: v3_0029
+  Tu: 10
+  OW: 90
+  LT: 10
+  PW: 10
+  event_type_count: 30
+  prediction_name: ge_active_power_high_90_coarse_5
+  target_operator: OR
+  target_event_types:
+  - GE_Active_Power_0_10-to-90_100
+  - GE_Active_Power_10_25-to-90_100
+  - GE_Active_Power_25_50-to-90_100
+  - GE_Active_Power_50_75-to-90_100
+  - GE_Active_Power_75_90-to-90_100
+parent_hashes:
+  v3_0029: 7f501027d3084c19e32199a0e3e7fb3d4abd808e5fae5759a5cab78ff88fd4e0
