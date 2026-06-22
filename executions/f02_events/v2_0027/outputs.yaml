@@ -1,0 +1,86 @@
+phase: f02_events
+variant: v2_0027
+artifacts:
+  events:
+    path: 02_events.parquet
+    sha256: 1afa5c8a0ea0ce9e70f94ab14a9f8950075fdb5315bcd5139becafc66c4bf4fc
+  catalog:
+    path: 02_events_catalog.json
+    sha256: 02a3cc0f86f859c959dc845ff0b98918d590a52b742f19385eb2e8703e2f2bc4
+  stats:
+    path: 02_events_stats.json
+    sha256: 6679ce3c0084b7712a4cbb9cc037eaef2e363d9139c6d560d3dff152d55aca4c
+  report:
+    path: 02_events_report.html
+    sha256: 949558a62cc20743ee2326b5a2464afb793d4e9dc868d902bb4278bc9fbc658e
+exports:
+  Tu: 10
+  measure_name: Island_mode_MCCB_Active_Power
+  event_strategy: transitions
+  bands:
+  - 20
+  - 40
+  - 60
+  - 80
+  event_types:
+  - Island_mode_MCCB_Active_Power_0_20-to-20_40
+  - Island_mode_MCCB_Active_Power_0_20-to-40_60
+  - Island_mode_MCCB_Active_Power_0_20-to-60_80
+  - Island_mode_MCCB_Active_Power_0_20-to-80_100
+  - Island_mode_MCCB_Active_Power_20_40-to-0_20
+  - Island_mode_MCCB_Active_Power_20_40-to-40_60
+  - Island_mode_MCCB_Active_Power_20_40-to-60_80
+  - Island_mode_MCCB_Active_Power_20_40-to-80_100
+  - Island_mode_MCCB_Active_Power_40_60-to-0_20
+  - Island_mode_MCCB_Active_Power_40_60-to-20_40
+  - Island_mode_MCCB_Active_Power_40_60-to-60_80
+  - Island_mode_MCCB_Active_Power_40_60-to-80_100
+  - Island_mode_MCCB_Active_Power_60_80-to-0_20
+  - Island_mode_MCCB_Active_Power_60_80-to-20_40
+  - Island_mode_MCCB_Active_Power_60_80-to-40_60
+  - Island_mode_MCCB_Active_Power_60_80-to-80_100
+  - Island_mode_MCCB_Active_Power_80_100-to-0_20
+  - Island_mode_MCCB_Active_Power_80_100-to-20_40
+  - Island_mode_MCCB_Active_Power_80_100-to-40_60
+  - Island_mode_MCCB_Active_Power_80_100-to-60_80
+  n_event_types: 20
+  n_events: 3887242
+  n_types: 20
+  n_types_observed: 14
+  target_candidates:
+    Island_mode_MCCB_Active_Power:
+      high:
+        candidate: true
+        extreme_event_count: 34
+        extreme_event_ratio: 0.001394871794871795
+        reason: passes high target candidate rules
+      low:
+        candidate: true
+        extreme_event_count: 3565
+        extreme_event_ratio: 0.14625641025641026
+        reason: passes low target candidate rules
+metrics:
+  execution_time: 8.178701336000017
+  n_rows_in: 3887242
+  n_rows_out: 3887242
+  total_events_generated: 24375
+  mean_events_per_row: 0.0062705126153710005
+  empty_rows_ratio: 0.993729487384629
+  n_event_types_observed: 14
+  catalog_coverage_ratio: 0.7
+  top1_event_ratio: 0.23593846153846154
+  rare_event_ratio: 0.14765128205128206
+  eventless_measure_ratio: 0.0
+  non_eventless_measure_ratio: 1.0
+  high_rare_measure_ratio: 1.0
+  low_rare_measure_ratio: 1.0
+  high_rare_event_ratio: 0.001394871794871795
+  low_rare_event_ratio: 0.14625641025641026
+  f02_quality_score: 0.7829757135337773
+  f02_gate_status: warning
+  event_entropy: 1.7717988994360558
+  normalized_event_entropy: 0.6713756762890641
+  n_transition_events: 24375
+  jump_size_mean: 1.0014769230769232
+provenance:
+  generated_at: '2026-06-22T15:23:01.739283+00:00'
