@@ -1,0 +1,262 @@
+{
+  "global": {
+    "total_events_generated": 668,
+    "mean_events_per_row": 0.00017184420213611605,
+    "std_events_per_row": 0.0131078095693487,
+    "max_events_per_row": 1,
+    "p95_events_per_row": 0.0,
+    "empty_rows_ratio": 0.9998281557978639,
+    "nonempty_rows_ratio": 0.00017184420213611605,
+    "n_event_types_catalog": 30,
+    "n_event_types_observed": 13,
+    "catalog_coverage_ratio": 0.43333333333333335,
+    "effective_catalog_unused_ratio": 0.5666666666666667,
+    "rare_event_count": 160,
+    "rare_event_ratio": 0.23952095808383234,
+    "rare_event_types_observed": 3,
+    "rare_event_type_ratio": 0.23076923076923078,
+    "top1_event_ratio": 0.1781437125748503,
+    "top5_event_ratio": 0.7155688622754491,
+    "event_entropy": 2.1977805027297532,
+    "normalized_event_entropy": 0.8568514213882332,
+    "n_consecutive_steps": 3887230,
+    "consecutive_ratio": 0.9999971702294764,
+    "n_broken_steps": 11,
+    "broken_ratio": 2.829770523618165e-06,
+    "n_level_events": 0,
+    "n_unique_level_types_observed": 0,
+    "n_measures_total": 1,
+    "n_eventless_measures": 0,
+    "eventless_measure_ratio": 0.0,
+    "n_non_eventless_measures": 1,
+    "non_eventless_measure_ratio": 1.0,
+    "n_measures_with_high_rare_events": 1,
+    "n_measures_with_low_rare_events": 1,
+    "high_rare_measure_ratio": 1.0,
+    "low_rare_measure_ratio": 1.0,
+    "high_rare_event_count": 93,
+    "low_rare_event_count": 67,
+    "high_rare_event_ratio": 0.13922155688622753,
+    "low_rare_event_ratio": 0.10029940119760479,
+    "events_per_million_rows": 171.84420213611605,
+    "n_transition_events": 668,
+    "n_unique_transition_types_observed": 13,
+    "transition_coverage_ratio": 0.43333333333333335,
+    "jump_size_mean": 1.0434131736526946,
+    "jump_size_std": 0.21798278362795398,
+    "pct_jump_eq_1": 0.9595808383233533,
+    "pct_jump_ge_2": 0.040419161676646706,
+    "pct_jump_ge_3": 0.0029940119760479044,
+    "f02_quality_score": 0.7961982603181967,
+    "activity_flag": "reject",
+    "diversity_flag": "ok",
+    "catalog_flag": "ok",
+    "dominance_flag": "warning",
+    "continuity_flag": "ok",
+    "measure_coverage_flag": "ok",
+    "f02_gate_status": "reject"
+  },
+  "event_frequency": {
+    "19": {
+      "event_name": "FC_Active_Power_50_75-to-75_90",
+      "count": 119
+    },
+    "24": {
+      "event_name": "FC_Active_Power_75_90-to-50_75",
+      "count": 117
+    },
+    "25": {
+      "event_name": "FC_Active_Power_75_90-to-90_100",
+      "count": 93
+    },
+    "30": {
+      "event_name": "FC_Active_Power_90_100-to-75_90",
+      "count": 91
+    },
+    "1": {
+      "event_name": "FC_Active_Power_0_10-to-10_25",
+      "count": 58
+    },
+    "13": {
+      "event_name": "FC_Active_Power_25_50-to-50_75",
+      "count": 51
+    },
+    "6": {
+      "event_name": "FC_Active_Power_10_25-to-0_10",
+      "count": 51
+    },
+    "18": {
+      "event_name": "FC_Active_Power_50_75-to-25_50",
+      "count": 50
+    },
+    "11": {
+      "event_name": "FC_Active_Power_25_50-to-0_10",
+      "count": 16
+    },
+    "2": {
+      "event_name": "FC_Active_Power_0_10-to-25_50",
+      "count": 9
+    },
+    "7": {
+      "event_name": "FC_Active_Power_10_25-to-25_50",
+      "count": 9
+    },
+    "28": {
+      "event_name": "FC_Active_Power_90_100-to-25_50",
+      "count": 2
+    },
+    "12": {
+      "event_name": "FC_Active_Power_25_50-to-10_25",
+      "count": 2
+    }
+  },
+  "per_measure": {
+    "FC_Active_Power": {
+      "n_events_generated": 668,
+      "n_unique_event_types_observed": 13,
+      "top1_ratio": 0.1781437125748503,
+      "rare_event_count": 160,
+      "rare_event_ratio": 0.23952095808383234,
+      "high_rare_event_count": 93,
+      "low_rare_event_count": 67,
+      "rare_event_type_count": 3,
+      "high_rare_event_type_count": 1,
+      "low_rare_event_type_count": 2,
+      "high_rare_event_ratio": 0.13922155688622753,
+      "low_rare_event_ratio": 0.10029940119760479,
+      "mean_events_per_row_contributed": 0.00017184420213611605,
+      "band_occupancy": {
+        "0_10": 6171,
+        "10_25": 1743,
+        "25_50": 751531,
+        "50_75": 3095569,
+        "75_90": 14053,
+        "90_100": 15604
+      },
+      "total_band_count": 3884671,
+      "n_active_bands": 6,
+      "max_band_count": 3095569,
+      "max_band_ratio": 0.7968677398935456,
+      "min_nonzero_band_count": 1743,
+      "extreme_band_count": 21775,
+      "extreme_band_ratio": 0.005605365293483026,
+      "middle_band_count": 3862896,
+      "middle_band_ratio": 0.994394634706517,
+      "occupancy_entropy": 0.5549328564613802,
+      "normalized_occupancy_entropy": 0.3097139242135343,
+      "is_eventless_measure": false,
+      "band_degeneracy_flag": false,
+      "extreme_occupancy_flag": false,
+      "jump_size_mean": 1.0434131736526946,
+      "measure_transition_score": 0.8096141097958985,
+      "high_target_candidate": true,
+      "low_target_candidate": true
+    }
+  },
+  "top_events": [
+    {
+      "event_id": 19,
+      "event_name": "FC_Active_Power_50_75-to-75_90",
+      "count": 119,
+      "ratio": 0.1781437125748503
+    },
+    {
+      "event_id": 24,
+      "event_name": "FC_Active_Power_75_90-to-50_75",
+      "count": 117,
+      "ratio": 0.1751497005988024
+    },
+    {
+      "event_id": 25,
+      "event_name": "FC_Active_Power_75_90-to-90_100",
+      "count": 93,
+      "ratio": 0.13922155688622753
+    },
+    {
+      "event_id": 30,
+      "event_name": "FC_Active_Power_90_100-to-75_90",
+      "count": 91,
+      "ratio": 0.13622754491017963
+    },
+    {
+      "event_id": 1,
+      "event_name": "FC_Active_Power_0_10-to-10_25",
+      "count": 58,
+      "ratio": 0.08682634730538923
+    },
+    {
+      "event_id": 13,
+      "event_name": "FC_Active_Power_25_50-to-50_75",
+      "count": 51,
+      "ratio": 0.07634730538922156
+    },
+    {
+      "event_id": 6,
+      "event_name": "FC_Active_Power_10_25-to-0_10",
+      "count": 51,
+      "ratio": 0.07634730538922156
+    },
+    {
+      "event_id": 18,
+      "event_name": "FC_Active_Power_50_75-to-25_50",
+      "count": 50,
+      "ratio": 0.0748502994011976
+    },
+    {
+      "event_id": 11,
+      "event_name": "FC_Active_Power_25_50-to-0_10",
+      "count": 16,
+      "ratio": 0.023952095808383235
+    },
+    {
+      "event_id": 2,
+      "event_name": "FC_Active_Power_0_10-to-25_50",
+      "count": 9,
+      "ratio": 0.01347305389221557
+    },
+    {
+      "event_id": 7,
+      "event_name": "FC_Active_Power_10_25-to-25_50",
+      "count": 9,
+      "ratio": 0.01347305389221557
+    },
+    {
+      "event_id": 28,
+      "event_name": "FC_Active_Power_90_100-to-25_50",
+      "count": 2,
+      "ratio": 0.0029940119760479044
+    },
+    {
+      "event_id": 12,
+      "event_name": "FC_Active_Power_25_50-to-10_25",
+      "count": 2,
+      "ratio": 0.0029940119760479044
+    }
+  ],
+  "band_occupancy": {
+    "FC_Active_Power": {
+      "0_10": 6171,
+      "10_25": 1743,
+      "25_50": 751531,
+      "50_75": 3095569,
+      "75_90": 14053,
+      "90_100": 15604
+    }
+  },
+  "target_candidates": {
+    "FC_Active_Power": {
+      "high": {
+        "candidate": true,
+        "extreme_event_count": 93,
+        "extreme_event_ratio": 0.13922155688622753,
+        "reason": "passes high target candidate rules"
+      },
+      "low": {
+        "candidate": true,
+        "extreme_event_count": 67,
+        "extreme_event_ratio": 0.10029940119760479,
+        "reason": "passes low target candidate rules"
+      }
+    }
+  }
+}
