@@ -1,0 +1,51 @@
+phase: f04_targets
+variant: v4_0102
+artifacts:
+  report:
+    path: 04_targets_report.html
+    sha256: fdf74a2ad33032e5184977b2ef756e0f100b0b4d63d08ad9bef2ddc49892ed3c
+exports:
+  Tu: 10
+  OW: 90
+  LT: 10
+  PW: 10
+  event_type_count: 20
+  prediction_name: island_mode_mccb_ac_voltage_low_20_fine_4
+  measure_name: Island_mode_MCCB_AC_Voltage
+  target_operator: OR
+  target_event_types:
+  - Island_mode_MCCB_AC_Voltage_20_40-to-0_20
+  - Island_mode_MCCB_AC_Voltage_40_60-to-0_20
+  - Island_mode_MCCB_AC_Voltage_60_80-to-0_20
+  target_event_count: 3
+  n_windows: 0
+  n_windows_pos: 0
+  n_windows_neg: 0
+  n_positive: 0
+  n_negative: 0
+  target_compatible: false
+  incompatibility_reason: 'F04 target incompatible segun target_candidates de F02.
+    parent_f02=v2_0024. Island_mode_MCCB_AC_Voltage.low: candidate=false (does not
+    pass low target candidate rules)'
+  target_candidate_checks:
+  - measure: Island_mode_MCCB_AC_Voltage
+    direction: low
+  target_candidate_failures:
+  - measure: Island_mode_MCCB_AC_Voltage
+    direction: low
+    reason: does not pass low target candidate rules
+  parent_f03: v3_0051
+  parent_f02: v2_0024
+  parent_f01: null
+metrics:
+  execution_time: 0.006517161999994414
+  n_windows: 0
+  n_positive: 0
+  n_negative: 0
+  positive_ratio: 0.0
+  target_compatible: false
+  incompatibility_reason: 'F04 target incompatible segun target_candidates de F02.
+    parent_f02=v2_0024. Island_mode_MCCB_AC_Voltage.low: candidate=false (does not
+    pass low target candidate rules)'
+provenance:
+  generated_at: '2026-06-22T22:13:56.452123+00:00'
