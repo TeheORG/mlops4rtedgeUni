@@ -1,0 +1,38 @@
+phase: f03_windows
+variant: v3_0023
+artifacts:
+  dataset:
+    path: 03_windows.parquet
+    sha256: 8c89830e75a4bc44bacd230cb3ef3c04a5072f407da0ec38cbd2a83a66d32adf
+  catalog:
+    path: 03_events_catalog.json
+    sha256: 6fd08adba01ec5121f7cc94de3eb804001e454c5bb77e95d3ae80ba987fff096
+  report:
+    path: 03_windows_report.html
+    sha256: ce83af8636586d0b5578b0db78bcb3af2a2ada1f2ec2d69c3d2d28fa63d45bc8
+exports:
+  Tu: 10
+  OW: 50
+  LT: 10
+  PW: 10
+  Ratio_PW_OW: 0.2
+  event_type_count: 30
+  window_strategy: synchro
+  nan_mode: discard
+  measure_name: Island_mode_MCCB_AC_Voltage
+  parent_f02: v2_0023
+  n_windows: 681465
+  n_unique_ow_hash: 331
+  n_unique_pw_hash: 109
+  dup_ratio_ow: 0.9995142817312701
+  dup_ratio_pw: 0.9998400504794817
+  seq_len_mean_ow: 4.2000689690593065
+  seq_len_mean_pw: 0.8400137938118613
+  seq_len_std_ow: 4.021869915673409
+  seq_len_std_pw: 1.39682734172851
+metrics:
+  execution_time: 15.438219140000001
+  n_events_in: 3887242
+  n_windows_out: 681465
+provenance:
+  generated_at: '2026-06-22T16:28:57.068825+00:00'
