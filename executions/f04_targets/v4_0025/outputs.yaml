@@ -1,0 +1,66 @@
+phase: f04_targets
+variant: v4_0025
+artifacts:
+  dataset:
+    path: 04_targets.parquet
+    sha256: 376ec6e976d771de2f0c4a156de3c722aed2276e92749982abd2de52e1db5a44
+  report:
+    path: 04_targets_report.html
+    sha256: 9aea3228564fc6bd4dfde05850dd40880b8d4249ba26e39360974c40f6f7a3c6
+exports:
+  Tu: 10
+  OW: 50
+  LT: 10
+  PW: 10
+  prediction_name: inlet_temperature_of_chilled_water_high_90_coarse_10
+  measure_name: Inlet_Temperature_of_Chilled_Water
+  target_operator: OR
+  target_event_types:
+  - Inlet_Temperature_of_Chilled_Water_0_10-to-90_100
+  - Inlet_Temperature_of_Chilled_Water_10_20-to-90_100
+  - Inlet_Temperature_of_Chilled_Water_20_30-to-90_100
+  - Inlet_Temperature_of_Chilled_Water_30_40-to-90_100
+  - Inlet_Temperature_of_Chilled_Water_40_50-to-90_100
+  - Inlet_Temperature_of_Chilled_Water_50_60-to-90_100
+  - Inlet_Temperature_of_Chilled_Water_60_70-to-90_100
+  - Inlet_Temperature_of_Chilled_Water_70_80-to-90_100
+  - Inlet_Temperature_of_Chilled_Water_80_90-to-90_100
+  target_event_count: 9
+  target_compatible: true
+  incompatibility_reason: null
+  target_candidate_checks:
+  - measure: Inlet_Temperature_of_Chilled_Water
+    direction: high
+  event_type_count: 90
+  window_strategy: synchro
+  parent_f03: v3_0013
+  parent_f02: v2_0013
+  n_windows: 174363
+  n_windows_pos: 1568
+  n_windows_neg: 172795
+  n_positive: 1568
+  n_negative: 172795
+  class_balance_ratio: 0.008992733550122445
+  deduplication_stats:
+    total_sequences: 174363
+    unique_ow_sequences: 657
+    num_duplicate_sequences: 173706
+    duplicate_ratio: 0.996231998761205
+    ambiguous_sequences: 47
+    ambiguous_samples: 26259
+    ambiguous_ratio: 0.15059961115603654
+    avg_label_consistency_per_ow: 0.9779622354444265
+  unique_ratio: 0.003768001238794928
+  dup_ratio_ow_parent: 0.996231998761205
+  dup_ratio_pw_parent: 0.9988988489530463
+  seq_len_mean_ow_parent: 7.545178736314471
+metrics:
+  execution_time: 0.3231256500000086
+  n_windows: 174363
+  n_positive: 1568
+  n_negative: 172795
+  positive_ratio: 0.008992733550122445
+  target_compatible: true
+  incompatibility_reason: null
+provenance:
+  generated_at: '2026-06-22T22:06:13.602139+00:00'
