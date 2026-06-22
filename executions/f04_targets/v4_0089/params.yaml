@@ -1,0 +1,19 @@
+phase: f04_targets
+variant: v4_0089
+parent: v3_0044
+parameters:
+  parent_variant: v3_0044
+  Tu: 10
+  OW: 90
+  LT: 10
+  PW: 10
+  event_type_count: 30
+  prediction_name: battery_active_power_low_10_coarse_5
+  target_operator: OR
+  target_event_types:
+  - Battery_Active_Power_10_25-to-0_10
+  - Battery_Active_Power_25_50-to-0_10
+  - Battery_Active_Power_50_75-to-0_10
+  - Battery_Active_Power_75_90-to-0_10
+parent_hashes:
+  v3_0044: af29acd2453d4a87a021eb306dc8ba2ca0f9f23f4d221580e907e6dc6b6e446b
