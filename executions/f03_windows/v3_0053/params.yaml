@@ -1,0 +1,14 @@
+phase: f03_windows
+variant: v3_0053
+parent: v2_0026
+parameters:
+  parent_variant: v2_0026
+  Tu: 10
+  measure_name: Island_mode_MCCB_Active_Power
+  OW: 90
+  LT: 10
+  PW: 10
+  window_strategy: synchro
+  nan_mode: discard
+parent_hashes:
+  v2_0026: fd927e081d0bc17e10be6b59f538837bca63b82ffa3cc6e423ea9e947fdcdc75
