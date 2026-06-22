@@ -1,0 +1,14 @@
+phase: f03_windows
+variant: v3_0028
+parent: v2_0001
+parameters:
+  parent_variant: v2_0001
+  Tu: 10
+  measure_name: GE_Active_Power
+  OW: 90
+  LT: 10
+  PW: 10
+  window_strategy: synchro
+  nan_mode: discard
+parent_hashes:
+  v2_0001: 91c3dc1513c60965a0e7da67d319fa39ba4cafd08f112cee265afd3d5b5660a0
