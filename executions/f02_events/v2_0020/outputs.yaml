@@ -1,0 +1,97 @@
+phase: f02_events
+variant: v2_0020
+artifacts:
+  events:
+    path: 02_events.parquet
+    sha256: ac1c4460a46bbc7f45e4a466e353f0adf43cefd372b3c63cec7a32db952f2bed
+  catalog:
+    path: 02_events_catalog.json
+    sha256: f0657542ccd4874e775329a1d7f1e31c4a7940e010059481c0049782ee088a27
+  stats:
+    path: 02_events_stats.json
+    sha256: 1d1fafd2a2ac02ed1f476c97a335d54a85ae49f96f3014868f84ac3588d83e83
+  report:
+    path: 02_events_report.html
+    sha256: 011774adbe2edb3023fff88c84c34b4021ca21735f0a41937fe8ad670a05eb0a
+exports:
+  Tu: 10
+  measure_name: FC_Active_Power
+  event_strategy: transitions
+  bands:
+  - 10
+  - 25
+  - 50
+  - 75
+  - 90
+  event_types:
+  - FC_Active_Power_0_10-to-10_25
+  - FC_Active_Power_0_10-to-25_50
+  - FC_Active_Power_0_10-to-50_75
+  - FC_Active_Power_0_10-to-75_90
+  - FC_Active_Power_0_10-to-90_100
+  - FC_Active_Power_10_25-to-0_10
+  - FC_Active_Power_10_25-to-25_50
+  - FC_Active_Power_10_25-to-50_75
+  - FC_Active_Power_10_25-to-75_90
+  - FC_Active_Power_10_25-to-90_100
+  - FC_Active_Power_25_50-to-0_10
+  - FC_Active_Power_25_50-to-10_25
+  - FC_Active_Power_25_50-to-50_75
+  - FC_Active_Power_25_50-to-75_90
+  - FC_Active_Power_25_50-to-90_100
+  - FC_Active_Power_50_75-to-0_10
+  - FC_Active_Power_50_75-to-10_25
+  - FC_Active_Power_50_75-to-25_50
+  - FC_Active_Power_50_75-to-75_90
+  - FC_Active_Power_50_75-to-90_100
+  - FC_Active_Power_75_90-to-0_10
+  - FC_Active_Power_75_90-to-10_25
+  - FC_Active_Power_75_90-to-25_50
+  - FC_Active_Power_75_90-to-50_75
+  - FC_Active_Power_75_90-to-90_100
+  - FC_Active_Power_90_100-to-0_10
+  - FC_Active_Power_90_100-to-10_25
+  - FC_Active_Power_90_100-to-25_50
+  - FC_Active_Power_90_100-to-50_75
+  - FC_Active_Power_90_100-to-75_90
+  n_event_types: 30
+  n_events: 3887242
+  n_types: 30
+  n_types_observed: 13
+  target_candidates:
+    FC_Active_Power:
+      high:
+        candidate: true
+        extreme_event_count: 93
+        extreme_event_ratio: 0.13922155688622753
+        reason: passes high target candidate rules
+      low:
+        candidate: true
+        extreme_event_count: 67
+        extreme_event_ratio: 0.10029940119760479
+        reason: passes low target candidate rules
+metrics:
+  execution_time: 8.377716014
+  n_rows_in: 3887242
+  n_rows_out: 3887242
+  total_events_generated: 668
+  mean_events_per_row: 0.00017184420213611605
+  empty_rows_ratio: 0.9998281557978639
+  n_event_types_observed: 13
+  catalog_coverage_ratio: 0.43333333333333335
+  top1_event_ratio: 0.1781437125748503
+  rare_event_ratio: 0.23952095808383234
+  eventless_measure_ratio: 0.0
+  non_eventless_measure_ratio: 1.0
+  high_rare_measure_ratio: 1.0
+  low_rare_measure_ratio: 1.0
+  high_rare_event_ratio: 0.13922155688622753
+  low_rare_event_ratio: 0.10029940119760479
+  f02_quality_score: 0.7961982603181967
+  f02_gate_status: reject
+  event_entropy: 2.1977805027297532
+  normalized_event_entropy: 0.8568514213882332
+  n_transition_events: 668
+  jump_size_mean: 1.0434131736526946
+provenance:
+  generated_at: '2026-06-22T15:21:14.309348+00:00'
