@@ -1,0 +1,5 @@
+outs:
+- md5: 82c09a07bbd13ea42ddb1517534c3cf9
+  size: 16910888
+  hash: md5
+  path: 02_events.parquet
