@@ -529,20 +529,25 @@ check-results-generic: check-variant-format
 	@test -n "$(VARIANT)" || (echo "[ERROR] VARIANT not defined"; exit 1)
 
 	@VARIANT_NORM="$$($(NORMALIZE_VARIANT))"; \
+	CHECK_RESULTS_LOG="$(VARIANTS_DIR)/$$VARIANT_NORM/check_results.log"; \
 	$(UPDATE_VARIANT_VERIFIED) $(PHASE) $$VARIANT_NORM none >/dev/null 2>&1 || true; \
 	echo "==> Regenerating lineage dashboard"; \
 	$(MAKE) --no-print-directory generate_lineage || true; \
-	if ! $(PYTHON) -m scripts.core.phase_checker \
+	echo "==> Writing check report to $$CHECK_RESULTS_LOG"; \
+	mkdir -p "$$(dirname "$$CHECK_RESULTS_LOG")"; \
+	if ! (set -o pipefail; $(PYTHON) -m scripts.core.phase_checker \
 		--spec $(CHECK_FILE) \
 		--phase $(PHASE) \
-		--variant-dir "$(VARIANTS_DIR)/$$VARIANT_NORM"; then \
+		--variant-dir "$(VARIANTS_DIR)/$$VARIANT_NORM" 2>&1 | tee "$$CHECK_RESULTS_LOG"); then \
 		$(UPDATE_VARIANT_VERIFIED) $(PHASE) $$VARIANT_NORM false >/dev/null 2>&1 || true; \
 		echo "==> Regenerating lineage dashboard"; \
 		$(MAKE) --no-print-directory generate_lineage || true; \
 		echo "[ERROR] Phase checker validation failed"; \
+		echo "[INFO] Check report saved to $$CHECK_RESULTS_LOG"; \
 		exit 1; \
 	fi; \
 	$(UPDATE_VARIANT_VERIFIED) $(PHASE) $$VARIANT_NORM true >/dev/null 2>&1 || true; \
+	echo "[INFO] Check report saved to $$CHECK_RESULTS_LOG"; \
 	echo "==> Regenerating lineage dashboard"; \
 	$(MAKE) --no-print-directory generate_lineage || true
 
@@ -2010,7 +2015,86 @@ help: help-setup help1 help2 help3 help4 help5 help6 help7 help8
 	check1 check2 check3 check4 check5 check6 check7 check8 \
 	register1 register2 register3 register4 register5 register6 register7 register8 \
 	remove1 remove2 remove3 remove4 remove5 remove6 remove7 remove8 \
-	help1 help2 help3 help4 help5 help6 help7 help8
+	help1 help2 help3 help4 help5 help6 help7 help8 \
+	dvc-pull dvc-clean
+
+############################################
+# DVC pull artifacts for a variant
+############################################
+# Usage: make dvc-pull VARIANT=v5_0012                          # one variant
+#        make dvc-pull VARIANT=v2_0001,v1_0001,v5_0012          # several
+#        make dvc-pull VARIANT=v7                                # all phase-7 variants
+#        make dvc-pull VARIANT='v*_2*'                           # wildcard across phases
+dvc-pull:
+	@test -n "$(VARIANT)" || (echo "[ERROR] Usage: make dvc-pull VARIANT=vY_NNNN[,vY,v*_2*,...]"; exit 1)
+	@set -eu; \
+	if [ ! -f .dvc/config.local ]; then \
+		echo "[INFO] .dvc/config.local not found — configuring DVC credentials from .env"; \
+		if [ ! -f .env ]; then \
+			echo "[ERROR] .env file not found. Create it with DAGSHUB_USER and DAGSHUB_TOKEN"; exit 1; \
+		fi; \
+		DAGSHUB_USER=$$(grep -E '^DAGSHUB_USER=' .env | cut -d= -f2- | tr -d '"'"'"' '); \
+		DAGSHUB_TOKEN=$$(grep -E '^DAGSHUB_TOKEN=' .env | cut -d= -f2- | tr -d '"'"'"' '); \
+		if [ -z "$$DAGSHUB_USER" ] || [ -z "$$DAGSHUB_TOKEN" ]; then \
+			echo "[ERROR] DAGSHUB_USER and/or DAGSHUB_TOKEN not found in .env"; exit 1; \
+		fi; \
+		$(DVC) remote modify storage --local auth basic; \
+		$(DVC) remote modify storage --local user "$$DAGSHUB_USER"; \
+		$(DVC) remote modify storage --local password "$$DAGSHUB_TOKEN"; \
+		echo "[OK] DVC credentials configured"; \
+	fi; \
+	for V in $$(echo "$(VARIANT)" | tr ',' ' '); do \
+		case "$$V" in v[0-9]) V="$${V}_*" ;; esac; \
+		DPATTERN=$$(echo "$$V" | sed -n 's/^v\([0-9*?]\).*/\1/p'); \
+		if [ -z "$$DPATTERN" ]; then \
+			echo "[ERROR] Cannot parse $$V. Expected: vY_NNNN, vY, or wildcard (v*_2*)"; exit 1; \
+		fi; \
+		DIRS=$$(ls -d executions/f0$${DPATTERN}_*/$$V 2>/dev/null || true); \
+		if [ -z "$$DIRS" ]; then \
+			echo "[INFO] No variant directories matching $$V — skipping"; continue; \
+		fi; \
+		for VAR_DIR in $$DIRS; do \
+			DVC_FILES=$$(find "$$VAR_DIR" -maxdepth 1 -name '*.dvc' 2>/dev/null); \
+			if [ -z "$$DVC_FILES" ]; then \
+				echo "[INFO] No .dvc files in $$VAR_DIR — skipping"; continue; \
+			fi; \
+			echo "==> Pulling DVC artifacts for $$VAR_DIR"; \
+			$(DVC) pull $$VAR_DIR/*.dvc; \
+			echo "[OK] DVC pull complete for $$VAR_DIR"; \
+		done; \
+	done
+
+############################################
+# DVC clean: remove pulled artifacts for a variant
+############################################
+# Usage: make dvc-clean VARIANT=v5_0012                         # one variant
+#        make dvc-clean VARIANT=v2_0001,v5_0012                  # several
+#        make dvc-clean VARIANT=v7                               # all phase-7 variants
+#        make dvc-clean VARIANT='v*_2*'                          # wildcard across phases
+dvc-clean:
+	@test -n "$(VARIANT)" || (echo "[ERROR] Usage: make dvc-clean VARIANT=vY_NNNN[,vY,v*_2*,...]"; exit 1)
+	@set -eu; \
+	for V in $$(echo "$(VARIANT)" | tr ',' ' '); do \
+		case "$$V" in v[0-9]) V="$${V}_*" ;; esac; \
+		DPATTERN=$$(echo "$$V" | sed -n 's/^v\([0-9*?]\).*/\1/p'); \
+		if [ -z "$$DPATTERN" ]; then \
+			echo "[ERROR] Cannot parse $$V. Expected: vY_NNNN, vY, or wildcard (v*_2*)"; exit 1; \
+		fi; \
+		DIRS=$$(ls -d executions/f0$${DPATTERN}_*/$$V 2>/dev/null || true); \
+		if [ -z "$$DIRS" ]; then \
+			echo "[INFO] No variant directories matching $$V — skipping"; continue; \
+		fi; \
+		for VAR_DIR in $$DIRS; do \
+			for dvc_file in $$VAR_DIR/*.dvc; do \
+				[ -f "$$dvc_file" ] || continue; \
+				DATA_FILE="$${dvc_file%.dvc}"; \
+				if [ -e "$$DATA_FILE" ]; then \
+					rm -rf "$$DATA_FILE"; \
+					echo "[OK] Removed $$DATA_FILE"; \
+				fi; \
+			done; \
+		done; \
+	done
 
 ############################################
 # Utils
