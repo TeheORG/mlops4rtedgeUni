@@ -1,0 +1,97 @@
+phase: f02_events
+variant: v2_0011
+artifacts:
+  events:
+    path: 02_events.parquet
+    sha256: 19193c6aa2bcef59aea56a67a20e2f8096b0a3c490a9e30c452339114ebd5143
+  catalog:
+    path: 02_events_catalog.json
+    sha256: 940f15a77356da8383a1dc8122f0c2069241ba36893cd79eb480c2cc2d023eb2
+  stats:
+    path: 02_events_stats.json
+    sha256: e21bb4c6feba1b0b4613d669fcb4007a8a45204f709159d764fb7fa0b1108709
+  report:
+    path: 02_events_report.html
+    sha256: d4def5733ed6c0debbc330da2faa61c4ceac4110837205f1add5bd61baee203a
+exports:
+  Tu: 10
+  measure_name: MG-LV-MSB_AC_Voltage
+  event_strategy: transitions
+  bands:
+  - 10
+  - 25
+  - 50
+  - 75
+  - 90
+  event_types:
+  - MG-LV-MSB_AC_Voltage_0_10-to-10_25
+  - MG-LV-MSB_AC_Voltage_0_10-to-25_50
+  - MG-LV-MSB_AC_Voltage_0_10-to-50_75
+  - MG-LV-MSB_AC_Voltage_0_10-to-75_90
+  - MG-LV-MSB_AC_Voltage_0_10-to-90_100
+  - MG-LV-MSB_AC_Voltage_10_25-to-0_10
+  - MG-LV-MSB_AC_Voltage_10_25-to-25_50
+  - MG-LV-MSB_AC_Voltage_10_25-to-50_75
+  - MG-LV-MSB_AC_Voltage_10_25-to-75_90
+  - MG-LV-MSB_AC_Voltage_10_25-to-90_100
+  - MG-LV-MSB_AC_Voltage_25_50-to-0_10
+  - MG-LV-MSB_AC_Voltage_25_50-to-10_25
+  - MG-LV-MSB_AC_Voltage_25_50-to-50_75
+  - MG-LV-MSB_AC_Voltage_25_50-to-75_90
+  - MG-LV-MSB_AC_Voltage_25_50-to-90_100
+  - MG-LV-MSB_AC_Voltage_50_75-to-0_10
+  - MG-LV-MSB_AC_Voltage_50_75-to-10_25
+  - MG-LV-MSB_AC_Voltage_50_75-to-25_50
+  - MG-LV-MSB_AC_Voltage_50_75-to-75_90
+  - MG-LV-MSB_AC_Voltage_50_75-to-90_100
+  - MG-LV-MSB_AC_Voltage_75_90-to-0_10
+  - MG-LV-MSB_AC_Voltage_75_90-to-10_25
+  - MG-LV-MSB_AC_Voltage_75_90-to-25_50
+  - MG-LV-MSB_AC_Voltage_75_90-to-50_75
+  - MG-LV-MSB_AC_Voltage_75_90-to-90_100
+  - MG-LV-MSB_AC_Voltage_90_100-to-0_10
+  - MG-LV-MSB_AC_Voltage_90_100-to-10_25
+  - MG-LV-MSB_AC_Voltage_90_100-to-25_50
+  - MG-LV-MSB_AC_Voltage_90_100-to-50_75
+  - MG-LV-MSB_AC_Voltage_90_100-to-75_90
+  n_event_types: 30
+  n_events: 3887242
+  n_types: 30
+  n_types_observed: 6
+  target_candidates:
+    MG-LV-MSB_AC_Voltage:
+      high:
+        candidate: true
+        extreme_event_count: 17302
+        extreme_event_ratio: 0.4929906542056075
+        reason: passes high target candidate rules
+      low:
+        candidate: false
+        extreme_event_count: 1
+        extreme_event_ratio: 2.8493275586961478e-05
+        reason: does not pass low target candidate rules
+metrics:
+  execution_time: 8.316318843000005
+  n_rows_in: 3887242
+  n_rows_out: 3887242
+  total_events_generated: 35096
+  mean_events_per_row: 0.009028509158935822
+  empty_rows_ratio: 0.9909714908410642
+  n_event_types_observed: 6
+  catalog_coverage_ratio: 0.2
+  top1_event_ratio: 0.4929906542056075
+  rare_event_ratio: 0.49301914748119446
+  eventless_measure_ratio: 0.0
+  non_eventless_measure_ratio: 1.0
+  high_rare_measure_ratio: 1.0
+  low_rare_measure_ratio: 1.0
+  high_rare_event_ratio: 0.4929906542056075
+  low_rare_event_ratio: 2.8493275586961478e-05
+  f02_quality_score: 0.5565044136398103
+  f02_gate_status: warning
+  event_entropy: 0.7672606042802607
+  normalized_event_entropy: 0.42821629658294486
+  n_transition_events: 35096
+  jump_size_mean: 1.0001709596535218
+provenance:
+  generated_at: '2026-06-22T15:19:35.052647+00:00'
