@@ -1,0 +1,19 @@
+phase: f04_targets
+variant: v4_0045
+parent: v3_0024
+parameters:
+  parent_variant: v3_0024
+  Tu: 10
+  OW: 50
+  LT: 10
+  PW: 10
+  event_type_count: 20
+  prediction_name: island_mode_mccb_ac_voltage_high_80_fine_4
+  target_operator: OR
+  target_event_types:
+  - Island_mode_MCCB_AC_Voltage_0_20-to-80_100
+  - Island_mode_MCCB_AC_Voltage_20_40-to-80_100
+  - Island_mode_MCCB_AC_Voltage_40_60-to-80_100
+  - Island_mode_MCCB_AC_Voltage_60_80-to-80_100
+parent_hashes:
+  v3_0024: 314b5ef23581d30b7d33c8f1abbe742ef4ea765936d9f6a10ce39c4e937e0211
