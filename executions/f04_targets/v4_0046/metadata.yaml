@@ -1,0 +1,8 @@
+created_at: '2026-06-22T21:48:53.827273+00:00'
+params_path: executions/f04_targets/v4_0046/params.yaml
+lifecycle_state: VARIANT_CREATED
+lifecycle_updated_at: '2026-06-22T21:48:54.246187+00:00'
+verified: none
+verified_updated_at: '2026-06-22T21:48:54.105886+00:00'
+registred: none
+runner: GithubActions
