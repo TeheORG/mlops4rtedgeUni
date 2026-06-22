@@ -1,0 +1,61 @@
+phase: f04_targets
+variant: v4_0053
+artifacts:
+  dataset:
+    path: 04_targets.parquet
+    sha256: 35af22d019e1818cbcc0538a89bab81dd09dde45f05c4088d82517aea13c276b
+  report:
+    path: 04_targets_report.html
+    sha256: ce5efd63fb1d8b4015190dc376f571ba5203d1f1483a78baa87fd2d2fb4719a9
+exports:
+  Tu: 10
+  OW: 50
+  LT: 10
+  PW: 10
+  prediction_name: island_mode_mccb_active_power_low_10_coarse_5
+  measure_name: Island_mode_MCCB_Active_Power
+  target_operator: OR
+  target_event_types:
+  - Island_mode_MCCB_Active_Power_10_25-to-0_10
+  - Island_mode_MCCB_Active_Power_25_50-to-0_10
+  - Island_mode_MCCB_Active_Power_50_75-to-0_10
+  - Island_mode_MCCB_Active_Power_75_90-to-0_10
+  target_event_count: 4
+  target_compatible: true
+  incompatibility_reason: null
+  target_candidate_checks:
+  - measure: Island_mode_MCCB_Active_Power
+    direction: low
+  event_type_count: 30
+  window_strategy: synchro
+  parent_f03: v3_0026
+  parent_f02: v2_0026
+  n_windows: 178437
+  n_windows_pos: 3503
+  n_windows_neg: 174934
+  n_positive: 3503
+  n_negative: 174934
+  class_balance_ratio: 0.019631578652409533
+  deduplication_stats:
+    total_sequences: 178437
+    unique_ow_sequences: 454
+    num_duplicate_sequences: 177983
+    duplicate_ratio: 0.9974556846393965
+    ambiguous_sequences: 83
+    ambiguous_samples: 51931
+    ambiguous_ratio: 0.2910326894085868
+    avg_label_consistency_per_ow: 0.9533325520140609
+  unique_ratio: 0.002544315360603462
+  dup_ratio_ow_parent: 0.9974556846393965
+  dup_ratio_pw_parent: 0.9991761798281746
+  seq_len_mean_ow_parent: 4.107612210472043
+metrics:
+  execution_time: 0.31476864199999
+  n_windows: 178437
+  n_positive: 3503
+  n_negative: 174934
+  positive_ratio: 0.019631578652409533
+  target_compatible: true
+  incompatibility_reason: null
+provenance:
+  generated_at: '2026-06-22T21:48:29.967163+00:00'
