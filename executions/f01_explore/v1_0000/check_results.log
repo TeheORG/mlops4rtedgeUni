@@ -1,0 +1,19 @@
+
+===== CHECKING f01_explore (v1_0000) with spec =====
+[INFO] Spec: makefile_check_phases.yml
+[OK] exists: 01_explore_dataset.parquet
+[OK] exists: 01_explore_report.html
+[OK] exists: outputs.yaml
+[OK] exists: params.yaml
+[OK] exists: metadata.yaml
+[OK] size: 01_explore_dataset.parquet (> 20MB)
+[OK] not empty: 01_explore_report.html
+[OK] not empty: outputs.yaml
+[OK] content checks: outputs.yaml
+[OK] size: params.yaml (> 0B & < 1KB)
+[OK] not empty: metadata.yaml
+
+======####@@@@@@@@@@@@####======
+✅[SUCCESS] Validation passed
+======####@@@@@@@@@@@@####======
+
