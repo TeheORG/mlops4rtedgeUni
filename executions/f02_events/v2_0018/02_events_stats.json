@@ -1,0 +1,290 @@
+{
+  "global": {
+    "total_events_generated": 2500,
+    "mean_events_per_row": 0.0006431294990124104,
+    "std_events_per_row": 0.025351841815929255,
+    "max_events_per_row": 1,
+    "p95_events_per_row": 0.0,
+    "empty_rows_ratio": 0.9993568705009875,
+    "nonempty_rows_ratio": 0.0006431294990124104,
+    "n_event_types_catalog": 20,
+    "n_event_types_observed": 16,
+    "catalog_coverage_ratio": 0.8,
+    "effective_catalog_unused_ratio": 0.19999999999999996,
+    "rare_event_count": 150,
+    "rare_event_ratio": 0.06,
+    "rare_event_types_observed": 5,
+    "rare_event_type_ratio": 0.3125,
+    "top1_event_ratio": 0.4272,
+    "top5_event_ratio": 0.9532,
+    "event_entropy": 1.3076085090159624,
+    "normalized_event_entropy": 0.47162007784538507,
+    "n_consecutive_steps": 3887230,
+    "consecutive_ratio": 0.9999971702294764,
+    "n_broken_steps": 11,
+    "broken_ratio": 2.829770523618165e-06,
+    "n_level_events": 0,
+    "n_unique_level_types_observed": 0,
+    "n_measures_total": 1,
+    "n_eventless_measures": 0,
+    "eventless_measure_ratio": 0.0,
+    "n_non_eventless_measures": 1,
+    "non_eventless_measure_ratio": 1.0,
+    "n_measures_with_high_rare_events": 1,
+    "n_measures_with_low_rare_events": 1,
+    "high_rare_measure_ratio": 1.0,
+    "low_rare_measure_ratio": 1.0,
+    "high_rare_event_count": 145,
+    "low_rare_event_count": 5,
+    "high_rare_event_ratio": 0.058,
+    "low_rare_event_ratio": 0.002,
+    "events_per_million_rows": 643.1294990124103,
+    "n_transition_events": 2500,
+    "n_unique_transition_types_observed": 16,
+    "transition_coverage_ratio": 0.8,
+    "jump_size_mean": 1.0572,
+    "jump_size_std": 0.30253621270849546,
+    "pct_jump_eq_1": 0.9612,
+    "pct_jump_ge_2": 0.0388,
+    "pct_jump_ge_3": 0.018,
+    "f02_quality_score": 0.6779312784593712,
+    "activity_flag": "reject",
+    "diversity_flag": "warning",
+    "catalog_flag": "ok",
+    "dominance_flag": "warning",
+    "continuity_flag": "ok",
+    "measure_coverage_flag": "ok",
+    "f02_gate_status": "reject"
+  },
+  "event_frequency": {
+    "11": {
+      "event_name": "Battery_Active_Power_40_60-to-60_80",
+      "count": 1068
+    },
+    "15": {
+      "event_name": "Battery_Active_Power_60_80-to-40_60",
+      "count": 1052
+    },
+    "16": {
+      "event_name": "Battery_Active_Power_60_80-to-80_100",
+      "count": 123
+    },
+    "20": {
+      "event_name": "Battery_Active_Power_80_100-to-60_80",
+      "count": 113
+    },
+    "6": {
+      "event_name": "Battery_Active_Power_20_40-to-40_60",
+      "count": 27
+    },
+    "14": {
+      "event_name": "Battery_Active_Power_60_80-to-20_40",
+      "count": 20
+    },
+    "10": {
+      "event_name": "Battery_Active_Power_40_60-to-20_40",
+      "count": 19
+    },
+    "18": {
+      "event_name": "Battery_Active_Power_80_100-to-20_40",
+      "count": 18
+    },
+    "8": {
+      "event_name": "Battery_Active_Power_20_40-to-80_100",
+      "count": 17
+    },
+    "7": {
+      "event_name": "Battery_Active_Power_20_40-to-60_80",
+      "count": 14
+    },
+    "19": {
+      "event_name": "Battery_Active_Power_80_100-to-40_60",
+      "count": 13
+    },
+    "12": {
+      "event_name": "Battery_Active_Power_40_60-to-80_100",
+      "count": 5
+    },
+    "3": {
+      "event_name": "Battery_Active_Power_0_20-to-60_80",
+      "count": 5
+    },
+    "13": {
+      "event_name": "Battery_Active_Power_60_80-to-0_20",
+      "count": 4
+    },
+    "1": {
+      "event_name": "Battery_Active_Power_0_20-to-20_40",
+      "count": 1
+    },
+    "17": {
+      "event_name": "Battery_Active_Power_80_100-to-0_20",
+      "count": 1
+    }
+  },
+  "per_measure": {
+    "Battery_Active_Power": {
+      "n_events_generated": 2500,
+      "n_unique_event_types_observed": 16,
+      "top1_ratio": 0.4272,
+      "rare_event_count": 150,
+      "rare_event_ratio": 0.06,
+      "high_rare_event_count": 145,
+      "low_rare_event_count": 5,
+      "rare_event_type_count": 5,
+      "high_rare_event_type_count": 3,
+      "low_rare_event_type_count": 2,
+      "high_rare_event_ratio": 0.058,
+      "low_rare_event_ratio": 0.002,
+      "mean_events_per_row_contributed": 0.0006431294990124104,
+      "band_occupancy": {
+        "0_20": 15105,
+        "20_40": 284,
+        "40_60": 26470,
+        "60_80": 3841587,
+        "80_100": 1225
+      },
+      "total_band_count": 3884671,
+      "n_active_bands": 5,
+      "max_band_count": 3841587,
+      "max_band_ratio": 0.9889092280916454,
+      "min_nonzero_band_count": 284,
+      "extreme_band_count": 16330,
+      "extreme_band_ratio": 0.004203702192540887,
+      "middle_band_count": 3868341,
+      "middle_band_ratio": 0.9957962978074592,
+      "occupancy_entropy": 0.06984039293031924,
+      "normalized_occupancy_entropy": 0.04339427597097748,
+      "is_eventless_measure": false,
+      "band_degeneracy_flag": false,
+      "extreme_occupancy_flag": false,
+      "jump_size_mean": 1.0572,
+      "measure_transition_score": 0.6481285689927444,
+      "high_target_candidate": true,
+      "low_target_candidate": true
+    }
+  },
+  "top_events": [
+    {
+      "event_id": 11,
+      "event_name": "Battery_Active_Power_40_60-to-60_80",
+      "count": 1068,
+      "ratio": 0.4272
+    },
+    {
+      "event_id": 15,
+      "event_name": "Battery_Active_Power_60_80-to-40_60",
+      "count": 1052,
+      "ratio": 0.4208
+    },
+    {
+      "event_id": 16,
+      "event_name": "Battery_Active_Power_60_80-to-80_100",
+      "count": 123,
+      "ratio": 0.0492
+    },
+    {
+      "event_id": 20,
+      "event_name": "Battery_Active_Power_80_100-to-60_80",
+      "count": 113,
+      "ratio": 0.0452
+    },
+    {
+      "event_id": 6,
+      "event_name": "Battery_Active_Power_20_40-to-40_60",
+      "count": 27,
+      "ratio": 0.0108
+    },
+    {
+      "event_id": 14,
+      "event_name": "Battery_Active_Power_60_80-to-20_40",
+      "count": 20,
+      "ratio": 0.008
+    },
+    {
+      "event_id": 10,
+      "event_name": "Battery_Active_Power_40_60-to-20_40",
+      "count": 19,
+      "ratio": 0.0076
+    },
+    {
+      "event_id": 18,
+      "event_name": "Battery_Active_Power_80_100-to-20_40",
+      "count": 18,
+      "ratio": 0.0072
+    },
+    {
+      "event_id": 8,
+      "event_name": "Battery_Active_Power_20_40-to-80_100",
+      "count": 17,
+      "ratio": 0.0068
+    },
+    {
+      "event_id": 7,
+      "event_name": "Battery_Active_Power_20_40-to-60_80",
+      "count": 14,
+      "ratio": 0.0056
+    },
+    {
+      "event_id": 19,
+      "event_name": "Battery_Active_Power_80_100-to-40_60",
+      "count": 13,
+      "ratio": 0.0052
+    },
+    {
+      "event_id": 12,
+      "event_name": "Battery_Active_Power_40_60-to-80_100",
+      "count": 5,
+      "ratio": 0.002
+    },
+    {
+      "event_id": 3,
+      "event_name": "Battery_Active_Power_0_20-to-60_80",
+      "count": 5,
+      "ratio": 0.002
+    },
+    {
+      "event_id": 13,
+      "event_name": "Battery_Active_Power_60_80-to-0_20",
+      "count": 4,
+      "ratio": 0.0016
+    },
+    {
+      "event_id": 1,
+      "event_name": "Battery_Active_Power_0_20-to-20_40",
+      "count": 1,
+      "ratio": 0.0004
+    },
+    {
+      "event_id": 17,
+      "event_name": "Battery_Active_Power_80_100-to-0_20",
+      "count": 1,
+      "ratio": 0.0004
+    }
+  ],
+  "band_occupancy": {
+    "Battery_Active_Power": {
+      "0_20": 15105,
+      "20_40": 284,
+      "40_60": 26470,
+      "60_80": 3841587,
+      "80_100": 1225
+    }
+  },
+  "target_candidates": {
+    "Battery_Active_Power": {
+      "high": {
+        "candidate": true,
+        "extreme_event_count": 145,
+        "extreme_event_ratio": 0.058,
+        "reason": "passes high target candidate rules"
+      },
+      "low": {
+        "candidate": true,
+        "extreme_event_count": 5,
+        "extreme_event_ratio": 0.002,
+        "reason": "passes low target candidate rules"
+      }
+    }
+  }
+}
