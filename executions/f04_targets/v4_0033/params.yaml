@@ -1,0 +1,19 @@
+phase: f04_targets
+variant: v4_0033
+parent: v3_0018
+parameters:
+  parent_variant: v3_0018
+  Tu: 10
+  OW: 50
+  LT: 10
+  PW: 10
+  event_type_count: 20
+  prediction_name: battery_active_power_high_80_fine_4
+  target_operator: OR
+  target_event_types:
+  - Battery_Active_Power_0_20-to-80_100
+  - Battery_Active_Power_20_40-to-80_100
+  - Battery_Active_Power_40_60-to-80_100
+  - Battery_Active_Power_60_80-to-80_100
+parent_hashes:
+  v3_0018: 6c2ed81d3e7a6cf77a7fe79f2028532e187149fad9cefffead8c62363f848a48
