@@ -1,0 +1,161 @@
+phase: f02_events
+variant: v2_0004
+artifacts:
+  events:
+    path: 02_events.parquet
+    sha256: 8bd90f7934dff69fff4bef60f6e7c13433b509a5053d49d15ffa30cb7ffb69ac
+  catalog:
+    path: 02_events_catalog.json
+    sha256: 632a1158f27f436f6a2f301519e337fb16d3532a8231587944864f020ff897ef
+  stats:
+    path: 02_events_stats.json
+    sha256: 750173c661fccaa68f802ee4ece48a08d43f99c6b99e479da45c35eb0134328b
+  report:
+    path: 02_events_report.html
+    sha256: 1997634570faae7896491ee7f9b02f1ca3ceeec8d06a7c299f297d168bd901be
+exports:
+  Tu: 10
+  measure_name: Outlet_Temperature
+  event_strategy: transitions
+  bands:
+  - 10
+  - 20
+  - 30
+  - 40
+  - 50
+  - 60
+  - 70
+  - 80
+  - 90
+  event_types:
+  - Outlet_Temperature_0_10-to-10_20
+  - Outlet_Temperature_0_10-to-20_30
+  - Outlet_Temperature_0_10-to-30_40
+  - Outlet_Temperature_0_10-to-40_50
+  - Outlet_Temperature_0_10-to-50_60
+  - Outlet_Temperature_0_10-to-60_70
+  - Outlet_Temperature_0_10-to-70_80
+  - Outlet_Temperature_0_10-to-80_90
+  - Outlet_Temperature_0_10-to-90_100
+  - Outlet_Temperature_10_20-to-0_10
+  - Outlet_Temperature_10_20-to-20_30
+  - Outlet_Temperature_10_20-to-30_40
+  - Outlet_Temperature_10_20-to-40_50
+  - Outlet_Temperature_10_20-to-50_60
+  - Outlet_Temperature_10_20-to-60_70
+  - Outlet_Temperature_10_20-to-70_80
+  - Outlet_Temperature_10_20-to-80_90
+  - Outlet_Temperature_10_20-to-90_100
+  - Outlet_Temperature_20_30-to-0_10
+  - Outlet_Temperature_20_30-to-10_20
+  - Outlet_Temperature_20_30-to-30_40
+  - Outlet_Temperature_20_30-to-40_50
+  - Outlet_Temperature_20_30-to-50_60
+  - Outlet_Temperature_20_30-to-60_70
+  - Outlet_Temperature_20_30-to-70_80
+  - Outlet_Temperature_20_30-to-80_90
+  - Outlet_Temperature_20_30-to-90_100
+  - Outlet_Temperature_30_40-to-0_10
+  - Outlet_Temperature_30_40-to-10_20
+  - Outlet_Temperature_30_40-to-20_30
+  - Outlet_Temperature_30_40-to-40_50
+  - Outlet_Temperature_30_40-to-50_60
+  - Outlet_Temperature_30_40-to-60_70
+  - Outlet_Temperature_30_40-to-70_80
+  - Outlet_Temperature_30_40-to-80_90
+  - Outlet_Temperature_30_40-to-90_100
+  - Outlet_Temperature_40_50-to-0_10
+  - Outlet_Temperature_40_50-to-10_20
+  - Outlet_Temperature_40_50-to-20_30
+  - Outlet_Temperature_40_50-to-30_40
+  - Outlet_Temperature_40_50-to-50_60
+  - Outlet_Temperature_40_50-to-60_70
+  - Outlet_Temperature_40_50-to-70_80
+  - Outlet_Temperature_40_50-to-80_90
+  - Outlet_Temperature_40_50-to-90_100
+  - Outlet_Temperature_50_60-to-0_10
+  - Outlet_Temperature_50_60-to-10_20
+  - Outlet_Temperature_50_60-to-20_30
+  - Outlet_Temperature_50_60-to-30_40
+  - Outlet_Temperature_50_60-to-40_50
+  - Outlet_Temperature_50_60-to-60_70
+  - Outlet_Temperature_50_60-to-70_80
+  - Outlet_Temperature_50_60-to-80_90
+  - Outlet_Temperature_50_60-to-90_100
+  - Outlet_Temperature_60_70-to-0_10
+  - Outlet_Temperature_60_70-to-10_20
+  - Outlet_Temperature_60_70-to-20_30
+  - Outlet_Temperature_60_70-to-30_40
+  - Outlet_Temperature_60_70-to-40_50
+  - Outlet_Temperature_60_70-to-50_60
+  - Outlet_Temperature_60_70-to-70_80
+  - Outlet_Temperature_60_70-to-80_90
+  - Outlet_Temperature_60_70-to-90_100
+  - Outlet_Temperature_70_80-to-0_10
+  - Outlet_Temperature_70_80-to-10_20
+  - Outlet_Temperature_70_80-to-20_30
+  - Outlet_Temperature_70_80-to-30_40
+  - Outlet_Temperature_70_80-to-40_50
+  - Outlet_Temperature_70_80-to-50_60
+  - Outlet_Temperature_70_80-to-60_70
+  - Outlet_Temperature_70_80-to-80_90
+  - Outlet_Temperature_70_80-to-90_100
+  - Outlet_Temperature_80_90-to-0_10
+  - Outlet_Temperature_80_90-to-10_20
+  - Outlet_Temperature_80_90-to-20_30
+  - Outlet_Temperature_80_90-to-30_40
+  - Outlet_Temperature_80_90-to-40_50
+  - Outlet_Temperature_80_90-to-50_60
+  - Outlet_Temperature_80_90-to-60_70
+  - Outlet_Temperature_80_90-to-70_80
+  - Outlet_Temperature_80_90-to-90_100
+  - Outlet_Temperature_90_100-to-0_10
+  - Outlet_Temperature_90_100-to-10_20
+  - Outlet_Temperature_90_100-to-20_30
+  - Outlet_Temperature_90_100-to-30_40
+  - Outlet_Temperature_90_100-to-40_50
+  - Outlet_Temperature_90_100-to-50_60
+  - Outlet_Temperature_90_100-to-60_70
+  - Outlet_Temperature_90_100-to-70_80
+  - Outlet_Temperature_90_100-to-80_90
+  n_event_types: 90
+  n_events: 3887242
+  n_types: 90
+  n_types_observed: 19
+  target_candidates:
+    Outlet_Temperature:
+      high:
+        candidate: true
+        extreme_event_count: 723
+        extreme_event_ratio: 0.017196679589943628
+        reason: passes high target candidate rules
+      low:
+        candidate: true
+        extreme_event_count: 397
+        extreme_event_ratio: 0.009442713412458673
+        reason: passes low target candidate rules
+metrics:
+  execution_time: 8.788515339000014
+  n_rows_in: 3887242
+  n_rows_out: 3887242
+  total_events_generated: 42043
+  mean_events_per_row: 0.010815637410791508
+  empty_rows_ratio: 0.9891843625892085
+  n_event_types_observed: 19
+  catalog_coverage_ratio: 0.2111111111111111
+  top1_event_ratio: 0.1085317413124658
+  rare_event_ratio: 0.0266393930024023
+  eventless_measure_ratio: 0.0
+  non_eventless_measure_ratio: 1.0
+  high_rare_measure_ratio: 1.0
+  low_rare_measure_ratio: 1.0
+  high_rare_event_ratio: 0.017196679589943628
+  low_rare_event_ratio: 0.009442713412458673
+  f02_quality_score: 0.7663232048430437
+  f02_gate_status: candidate
+  event_entropy: 2.731937659289698
+  normalized_event_entropy: 0.9278296064614316
+  n_transition_events: 42043
+  jump_size_mean: 1.0000237851723235
+provenance:
+  generated_at: '2026-06-22T15:18:05.521175+00:00'
