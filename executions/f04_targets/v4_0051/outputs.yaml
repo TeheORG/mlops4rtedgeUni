@@ -1,0 +1,46 @@
+phase: f04_targets
+variant: v4_0051
+artifacts:
+  report:
+    path: 04_targets_report.html
+    sha256: 9f1be27d2cb9eb09757a0f71d92454e7322012400fdeb09a8061768b2eb3536e
+exports:
+  Tu: 10
+  OW: 50
+  LT: 10
+  PW: 10
+  prediction_name: island_mode_mccb_active_power_high_80_fine_4
+  measure_name: Island_mode_MCCB_Active_Power
+  target_operator: OR
+  target_event_types:
+  - Island_mode_MCCB_Active_Power_0_20-to-80_100
+  - Island_mode_MCCB_Active_Power_20_40-to-80_100
+  - Island_mode_MCCB_Active_Power_40_60-to-80_100
+  - Island_mode_MCCB_Active_Power_60_80-to-80_100
+  target_event_count: 4
+  target_compatible: false
+  incompatibility_reason: positive_ratio=0.000780 below minimum 0.001000
+  target_candidate_checks:
+  - measure: Island_mode_MCCB_Active_Power
+    direction: high
+  event_type_count: 20
+  window_strategy: synchro
+  parent_f03: v3_0027
+  parent_f02: v2_0027
+  parent_f01: null
+  n_windows: 341055
+  n_windows_pos: 266
+  n_windows_neg: 340789
+  n_positive: 266
+  n_negative: 340789
+  class_balance_ratio: 0.0007799328554045535
+metrics:
+  execution_time: 0.532409518999998
+  n_windows: 341055
+  n_positive: 266
+  n_negative: 340789
+  positive_ratio: 0.0007799328554045535
+  target_compatible: false
+  incompatibility_reason: positive_ratio=0.000780 below minimum 0.001000
+provenance:
+  generated_at: '2026-06-22T21:47:39.402527+00:00'
