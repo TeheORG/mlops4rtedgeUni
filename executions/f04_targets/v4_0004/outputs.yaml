@@ -1,0 +1,56 @@
+phase: f04_targets
+variant: v4_0004
+artifacts:
+  report:
+    path: 04_targets_report.html
+    sha256: f99cde2b75942e87fa317e9549caca712e56580ddfbd31d6d5ca06a72cd20819
+exports:
+  Tu: 10
+  OW: 50
+  LT: 10
+  PW: 10
+  event_type_count: 90
+  prediction_name: ge_active_power_low_10_coarse_10
+  measure_name: GE_Active_Power
+  target_operator: OR
+  target_event_types:
+  - GE_Active_Power_10_20-to-0_10
+  - GE_Active_Power_20_30-to-0_10
+  - GE_Active_Power_30_40-to-0_10
+  - GE_Active_Power_40_50-to-0_10
+  - GE_Active_Power_50_60-to-0_10
+  - GE_Active_Power_60_70-to-0_10
+  - GE_Active_Power_70_80-to-0_10
+  - GE_Active_Power_80_90-to-0_10
+  target_event_count: 8
+  n_windows: 0
+  n_windows_pos: 0
+  n_windows_neg: 0
+  n_positive: 0
+  n_negative: 0
+  target_compatible: false
+  incompatibility_reason: 'F04 target incompatible segun target_candidates de F02.
+    parent_f02=v2_0001. GE_Active_Power.low: candidate=false (does not pass low target
+    candidate rules)'
+  target_candidate_checks:
+  - measure: GE_Active_Power
+    direction: low
+  target_candidate_failures:
+  - measure: GE_Active_Power
+    direction: low
+    reason: does not pass low target candidate rules
+  parent_f03: v3_0001
+  parent_f02: v2_0001
+  parent_f01: null
+metrics:
+  execution_time: 0.010778162999997676
+  n_windows: 0
+  n_positive: 0
+  n_negative: 0
+  positive_ratio: 0.0
+  target_compatible: false
+  incompatibility_reason: 'F04 target incompatible segun target_candidates de F02.
+    parent_f02=v2_0001. GE_Active_Power.low: candidate=false (does not pass low target
+    candidate rules)'
+provenance:
+  generated_at: '2026-06-22T21:34:41.598478+00:00'
