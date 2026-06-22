@@ -1,0 +1,161 @@
+phase: f02_events
+variant: v2_0022
+artifacts:
+  events:
+    path: 02_events.parquet
+    sha256: 961b09e467b34f0a247a5f9c840335f0683cd97a3af3d94b247ac58fb6e45e07
+  catalog:
+    path: 02_events_catalog.json
+    sha256: e2aeae543f91c9c9c79cc403f6f8e3a34a07098333168abad6b34e28fd0a4f2e
+  stats:
+    path: 02_events_stats.json
+    sha256: dc8565de070045935b4f3ed0224827aafd1752f88487cafad0cf8942456d2c8c
+  report:
+    path: 02_events_report.html
+    sha256: d161aa3271a59edc2cfdf5976eec02c4e862ba87ca16f413ac940f9cea3ca51e
+exports:
+  Tu: 10
+  measure_name: Island_mode_MCCB_AC_Voltage
+  event_strategy: transitions
+  bands:
+  - 10
+  - 20
+  - 30
+  - 40
+  - 50
+  - 60
+  - 70
+  - 80
+  - 90
+  event_types:
+  - Island_mode_MCCB_AC_Voltage_0_10-to-10_20
+  - Island_mode_MCCB_AC_Voltage_0_10-to-20_30
+  - Island_mode_MCCB_AC_Voltage_0_10-to-30_40
+  - Island_mode_MCCB_AC_Voltage_0_10-to-40_50
+  - Island_mode_MCCB_AC_Voltage_0_10-to-50_60
+  - Island_mode_MCCB_AC_Voltage_0_10-to-60_70
+  - Island_mode_MCCB_AC_Voltage_0_10-to-70_80
+  - Island_mode_MCCB_AC_Voltage_0_10-to-80_90
+  - Island_mode_MCCB_AC_Voltage_0_10-to-90_100
+  - Island_mode_MCCB_AC_Voltage_10_20-to-0_10
+  - Island_mode_MCCB_AC_Voltage_10_20-to-20_30
+  - Island_mode_MCCB_AC_Voltage_10_20-to-30_40
+  - Island_mode_MCCB_AC_Voltage_10_20-to-40_50
+  - Island_mode_MCCB_AC_Voltage_10_20-to-50_60
+  - Island_mode_MCCB_AC_Voltage_10_20-to-60_70
+  - Island_mode_MCCB_AC_Voltage_10_20-to-70_80
+  - Island_mode_MCCB_AC_Voltage_10_20-to-80_90
+  - Island_mode_MCCB_AC_Voltage_10_20-to-90_100
+  - Island_mode_MCCB_AC_Voltage_20_30-to-0_10
+  - Island_mode_MCCB_AC_Voltage_20_30-to-10_20
+  - Island_mode_MCCB_AC_Voltage_20_30-to-30_40
+  - Island_mode_MCCB_AC_Voltage_20_30-to-40_50
+  - Island_mode_MCCB_AC_Voltage_20_30-to-50_60
+  - Island_mode_MCCB_AC_Voltage_20_30-to-60_70
+  - Island_mode_MCCB_AC_Voltage_20_30-to-70_80
+  - Island_mode_MCCB_AC_Voltage_20_30-to-80_90
+  - Island_mode_MCCB_AC_Voltage_20_30-to-90_100
+  - Island_mode_MCCB_AC_Voltage_30_40-to-0_10
+  - Island_mode_MCCB_AC_Voltage_30_40-to-10_20
+  - Island_mode_MCCB_AC_Voltage_30_40-to-20_30
+  - Island_mode_MCCB_AC_Voltage_30_40-to-40_50
+  - Island_mode_MCCB_AC_Voltage_30_40-to-50_60
+  - Island_mode_MCCB_AC_Voltage_30_40-to-60_70
+  - Island_mode_MCCB_AC_Voltage_30_40-to-70_80
+  - Island_mode_MCCB_AC_Voltage_30_40-to-80_90
+  - Island_mode_MCCB_AC_Voltage_30_40-to-90_100
+  - Island_mode_MCCB_AC_Voltage_40_50-to-0_10
+  - Island_mode_MCCB_AC_Voltage_40_50-to-10_20
+  - Island_mode_MCCB_AC_Voltage_40_50-to-20_30
+  - Island_mode_MCCB_AC_Voltage_40_50-to-30_40
+  - Island_mode_MCCB_AC_Voltage_40_50-to-50_60
+  - Island_mode_MCCB_AC_Voltage_40_50-to-60_70
+  - Island_mode_MCCB_AC_Voltage_40_50-to-70_80
+  - Island_mode_MCCB_AC_Voltage_40_50-to-80_90
+  - Island_mode_MCCB_AC_Voltage_40_50-to-90_100
+  - Island_mode_MCCB_AC_Voltage_50_60-to-0_10
+  - Island_mode_MCCB_AC_Voltage_50_60-to-10_20
+  - Island_mode_MCCB_AC_Voltage_50_60-to-20_30
+  - Island_mode_MCCB_AC_Voltage_50_60-to-30_40
+  - Island_mode_MCCB_AC_Voltage_50_60-to-40_50
+  - Island_mode_MCCB_AC_Voltage_50_60-to-60_70
+  - Island_mode_MCCB_AC_Voltage_50_60-to-70_80
+  - Island_mode_MCCB_AC_Voltage_50_60-to-80_90
+  - Island_mode_MCCB_AC_Voltage_50_60-to-90_100
+  - Island_mode_MCCB_AC_Voltage_60_70-to-0_10
+  - Island_mode_MCCB_AC_Voltage_60_70-to-10_20
+  - Island_mode_MCCB_AC_Voltage_60_70-to-20_30
+  - Island_mode_MCCB_AC_Voltage_60_70-to-30_40
+  - Island_mode_MCCB_AC_Voltage_60_70-to-40_50
+  - Island_mode_MCCB_AC_Voltage_60_70-to-50_60
+  - Island_mode_MCCB_AC_Voltage_60_70-to-70_80
+  - Island_mode_MCCB_AC_Voltage_60_70-to-80_90
+  - Island_mode_MCCB_AC_Voltage_60_70-to-90_100
+  - Island_mode_MCCB_AC_Voltage_70_80-to-0_10
+  - Island_mode_MCCB_AC_Voltage_70_80-to-10_20
+  - Island_mode_MCCB_AC_Voltage_70_80-to-20_30
+  - Island_mode_MCCB_AC_Voltage_70_80-to-30_40
+  - Island_mode_MCCB_AC_Voltage_70_80-to-40_50
+  - Island_mode_MCCB_AC_Voltage_70_80-to-50_60
+  - Island_mode_MCCB_AC_Voltage_70_80-to-60_70
+  - Island_mode_MCCB_AC_Voltage_70_80-to-80_90
+  - Island_mode_MCCB_AC_Voltage_70_80-to-90_100
+  - Island_mode_MCCB_AC_Voltage_80_90-to-0_10
+  - Island_mode_MCCB_AC_Voltage_80_90-to-10_20
+  - Island_mode_MCCB_AC_Voltage_80_90-to-20_30
+  - Island_mode_MCCB_AC_Voltage_80_90-to-30_40
+  - Island_mode_MCCB_AC_Voltage_80_90-to-40_50
+  - Island_mode_MCCB_AC_Voltage_80_90-to-50_60
+  - Island_mode_MCCB_AC_Voltage_80_90-to-60_70
+  - Island_mode_MCCB_AC_Voltage_80_90-to-70_80
+  - Island_mode_MCCB_AC_Voltage_80_90-to-90_100
+  - Island_mode_MCCB_AC_Voltage_90_100-to-0_10
+  - Island_mode_MCCB_AC_Voltage_90_100-to-10_20
+  - Island_mode_MCCB_AC_Voltage_90_100-to-20_30
+  - Island_mode_MCCB_AC_Voltage_90_100-to-30_40
+  - Island_mode_MCCB_AC_Voltage_90_100-to-40_50
+  - Island_mode_MCCB_AC_Voltage_90_100-to-50_60
+  - Island_mode_MCCB_AC_Voltage_90_100-to-60_70
+  - Island_mode_MCCB_AC_Voltage_90_100-to-70_80
+  - Island_mode_MCCB_AC_Voltage_90_100-to-80_90
+  n_event_types: 90
+  n_events: 3887242
+  n_types: 90
+  n_types_observed: 43
+  target_candidates:
+    Island_mode_MCCB_AC_Voltage:
+      high:
+        candidate: true
+        extreme_event_count: 244
+        extreme_event_ratio: 0.00161376728682068
+        reason: passes high target candidate rules
+      low:
+        candidate: false
+        extreme_event_count: 2
+        extreme_event_ratio: 1.3227600711644919e-05
+        reason: does not pass low target candidate rules
+metrics:
+  execution_time: 8.666399040000002
+  n_rows_in: 3887242
+  n_rows_out: 3887242
+  total_events_generated: 151199
+  mean_events_per_row: 0.03889621484847097
+  empty_rows_ratio: 0.961103785151529
+  n_event_types_observed: 43
+  catalog_coverage_ratio: 0.4777777777777778
+  top1_event_ratio: 0.17310961051329704
+  rare_event_ratio: 0.0016269948875323249
+  eventless_measure_ratio: 0.0
+  non_eventless_measure_ratio: 1.0
+  high_rare_measure_ratio: 1.0
+  low_rare_measure_ratio: 1.0
+  high_rare_event_ratio: 0.00161376728682068
+  low_rare_event_ratio: 1.3227600711644919e-05
+  f02_quality_score: 0.8216361842455482
+  f02_gate_status: warning
+  event_entropy: 2.072382527617918
+  normalized_event_entropy: 0.5509897011251613
+  n_transition_events: 151199
+  jump_size_mean: 1.0028108651512246
+provenance:
+  generated_at: '2026-06-22T15:21:33.528796+00:00'
