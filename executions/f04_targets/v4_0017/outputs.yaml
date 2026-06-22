@@ -1,0 +1,61 @@
+phase: f04_targets
+variant: v4_0017
+artifacts:
+  dataset:
+    path: 04_targets.parquet
+    sha256: 6cda592138a65cefec3d932aaaaaa2d5eb2c6551f7d11e003ae9fd744c53e98a
+  report:
+    path: 04_targets_report.html
+    sha256: e3699f5e9db44efcb8b42185e65e057a948e7eca4fde9e78b4461d67cc42f02a
+exports:
+  Tu: 10
+  OW: 50
+  LT: 10
+  PW: 10
+  prediction_name: pvpcs_active_power_low_10_coarse_5
+  measure_name: PVPCS_Active_Power
+  target_operator: OR
+  target_event_types:
+  - PVPCS_Active_Power_10_25-to-0_10
+  - PVPCS_Active_Power_25_50-to-0_10
+  - PVPCS_Active_Power_50_75-to-0_10
+  - PVPCS_Active_Power_75_90-to-0_10
+  target_event_count: 4
+  target_compatible: true
+  incompatibility_reason: null
+  target_candidate_checks:
+  - measure: PVPCS_Active_Power
+    direction: low
+  event_type_count: 30
+  window_strategy: synchro
+  parent_f03: v3_0008
+  parent_f02: v2_0008
+  n_windows: 560137
+  n_windows_pos: 12411
+  n_windows_neg: 547726
+  n_positive: 12411
+  n_negative: 547726
+  class_balance_ratio: 0.022157079428782603
+  deduplication_stats:
+    total_sequences: 560137
+    unique_ow_sequences: 24745
+    num_duplicate_sequences: 535392
+    duplicate_ratio: 0.9558233075122693
+    ambiguous_sequences: 145
+    ambiguous_samples: 326208
+    ambiguous_ratio: 0.5823718126101293
+    avg_label_consistency_per_ow: 0.9991379674211504
+  unique_ratio: 0.04417669248773068
+  dup_ratio_ow_parent: 0.9558233075122693
+  dup_ratio_pw_parent: 0.9924072146635555
+  seq_len_mean_ow_parent: 4.07578860171708
+metrics:
+  execution_time: 0.9295558599999936
+  n_windows: 560137
+  n_positive: 12411
+  n_negative: 547726
+  positive_ratio: 0.022157079428782603
+  target_compatible: true
+  incompatibility_reason: null
+provenance:
+  generated_at: '2026-06-22T21:34:10.624313+00:00'
