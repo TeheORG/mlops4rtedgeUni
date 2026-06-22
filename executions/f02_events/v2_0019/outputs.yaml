@@ -1,0 +1,161 @@
+phase: f02_events
+variant: v2_0019
+artifacts:
+  events:
+    path: 02_events.parquet
+    sha256: a72965d08ee1f8e00386b6d60c37049cfac6d2b7fe4cdcc9bc18baed97fc0f65
+  catalog:
+    path: 02_events_catalog.json
+    sha256: ad5bff0a7b5f5d828ca1b51c1ef14d84921ee47da01e26a8c2fea257ab454ae2
+  stats:
+    path: 02_events_stats.json
+    sha256: 875362ea5a2c01dfc0077fe175901b43aa7201eb6aa97370157cd805cc698b78
+  report:
+    path: 02_events_report.html
+    sha256: 235b02f57ee9e6050f48bf44f2ed42b2abf92066380a2ab0171e0ec1b25cd5b6
+exports:
+  Tu: 10
+  measure_name: FC_Active_Power
+  event_strategy: transitions
+  bands:
+  - 10
+  - 20
+  - 30
+  - 40
+  - 50
+  - 60
+  - 70
+  - 80
+  - 90
+  event_types:
+  - FC_Active_Power_0_10-to-10_20
+  - FC_Active_Power_0_10-to-20_30
+  - FC_Active_Power_0_10-to-30_40
+  - FC_Active_Power_0_10-to-40_50
+  - FC_Active_Power_0_10-to-50_60
+  - FC_Active_Power_0_10-to-60_70
+  - FC_Active_Power_0_10-to-70_80
+  - FC_Active_Power_0_10-to-80_90
+  - FC_Active_Power_0_10-to-90_100
+  - FC_Active_Power_10_20-to-0_10
+  - FC_Active_Power_10_20-to-20_30
+  - FC_Active_Power_10_20-to-30_40
+  - FC_Active_Power_10_20-to-40_50
+  - FC_Active_Power_10_20-to-50_60
+  - FC_Active_Power_10_20-to-60_70
+  - FC_Active_Power_10_20-to-70_80
+  - FC_Active_Power_10_20-to-80_90
+  - FC_Active_Power_10_20-to-90_100
+  - FC_Active_Power_20_30-to-0_10
+  - FC_Active_Power_20_30-to-10_20
+  - FC_Active_Power_20_30-to-30_40
+  - FC_Active_Power_20_30-to-40_50
+  - FC_Active_Power_20_30-to-50_60
+  - FC_Active_Power_20_30-to-60_70
+  - FC_Active_Power_20_30-to-70_80
+  - FC_Active_Power_20_30-to-80_90
+  - FC_Active_Power_20_30-to-90_100
+  - FC_Active_Power_30_40-to-0_10
+  - FC_Active_Power_30_40-to-10_20
+  - FC_Active_Power_30_40-to-20_30
+  - FC_Active_Power_30_40-to-40_50
+  - FC_Active_Power_30_40-to-50_60
+  - FC_Active_Power_30_40-to-60_70
+  - FC_Active_Power_30_40-to-70_80
+  - FC_Active_Power_30_40-to-80_90
+  - FC_Active_Power_30_40-to-90_100
+  - FC_Active_Power_40_50-to-0_10
+  - FC_Active_Power_40_50-to-10_20
+  - FC_Active_Power_40_50-to-20_30
+  - FC_Active_Power_40_50-to-30_40
+  - FC_Active_Power_40_50-to-50_60
+  - FC_Active_Power_40_50-to-60_70
+  - FC_Active_Power_40_50-to-70_80
+  - FC_Active_Power_40_50-to-80_90
+  - FC_Active_Power_40_50-to-90_100
+  - FC_Active_Power_50_60-to-0_10
+  - FC_Active_Power_50_60-to-10_20
+  - FC_Active_Power_50_60-to-20_30
+  - FC_Active_Power_50_60-to-30_40
+  - FC_Active_Power_50_60-to-40_50
+  - FC_Active_Power_50_60-to-60_70
+  - FC_Active_Power_50_60-to-70_80
+  - FC_Active_Power_50_60-to-80_90
+  - FC_Active_Power_50_60-to-90_100
+  - FC_Active_Power_60_70-to-0_10
+  - FC_Active_Power_60_70-to-10_20
+  - FC_Active_Power_60_70-to-20_30
+  - FC_Active_Power_60_70-to-30_40
+  - FC_Active_Power_60_70-to-40_50
+  - FC_Active_Power_60_70-to-50_60
+  - FC_Active_Power_60_70-to-70_80
+  - FC_Active_Power_60_70-to-80_90
+  - FC_Active_Power_60_70-to-90_100
+  - FC_Active_Power_70_80-to-0_10
+  - FC_Active_Power_70_80-to-10_20
+  - FC_Active_Power_70_80-to-20_30
+  - FC_Active_Power_70_80-to-30_40
+  - FC_Active_Power_70_80-to-40_50
+  - FC_Active_Power_70_80-to-50_60
+  - FC_Active_Power_70_80-to-60_70
+  - FC_Active_Power_70_80-to-80_90
+  - FC_Active_Power_70_80-to-90_100
+  - FC_Active_Power_80_90-to-0_10
+  - FC_Active_Power_80_90-to-10_20
+  - FC_Active_Power_80_90-to-20_30
+  - FC_Active_Power_80_90-to-30_40
+  - FC_Active_Power_80_90-to-40_50
+  - FC_Active_Power_80_90-to-50_60
+  - FC_Active_Power_80_90-to-60_70
+  - FC_Active_Power_80_90-to-70_80
+  - FC_Active_Power_80_90-to-90_100
+  - FC_Active_Power_90_100-to-0_10
+  - FC_Active_Power_90_100-to-10_20
+  - FC_Active_Power_90_100-to-20_30
+  - FC_Active_Power_90_100-to-30_40
+  - FC_Active_Power_90_100-to-40_50
+  - FC_Active_Power_90_100-to-50_60
+  - FC_Active_Power_90_100-to-60_70
+  - FC_Active_Power_90_100-to-70_80
+  - FC_Active_Power_90_100-to-80_90
+  n_event_types: 90
+  n_events: 3887242
+  n_types: 90
+  n_types_observed: 32
+  target_candidates:
+    FC_Active_Power:
+      high:
+        candidate: true
+        extreme_event_count: 93
+        extreme_event_ratio: 0.017357222844344905
+        reason: passes high target candidate rules
+      low:
+        candidate: true
+        extreme_event_count: 67
+        extreme_event_ratio: 0.012504665920119448
+        reason: passes low target candidate rules
+metrics:
+  execution_time: 8.176308488000004
+  n_rows_in: 3887242
+  n_rows_out: 3887242
+  total_events_generated: 5358
+  mean_events_per_row: 0.001378355142283398
+  empty_rows_ratio: 0.9986216448577167
+  n_event_types_observed: 32
+  catalog_coverage_ratio: 0.35555555555555557
+  top1_event_ratio: 0.29357969391564015
+  rare_event_ratio: 0.029861888764464353
+  eventless_measure_ratio: 0.0
+  non_eventless_measure_ratio: 1.0
+  high_rare_measure_ratio: 1.0
+  low_rare_measure_ratio: 1.0
+  high_rare_event_ratio: 0.017357222844344905
+  low_rare_event_ratio: 0.012504665920119448
+  f02_quality_score: 0.6755781425174145
+  f02_gate_status: reject
+  event_entropy: 1.9635303788937
+  normalized_event_entropy: 0.5665551080529536
+  n_transition_events: 5358
+  jump_size_mean: 1.0261291526689063
+provenance:
+  generated_at: '2026-06-22T15:21:00.139942+00:00'
