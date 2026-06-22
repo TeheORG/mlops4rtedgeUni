@@ -1,0 +1,65 @@
+phase: f04_targets
+variant: v4_0082
+artifacts:
+  dataset:
+    path: 04_targets.parquet
+    sha256: b053b554affc95850ed39ac777ba00af9f011aaa2f5f2c3148da3393ab25e970
+  report:
+    path: 04_targets_report.html
+    sha256: 2144bccc262785655596a01d829706a296c4fdc4b9abcee2baa69711873d7d27
+exports:
+  Tu: 10
+  OW: 90
+  LT: 10
+  PW: 10
+  prediction_name: inlet_temperature_of_chilled_water_low_10_coarse_10
+  measure_name: Inlet_Temperature_of_Chilled_Water
+  target_operator: OR
+  target_event_types:
+  - Inlet_Temperature_of_Chilled_Water_10_20-to-0_10
+  - Inlet_Temperature_of_Chilled_Water_20_30-to-0_10
+  - Inlet_Temperature_of_Chilled_Water_30_40-to-0_10
+  - Inlet_Temperature_of_Chilled_Water_40_50-to-0_10
+  - Inlet_Temperature_of_Chilled_Water_50_60-to-0_10
+  - Inlet_Temperature_of_Chilled_Water_60_70-to-0_10
+  - Inlet_Temperature_of_Chilled_Water_70_80-to-0_10
+  - Inlet_Temperature_of_Chilled_Water_80_90-to-0_10
+  target_event_count: 8
+  target_compatible: true
+  incompatibility_reason: null
+  target_candidate_checks:
+  - measure: Inlet_Temperature_of_Chilled_Water
+    direction: low
+  event_type_count: 90
+  window_strategy: synchro
+  parent_f03: v3_0040
+  parent_f02: v2_0013
+  n_windows: 225564
+  n_windows_pos: 11046
+  n_windows_neg: 214518
+  n_positive: 11046
+  n_negative: 214518
+  class_balance_ratio: 0.048970580411767835
+  deduplication_stats:
+    total_sequences: 225564
+    unique_ow_sequences: 1031
+    num_duplicate_sequences: 224533
+    duplicate_ratio: 0.9954292351616393
+    ambiguous_sequences: 87
+    ambiguous_samples: 57588
+    ambiguous_ratio: 0.25530669787732085
+    avg_label_consistency_per_ow: 0.9777918369069922
+  unique_ratio: 0.004570764838360731
+  dup_ratio_ow_parent: 0.9954292351616393
+  dup_ratio_pw_parent: 0.9991488003404798
+  seq_len_mean_ow_parent: 10.49848380060648
+metrics:
+  execution_time: 0.4016585439999858
+  n_windows: 225564
+  n_positive: 11046
+  n_negative: 214518
+  positive_ratio: 0.048970580411767835
+  target_compatible: true
+  incompatibility_reason: null
+provenance:
+  generated_at: '2026-06-22T22:04:35.552196+00:00'
