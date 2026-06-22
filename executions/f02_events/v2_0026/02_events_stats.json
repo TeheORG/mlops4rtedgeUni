@@ -1,0 +1,272 @@
+{
+  "global": {
+    "total_events_generated": 14659,
+    "mean_events_per_row": 0.0037710541304091694,
+    "std_events_per_row": 0.06129301168285571,
+    "max_events_per_row": 1,
+    "p95_events_per_row": 0.0,
+    "empty_rows_ratio": 0.9962289458695909,
+    "nonempty_rows_ratio": 0.0037710541304091694,
+    "n_event_types_catalog": 30,
+    "n_event_types_observed": 14,
+    "catalog_coverage_ratio": 0.4666666666666667,
+    "effective_catalog_unused_ratio": 0.5333333333333333,
+    "rare_event_count": 424,
+    "rare_event_ratio": 0.028924210382700048,
+    "rare_event_types_observed": 2,
+    "rare_event_type_ratio": 0.14285714285714285,
+    "top1_event_ratio": 0.26802646838119926,
+    "top5_event_ratio": 0.9608431680196466,
+    "event_entropy": 1.6128892194479432,
+    "normalized_event_entropy": 0.6111611147466366,
+    "n_consecutive_steps": 3887230,
+    "consecutive_ratio": 0.9999971702294764,
+    "n_broken_steps": 11,
+    "broken_ratio": 2.829770523618165e-06,
+    "n_level_events": 0,
+    "n_unique_level_types_observed": 0,
+    "n_measures_total": 1,
+    "n_eventless_measures": 0,
+    "eventless_measure_ratio": 0.0,
+    "n_non_eventless_measures": 1,
+    "non_eventless_measure_ratio": 1.0,
+    "n_measures_with_high_rare_events": 1,
+    "n_measures_with_low_rare_events": 1,
+    "high_rare_measure_ratio": 1.0,
+    "low_rare_measure_ratio": 1.0,
+    "high_rare_event_count": 2,
+    "low_rare_event_count": 422,
+    "high_rare_event_ratio": 0.00013643495463537759,
+    "low_rare_event_ratio": 0.02878777542806467,
+    "events_per_million_rows": 3771.0541304091694,
+    "n_transition_events": 14659,
+    "n_unique_transition_types_observed": 14,
+    "transition_coverage_ratio": 0.4666666666666667,
+    "jump_size_mean": 1.0019100893648953,
+    "jump_size_std": 0.04366280938640344,
+    "pct_jump_eq_1": 0.9980899106351047,
+    "pct_jump_ge_2": 0.001910089364895286,
+    "pct_jump_ge_3": 0.0,
+    "f02_quality_score": 0.7431072465331701,
+    "activity_flag": "reject",
+    "diversity_flag": "ok",
+    "catalog_flag": "ok",
+    "dominance_flag": "warning",
+    "continuity_flag": "ok",
+    "measure_coverage_flag": "ok",
+    "f02_gate_status": "reject"
+  },
+  "event_frequency": {
+    "13": {
+      "event_name": "Island_mode_MCCB_Active_Power_25_50-to-50_75",
+      "count": 3929
+    },
+    "18": {
+      "event_name": "Island_mode_MCCB_Active_Power_50_75-to-25_50",
+      "count": 3928
+    },
+    "12": {
+      "event_name": "Island_mode_MCCB_Active_Power_25_50-to-10_25",
+      "count": 2904
+    },
+    "7": {
+      "event_name": "Island_mode_MCCB_Active_Power_10_25-to-25_50",
+      "count": 2902
+    },
+    "6": {
+      "event_name": "Island_mode_MCCB_Active_Power_10_25-to-0_10",
+      "count": 422
+    },
+    "1": {
+      "event_name": "Island_mode_MCCB_Active_Power_0_10-to-10_25",
+      "count": 421
+    },
+    "19": {
+      "event_name": "Island_mode_MCCB_Active_Power_50_75-to-75_90",
+      "count": 62
+    },
+    "24": {
+      "event_name": "Island_mode_MCCB_Active_Power_75_90-to-50_75",
+      "count": 59
+    },
+    "23": {
+      "event_name": "Island_mode_MCCB_Active_Power_75_90-to-25_50",
+      "count": 14
+    },
+    "14": {
+      "event_name": "Island_mode_MCCB_Active_Power_25_50-to-75_90",
+      "count": 11
+    },
+    "25": {
+      "event_name": "Island_mode_MCCB_Active_Power_75_90-to-90_100",
+      "count": 2
+    },
+    "30": {
+      "event_name": "Island_mode_MCCB_Active_Power_90_100-to-75_90",
+      "count": 2
+    },
+    "8": {
+      "event_name": "Island_mode_MCCB_Active_Power_10_25-to-50_75",
+      "count": 2
+    },
+    "2": {
+      "event_name": "Island_mode_MCCB_Active_Power_0_10-to-25_50",
+      "count": 1
+    }
+  },
+  "per_measure": {
+    "Island_mode_MCCB_Active_Power": {
+      "n_events_generated": 14659,
+      "n_unique_event_types_observed": 14,
+      "top1_ratio": 0.26802646838119926,
+      "rare_event_count": 424,
+      "rare_event_ratio": 0.028924210382700048,
+      "high_rare_event_count": 2,
+      "low_rare_event_count": 422,
+      "rare_event_type_count": 2,
+      "high_rare_event_type_count": 1,
+      "low_rare_event_type_count": 1,
+      "high_rare_event_ratio": 0.00013643495463537759,
+      "low_rare_event_ratio": 0.02878777542806467,
+      "mean_events_per_row_contributed": 0.0037710541304091694,
+      "band_occupancy": {
+        "0_10": 7849,
+        "10_25": 95586,
+        "25_50": 1224323,
+        "50_75": 2555611,
+        "75_90": 1282,
+        "90_100": 20
+      },
+      "total_band_count": 3884671,
+      "n_active_bands": 6,
+      "max_band_count": 2555611,
+      "max_band_ratio": 0.6578706407827072,
+      "min_nonzero_band_count": 20,
+      "extreme_band_count": 7869,
+      "extreme_band_ratio": 0.002025654167367069,
+      "middle_band_count": 3876802,
+      "middle_band_ratio": 0.9979743458326329,
+      "occupancy_entropy": 0.7457934033826266,
+      "normalized_occupancy_entropy": 0.4162352236396648,
+      "is_eventless_measure": false,
+      "band_degeneracy_flag": false,
+      "extreme_occupancy_flag": false,
+      "jump_size_mean": 1.0019100893648953,
+      "measure_transition_score": 0.7417182642631462,
+      "high_target_candidate": false,
+      "low_target_candidate": true
+    }
+  },
+  "top_events": [
+    {
+      "event_id": 13,
+      "event_name": "Island_mode_MCCB_Active_Power_25_50-to-50_75",
+      "count": 3929,
+      "ratio": 0.26802646838119926
+    },
+    {
+      "event_id": 18,
+      "event_name": "Island_mode_MCCB_Active_Power_50_75-to-25_50",
+      "count": 3928,
+      "ratio": 0.2679582509038816
+    },
+    {
+      "event_id": 12,
+      "event_name": "Island_mode_MCCB_Active_Power_25_50-to-10_25",
+      "count": 2904,
+      "ratio": 0.19810355413056824
+    },
+    {
+      "event_id": 7,
+      "event_name": "Island_mode_MCCB_Active_Power_10_25-to-25_50",
+      "count": 2902,
+      "ratio": 0.19796711917593288
+    },
+    {
+      "event_id": 6,
+      "event_name": "Island_mode_MCCB_Active_Power_10_25-to-0_10",
+      "count": 422,
+      "ratio": 0.02878777542806467
+    },
+    {
+      "event_id": 1,
+      "event_name": "Island_mode_MCCB_Active_Power_0_10-to-10_25",
+      "count": 421,
+      "ratio": 0.02871955795074698
+    },
+    {
+      "event_id": 19,
+      "event_name": "Island_mode_MCCB_Active_Power_50_75-to-75_90",
+      "count": 62,
+      "ratio": 0.004229483593696705
+    },
+    {
+      "event_id": 24,
+      "event_name": "Island_mode_MCCB_Active_Power_75_90-to-50_75",
+      "count": 59,
+      "ratio": 0.004024831161743639
+    },
+    {
+      "event_id": 23,
+      "event_name": "Island_mode_MCCB_Active_Power_75_90-to-25_50",
+      "count": 14,
+      "ratio": 0.000955044682447643
+    },
+    {
+      "event_id": 14,
+      "event_name": "Island_mode_MCCB_Active_Power_25_50-to-75_90",
+      "count": 11,
+      "ratio": 0.0007503922504945767
+    },
+    {
+      "event_id": 25,
+      "event_name": "Island_mode_MCCB_Active_Power_75_90-to-90_100",
+      "count": 2,
+      "ratio": 0.00013643495463537759
+    },
+    {
+      "event_id": 30,
+      "event_name": "Island_mode_MCCB_Active_Power_90_100-to-75_90",
+      "count": 2,
+      "ratio": 0.00013643495463537759
+    },
+    {
+      "event_id": 8,
+      "event_name": "Island_mode_MCCB_Active_Power_10_25-to-50_75",
+      "count": 2,
+      "ratio": 0.00013643495463537759
+    },
+    {
+      "event_id": 2,
+      "event_name": "Island_mode_MCCB_Active_Power_0_10-to-25_50",
+      "count": 1,
+      "ratio": 6.821747731768879e-05
+    }
+  ],
+  "band_occupancy": {
+    "Island_mode_MCCB_Active_Power": {
+      "0_10": 7849,
+      "10_25": 95586,
+      "25_50": 1224323,
+      "50_75": 2555611,
+      "75_90": 1282,
+      "90_100": 20
+    }
+  },
+  "target_candidates": {
+    "Island_mode_MCCB_Active_Power": {
+      "high": {
+        "candidate": false,
+        "extreme_event_count": 2,
+        "extreme_event_ratio": 0.00013643495463537759,
+        "reason": "does not pass high target candidate rules"
+      },
+      "low": {
+        "candidate": true,
+        "extreme_event_count": 422,
+        "extreme_event_ratio": 0.02878777542806467,
+        "reason": "passes low target candidate rules"
+      }
+    }
+  }
+}

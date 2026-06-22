@@ -1,0 +1,97 @@
+phase: f02_events
+variant: v2_0026
+artifacts:
+  events:
+    path: 02_events.parquet
+    sha256: 2887380b36607de5cafefd1740752325ebefe373a1451325692656c58e0c9c30
+  catalog:
+    path: 02_events_catalog.json
+    sha256: 745e0c8511753114a4385ad009dba9c266134c7a1c97c10d4e41fad2148589e2
+  stats:
+    path: 02_events_stats.json
+    sha256: 845127cdc67e47127d960f4fe43d839d6c37bc1242d9d2e5a6e3a26caad742a7
+  report:
+    path: 02_events_report.html
+    sha256: 31830b0a3b55e63eae2384a75bd13c8739455bd872d70c9903e252622598b518
+exports:
+  Tu: 10
+  measure_name: Island_mode_MCCB_Active_Power
+  event_strategy: transitions
+  bands:
+  - 10
+  - 25
+  - 50
+  - 75
+  - 90
+  event_types:
+  - Island_mode_MCCB_Active_Power_0_10-to-10_25
+  - Island_mode_MCCB_Active_Power_0_10-to-25_50
+  - Island_mode_MCCB_Active_Power_0_10-to-50_75
+  - Island_mode_MCCB_Active_Power_0_10-to-75_90
+  - Island_mode_MCCB_Active_Power_0_10-to-90_100
+  - Island_mode_MCCB_Active_Power_10_25-to-0_10
+  - Island_mode_MCCB_Active_Power_10_25-to-25_50
+  - Island_mode_MCCB_Active_Power_10_25-to-50_75
+  - Island_mode_MCCB_Active_Power_10_25-to-75_90
+  - Island_mode_MCCB_Active_Power_10_25-to-90_100
+  - Island_mode_MCCB_Active_Power_25_50-to-0_10
+  - Island_mode_MCCB_Active_Power_25_50-to-10_25
+  - Island_mode_MCCB_Active_Power_25_50-to-50_75
+  - Island_mode_MCCB_Active_Power_25_50-to-75_90
+  - Island_mode_MCCB_Active_Power_25_50-to-90_100
+  - Island_mode_MCCB_Active_Power_50_75-to-0_10
+  - Island_mode_MCCB_Active_Power_50_75-to-10_25
+  - Island_mode_MCCB_Active_Power_50_75-to-25_50
+  - Island_mode_MCCB_Active_Power_50_75-to-75_90
+  - Island_mode_MCCB_Active_Power_50_75-to-90_100
+  - Island_mode_MCCB_Active_Power_75_90-to-0_10
+  - Island_mode_MCCB_Active_Power_75_90-to-10_25
+  - Island_mode_MCCB_Active_Power_75_90-to-25_50
+  - Island_mode_MCCB_Active_Power_75_90-to-50_75
+  - Island_mode_MCCB_Active_Power_75_90-to-90_100
+  - Island_mode_MCCB_Active_Power_90_100-to-0_10
+  - Island_mode_MCCB_Active_Power_90_100-to-10_25
+  - Island_mode_MCCB_Active_Power_90_100-to-25_50
+  - Island_mode_MCCB_Active_Power_90_100-to-50_75
+  - Island_mode_MCCB_Active_Power_90_100-to-75_90
+  n_event_types: 30
+  n_events: 3887242
+  n_types: 30
+  n_types_observed: 14
+  target_candidates:
+    Island_mode_MCCB_Active_Power:
+      high:
+        candidate: false
+        extreme_event_count: 2
+        extreme_event_ratio: 0.00013643495463537759
+        reason: does not pass high target candidate rules
+      low:
+        candidate: true
+        extreme_event_count: 422
+        extreme_event_ratio: 0.02878777542806467
+        reason: passes low target candidate rules
+metrics:
+  execution_time: 8.237135099
+  n_rows_in: 3887242
+  n_rows_out: 3887242
+  total_events_generated: 14659
+  mean_events_per_row: 0.0037710541304091694
+  empty_rows_ratio: 0.9962289458695909
+  n_event_types_observed: 14
+  catalog_coverage_ratio: 0.4666666666666667
+  top1_event_ratio: 0.26802646838119926
+  rare_event_ratio: 0.028924210382700048
+  eventless_measure_ratio: 0.0
+  non_eventless_measure_ratio: 1.0
+  high_rare_measure_ratio: 1.0
+  low_rare_measure_ratio: 1.0
+  high_rare_event_ratio: 0.00013643495463537759
+  low_rare_event_ratio: 0.02878777542806467
+  f02_quality_score: 0.7431072465331701
+  f02_gate_status: reject
+  event_entropy: 1.6128892194479432
+  normalized_event_entropy: 0.6111611147466366
+  n_transition_events: 14659
+  jump_size_mean: 1.0019100893648953
+provenance:
+  generated_at: '2026-06-22T15:22:30.233669+00:00'
