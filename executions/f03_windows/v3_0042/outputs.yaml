@@ -1,0 +1,38 @@
+phase: f03_windows
+variant: v3_0042
+artifacts:
+  dataset:
+    path: 03_windows.parquet
+    sha256: ef9e6fd0d418bbbad5fdd740d25f67f34cb2fbd093261c2032bc4c64ecd2692a
+  catalog:
+    path: 03_events_catalog.json
+    sha256: 059439450b008f825e8b46f3615c4092678463d12187e0cb1bd9b964400440b7
+  report:
+    path: 03_windows_report.html
+    sha256: 99ff528ae07c025ca4133a7aa896e3ab02a705d230d2019f175ce2610d9cf9a2
+exports:
+  Tu: 10
+  OW: 90
+  LT: 10
+  PW: 10
+  Ratio_PW_OW: 0.1111111111111111
+  event_type_count: 20
+  window_strategy: synchro
+  nan_mode: discard
+  measure_name: Inlet_Temperature_of_Chilled_Water
+  parent_f02: v2_0015
+  n_windows: 101191
+  n_unique_ow_hash: 443
+  n_unique_pw_hash: 80
+  dup_ratio_ow: 0.9956221403089207
+  dup_ratio_pw: 0.9992094158571414
+  seq_len_mean_ow: 10.5839452125189
+  seq_len_mean_pw: 1.1759939125021
+  seq_len_std_ow: 10.367792795288699
+  seq_len_std_pw: 1.8474141763495489
+metrics:
+  execution_time: 10.570572455000004
+  n_events_in: 3887242
+  n_windows_out: 101191
+provenance:
+  generated_at: '2026-06-22T21:43:22.951650+00:00'

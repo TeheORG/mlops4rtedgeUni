@@ -1,0 +1,22 @@
+{
+  "Inlet_Temperature_of_Chilled_Water_0_20-to-20_40": 1,
+  "Inlet_Temperature_of_Chilled_Water_0_20-to-40_60": 2,
+  "Inlet_Temperature_of_Chilled_Water_0_20-to-60_80": 3,
+  "Inlet_Temperature_of_Chilled_Water_0_20-to-80_100": 4,
+  "Inlet_Temperature_of_Chilled_Water_20_40-to-0_20": 5,
+  "Inlet_Temperature_of_Chilled_Water_20_40-to-40_60": 6,
+  "Inlet_Temperature_of_Chilled_Water_20_40-to-60_80": 7,
+  "Inlet_Temperature_of_Chilled_Water_20_40-to-80_100": 8,
+  "Inlet_Temperature_of_Chilled_Water_40_60-to-0_20": 9,
+  "Inlet_Temperature_of_Chilled_Water_40_60-to-20_40": 10,
+  "Inlet_Temperature_of_Chilled_Water_40_60-to-60_80": 11,
+  "Inlet_Temperature_of_Chilled_Water_40_60-to-80_100": 12,
+  "Inlet_Temperature_of_Chilled_Water_60_80-to-0_20": 13,
+  "Inlet_Temperature_of_Chilled_Water_60_80-to-20_40": 14,
+  "Inlet_Temperature_of_Chilled_Water_60_80-to-40_60": 15,
+  "Inlet_Temperature_of_Chilled_Water_60_80-to-80_100": 16,
+  "Inlet_Temperature_of_Chilled_Water_80_100-to-0_20": 17,
+  "Inlet_Temperature_of_Chilled_Water_80_100-to-20_40": 18,
+  "Inlet_Temperature_of_Chilled_Water_80_100-to-40_60": 19,
+  "Inlet_Temperature_of_Chilled_Water_80_100-to-60_80": 20
+}
