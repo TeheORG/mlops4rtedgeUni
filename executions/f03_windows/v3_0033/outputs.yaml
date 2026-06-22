@@ -1,0 +1,38 @@
+phase: f03_windows
+variant: v3_0033
+artifacts:
+  dataset:
+    path: 03_windows.parquet
+    sha256: b568b1a861f2dac1b6152cae11af8d4a3e18cbad5efacc95a099be6f9c492222
+  catalog:
+    path: 03_events_catalog.json
+    sha256: 8642b1b26a3623d662a63b441cc55c484d7ee4a4b31538232f53c3c0fe1a4bd0
+  report:
+    path: 03_windows_report.html
+    sha256: 2814ce2a0bcc682a2930b1986ee32cc77d0932d770e5a3f2b6d20fcc2d689d57
+exports:
+  Tu: 10
+  OW: 90
+  LT: 10
+  PW: 10
+  Ratio_PW_OW: 0.1111111111111111
+  event_type_count: 20
+  window_strategy: synchro
+  nan_mode: discard
+  measure_name: Outlet_Temperature
+  parent_f02: v2_0006
+  n_windows: 149446
+  n_unique_ow_hash: 523
+  n_unique_pw_hash: 82
+  dup_ratio_ow: 0.99650040817419
+  dup_ratio_pw: 0.999451306826546
+  seq_len_mean_ow: 13.629538428596282
+  seq_len_mean_pw: 1.5143931587329202
+  seq_len_std_ow: 12.586536974446904
+  seq_len_std_pw: 2.0402690589150536
+metrics:
+  execution_time: 10.951796432999998
+  n_events_in: 3887242
+  n_windows_out: 149446
+provenance:
+  generated_at: '2026-06-22T21:35:30.148414+00:00'
