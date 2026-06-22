@@ -1,0 +1,22 @@
+{
+  "MG-LV-MSB_AC_Voltage_0_20-to-20_40": 1,
+  "MG-LV-MSB_AC_Voltage_0_20-to-40_60": 2,
+  "MG-LV-MSB_AC_Voltage_0_20-to-60_80": 3,
+  "MG-LV-MSB_AC_Voltage_0_20-to-80_100": 4,
+  "MG-LV-MSB_AC_Voltage_20_40-to-0_20": 5,
+  "MG-LV-MSB_AC_Voltage_20_40-to-40_60": 6,
+  "MG-LV-MSB_AC_Voltage_20_40-to-60_80": 7,
+  "MG-LV-MSB_AC_Voltage_20_40-to-80_100": 8,
+  "MG-LV-MSB_AC_Voltage_40_60-to-0_20": 9,
+  "MG-LV-MSB_AC_Voltage_40_60-to-20_40": 10,
+  "MG-LV-MSB_AC_Voltage_40_60-to-60_80": 11,
+  "MG-LV-MSB_AC_Voltage_40_60-to-80_100": 12,
+  "MG-LV-MSB_AC_Voltage_60_80-to-0_20": 13,
+  "MG-LV-MSB_AC_Voltage_60_80-to-20_40": 14,
+  "MG-LV-MSB_AC_Voltage_60_80-to-40_60": 15,
+  "MG-LV-MSB_AC_Voltage_60_80-to-80_100": 16,
+  "MG-LV-MSB_AC_Voltage_80_100-to-0_20": 17,
+  "MG-LV-MSB_AC_Voltage_80_100-to-20_40": 18,
+  "MG-LV-MSB_AC_Voltage_80_100-to-40_60": 19,
+  "MG-LV-MSB_AC_Voltage_80_100-to-60_80": 20
+}
