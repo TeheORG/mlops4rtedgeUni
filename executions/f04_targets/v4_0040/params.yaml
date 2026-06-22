@@ -1,0 +1,23 @@
+phase: f04_targets
+variant: v4_0040
+parent: v3_0019
+parameters:
+  parent_variant: v3_0019
+  Tu: 10
+  OW: 50
+  LT: 10
+  PW: 10
+  event_type_count: 90
+  prediction_name: fc_active_power_low_10_coarse_10
+  target_operator: OR
+  target_event_types:
+  - FC_Active_Power_10_20-to-0_10
+  - FC_Active_Power_20_30-to-0_10
+  - FC_Active_Power_30_40-to-0_10
+  - FC_Active_Power_40_50-to-0_10
+  - FC_Active_Power_50_60-to-0_10
+  - FC_Active_Power_60_70-to-0_10
+  - FC_Active_Power_70_80-to-0_10
+  - FC_Active_Power_80_90-to-0_10
+parent_hashes:
+  v3_0019: 3a07def5d459d0bd485d06021f902a3a85aa19935ece6a75dd07ae0c81f9b033
