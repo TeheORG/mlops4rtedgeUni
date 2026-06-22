@@ -1,0 +1,20 @@
+
+===== CHECKING f02_events (v2_0007) with spec =====
+[INFO] Spec: makefile_check_phases.yml
+[OK] exists: 02_events_catalog.json
+[OK] exists: 02_events_report.html
+[OK] exists: 02_events.parquet
+[OK] exists: outputs.yaml
+[OK] exists: metadata.yaml
+[OK] exists: params.yaml
+[OK] not empty: 02_events_catalog.json
+[OK] not empty: 02_events_report.html
+[OK] not empty: outputs.yaml
+[OK] content checks: outputs.yaml
+[OK] not empty: metadata.yaml
+[OK] size: params.yaml (> 0B & < 1KB)
+
+======####@@@@@@@@@@@@####======
+✅[SUCCESS] Validation passed
+======####@@@@@@@@@@@@####======
+
