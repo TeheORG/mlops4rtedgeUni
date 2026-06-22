@@ -1,0 +1,18 @@
+
+===== CHECKING f04_targets (v4_0036) with spec =====
+[INFO] Spec: makefile_check_phases.yml
+[OK] exists: 04_targets_report.html
+[OK] exists: 04_targets.parquet
+[OK] exists: metadata.yaml
+[OK] exists: outputs.yaml
+[OK] exists: params.yaml
+[OK] not empty: 04_targets_report.html
+[OK] not empty: 04_targets.parquet
+[OK] not empty: metadata.yaml
+[OK] not empty: outputs.yaml
+[OK] size: params.yaml (> 0B & < 1KB)
+
+======####@@@@@@@@@@@@####======
+✅[SUCCESS] Validation passed
+======####@@@@@@@@@@@@####======
+
