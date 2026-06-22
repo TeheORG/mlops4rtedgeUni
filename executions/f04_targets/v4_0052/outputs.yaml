@@ -1,0 +1,65 @@
+phase: f04_targets
+variant: v4_0052
+artifacts:
+  dataset:
+    path: 04_targets.parquet
+    sha256: 10f66078086109402f3bc93c8b300b0aa059872f70296457814ff4f0b0807c94
+  report:
+    path: 04_targets_report.html
+    sha256: 750f468ee208133e709004bdb74438e9860d194857891d2258edd15496e096ef
+exports:
+  Tu: 10
+  OW: 50
+  LT: 10
+  PW: 10
+  prediction_name: island_mode_mccb_active_power_low_10_coarse_10
+  measure_name: Island_mode_MCCB_Active_Power
+  target_operator: OR
+  target_event_types:
+  - Island_mode_MCCB_Active_Power_10_20-to-0_10
+  - Island_mode_MCCB_Active_Power_20_30-to-0_10
+  - Island_mode_MCCB_Active_Power_30_40-to-0_10
+  - Island_mode_MCCB_Active_Power_40_50-to-0_10
+  - Island_mode_MCCB_Active_Power_50_60-to-0_10
+  - Island_mode_MCCB_Active_Power_60_70-to-0_10
+  - Island_mode_MCCB_Active_Power_70_80-to-0_10
+  - Island_mode_MCCB_Active_Power_80_90-to-0_10
+  target_event_count: 8
+  target_compatible: true
+  incompatibility_reason: null
+  target_candidate_checks:
+  - measure: Island_mode_MCCB_Active_Power
+    direction: low
+  event_type_count: 90
+  window_strategy: synchro
+  parent_f03: v3_0025
+  parent_f02: v2_0025
+  n_windows: 522997
+  n_windows_pos: 3503
+  n_windows_neg: 519494
+  n_positive: 3503
+  n_negative: 519494
+  class_balance_ratio: 0.006697935169800209
+  deduplication_stats:
+    total_sequences: 522997
+    unique_ow_sequences: 4702
+    num_duplicate_sequences: 518295
+    duplicate_ratio: 0.9910095086587495
+    ambiguous_sequences: 193
+    ambiguous_samples: 90045
+    ambiguous_ratio: 0.1721711596816043
+    avg_label_consistency_per_ow: 0.9905624514996993
+  unique_ratio: 0.008990491341250524
+  dup_ratio_ow_parent: 0.9910095086587495
+  dup_ratio_pw_parent: 0.9985047715378864
+  seq_len_mean_ow_parent: 4.047059543362582
+metrics:
+  execution_time: 0.8226557739999976
+  n_windows: 522997
+  n_positive: 3503
+  n_negative: 519494
+  positive_ratio: 0.006697935169800209
+  target_compatible: true
+  incompatibility_reason: null
+provenance:
+  generated_at: '2026-06-22T21:50:14.131553+00:00'
