@@ -1,0 +1,232 @@
+{
+  "global": {
+    "total_events_generated": 20876,
+    "mean_events_per_row": 0.005370388568553232,
+    "std_events_per_row": 0.07308589121831911,
+    "max_events_per_row": 1,
+    "p95_events_per_row": 0.0,
+    "empty_rows_ratio": 0.9946296114314468,
+    "nonempty_rows_ratio": 0.005370388568553232,
+    "n_event_types_catalog": 30,
+    "n_event_types_observed": 10,
+    "catalog_coverage_ratio": 0.3333333333333333,
+    "effective_catalog_unused_ratio": 0.6666666666666667,
+    "rare_event_count": 1120,
+    "rare_event_ratio": 0.05365012454493198,
+    "rare_event_types_observed": 2,
+    "rare_event_type_ratio": 0.2,
+    "top1_event_ratio": 0.19103276489748994,
+    "top5_event_ratio": 0.7947882736156352,
+    "event_entropy": 2.0531604367170377,
+    "normalized_event_entropy": 0.8916762481282801,
+    "n_consecutive_steps": 3887230,
+    "consecutive_ratio": 0.9999971702294764,
+    "n_broken_steps": 11,
+    "broken_ratio": 2.829770523618165e-06,
+    "n_level_events": 0,
+    "n_unique_level_types_observed": 0,
+    "n_measures_total": 1,
+    "n_eventless_measures": 0,
+    "eventless_measure_ratio": 0.0,
+    "n_non_eventless_measures": 1,
+    "non_eventless_measure_ratio": 1.0,
+    "n_measures_with_high_rare_events": 1,
+    "n_measures_with_low_rare_events": 1,
+    "high_rare_measure_ratio": 1.0,
+    "low_rare_measure_ratio": 1.0,
+    "high_rare_event_count": 723,
+    "low_rare_event_count": 397,
+    "high_rare_event_ratio": 0.0346330714696302,
+    "low_rare_event_ratio": 0.01901705307530178,
+    "events_per_million_rows": 5370.388568553231,
+    "n_transition_events": 20876,
+    "n_unique_transition_types_observed": 10,
+    "transition_coverage_ratio": 0.3333333333333333,
+    "jump_size_mean": 1.0,
+    "jump_size_std": 0.0,
+    "pct_jump_eq_1": 1.0,
+    "pct_jump_ge_2": 0.0,
+    "pct_jump_ge_3": 0.0,
+    "f02_quality_score": 0.7787866195230118,
+    "activity_flag": "warning",
+    "diversity_flag": "ok",
+    "catalog_flag": "ok",
+    "dominance_flag": "warning",
+    "continuity_flag": "ok",
+    "measure_coverage_flag": "ok",
+    "f02_gate_status": "warning"
+  },
+  "event_frequency": {
+    "7": {
+      "event_name": "Outlet_Temperature_10_25-to-25_50",
+      "count": 3988
+    },
+    "12": {
+      "event_name": "Outlet_Temperature_25_50-to-10_25",
+      "count": 3987
+    },
+    "19": {
+      "event_name": "Outlet_Temperature_50_75-to-75_90",
+      "count": 3286
+    },
+    "24": {
+      "event_name": "Outlet_Temperature_75_90-to-50_75",
+      "count": 3286
+    },
+    "18": {
+      "event_name": "Outlet_Temperature_50_75-to-25_50",
+      "count": 2045
+    },
+    "13": {
+      "event_name": "Outlet_Temperature_25_50-to-50_75",
+      "count": 2045
+    },
+    "25": {
+      "event_name": "Outlet_Temperature_75_90-to-90_100",
+      "count": 723
+    },
+    "30": {
+      "event_name": "Outlet_Temperature_90_100-to-75_90",
+      "count": 722
+    },
+    "6": {
+      "event_name": "Outlet_Temperature_10_25-to-0_10",
+      "count": 397
+    },
+    "1": {
+      "event_name": "Outlet_Temperature_0_10-to-10_25",
+      "count": 397
+    }
+  },
+  "per_measure": {
+    "Outlet_Temperature": {
+      "n_events_generated": 20876,
+      "n_unique_event_types_observed": 10,
+      "top1_ratio": 0.19103276489748994,
+      "rare_event_count": 1120,
+      "rare_event_ratio": 0.05365012454493198,
+      "high_rare_event_count": 723,
+      "low_rare_event_count": 397,
+      "rare_event_type_count": 2,
+      "high_rare_event_type_count": 1,
+      "low_rare_event_type_count": 1,
+      "high_rare_event_ratio": 0.0346330714696302,
+      "low_rare_event_ratio": 0.01901705307530178,
+      "mean_events_per_row_contributed": 0.005370388568553232,
+      "band_occupancy": {
+        "0_10": 9214,
+        "10_25": 848503,
+        "25_50": 1307881,
+        "50_75": 1052615,
+        "75_90": 599937,
+        "90_100": 66475
+      },
+      "total_band_count": 3884625,
+      "n_active_bands": 6,
+      "max_band_count": 1307881,
+      "max_band_ratio": 0.3366814042539499,
+      "min_nonzero_band_count": 9214,
+      "extreme_band_count": 75689,
+      "extreme_band_ratio": 0.019484248801364352,
+      "middle_band_count": 3808936,
+      "middle_band_ratio": 0.9805157511986357,
+      "occupancy_entropy": 1.4250622138924154,
+      "normalized_occupancy_entropy": 0.7953423650700036,
+      "is_eventless_measure": false,
+      "band_degeneracy_flag": false,
+      "extreme_occupancy_flag": false,
+      "jump_size_mean": 1.0,
+      "measure_transition_score": 0.8565573770502178,
+      "high_target_candidate": true,
+      "low_target_candidate": true
+    }
+  },
+  "top_events": [
+    {
+      "event_id": 7,
+      "event_name": "Outlet_Temperature_10_25-to-25_50",
+      "count": 3988,
+      "ratio": 0.19103276489748994
+    },
+    {
+      "event_id": 12,
+      "event_name": "Outlet_Temperature_25_50-to-10_25",
+      "count": 3987,
+      "ratio": 0.19098486300057482
+    },
+    {
+      "event_id": 19,
+      "event_name": "Outlet_Temperature_50_75-to-75_90",
+      "count": 3286,
+      "ratio": 0.15740563326307722
+    },
+    {
+      "event_id": 24,
+      "event_name": "Outlet_Temperature_75_90-to-50_75",
+      "count": 3286,
+      "ratio": 0.15740563326307722
+    },
+    {
+      "event_id": 18,
+      "event_name": "Outlet_Temperature_50_75-to-25_50",
+      "count": 2045,
+      "ratio": 0.09795937919141598
+    },
+    {
+      "event_id": 13,
+      "event_name": "Outlet_Temperature_25_50-to-50_75",
+      "count": 2045,
+      "ratio": 0.09795937919141598
+    },
+    {
+      "event_id": 25,
+      "event_name": "Outlet_Temperature_75_90-to-90_100",
+      "count": 723,
+      "ratio": 0.0346330714696302
+    },
+    {
+      "event_id": 30,
+      "event_name": "Outlet_Temperature_90_100-to-75_90",
+      "count": 722,
+      "ratio": 0.03458516957271508
+    },
+    {
+      "event_id": 6,
+      "event_name": "Outlet_Temperature_10_25-to-0_10",
+      "count": 397,
+      "ratio": 0.01901705307530178
+    },
+    {
+      "event_id": 1,
+      "event_name": "Outlet_Temperature_0_10-to-10_25",
+      "count": 397,
+      "ratio": 0.01901705307530178
+    }
+  ],
+  "band_occupancy": {
+    "Outlet_Temperature": {
+      "0_10": 9214,
+      "10_25": 848503,
+      "25_50": 1307881,
+      "50_75": 1052615,
+      "75_90": 599937,
+      "90_100": 66475
+    }
+  },
+  "target_candidates": {
+    "Outlet_Temperature": {
+      "high": {
+        "candidate": true,
+        "extreme_event_count": 723,
+        "extreme_event_ratio": 0.0346330714696302,
+        "reason": "passes high target candidate rules"
+      },
+      "low": {
+        "candidate": true,
+        "extreme_event_count": 397,
+        "extreme_event_ratio": 0.01901705307530178,
+        "reason": "passes low target candidate rules"
+      }
+    }
+  }
+}
