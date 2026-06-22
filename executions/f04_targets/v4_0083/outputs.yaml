@@ -1,0 +1,61 @@
+phase: f04_targets
+variant: v4_0083
+artifacts:
+  dataset:
+    path: 04_targets.parquet
+    sha256: fce8ab4d1e84f3127f150a7ce8b070580c6e62aec55a3e605a47add07a63cfdc
+  report:
+    path: 04_targets_report.html
+    sha256: 133aab2cc76d2edd641468130da25dd2afd3ad7c572ac5643960be83e7769e89
+exports:
+  Tu: 10
+  OW: 90
+  LT: 10
+  PW: 10
+  prediction_name: inlet_temperature_of_chilled_water_low_10_coarse_5
+  measure_name: Inlet_Temperature_of_Chilled_Water
+  target_operator: OR
+  target_event_types:
+  - Inlet_Temperature_of_Chilled_Water_10_25-to-0_10
+  - Inlet_Temperature_of_Chilled_Water_25_50-to-0_10
+  - Inlet_Temperature_of_Chilled_Water_50_75-to-0_10
+  - Inlet_Temperature_of_Chilled_Water_75_90-to-0_10
+  target_event_count: 4
+  target_compatible: true
+  incompatibility_reason: null
+  target_candidate_checks:
+  - measure: Inlet_Temperature_of_Chilled_Water
+    direction: low
+  event_type_count: 30
+  window_strategy: synchro
+  parent_f03: v3_0041
+  parent_f02: v2_0014
+  n_windows: 128924
+  n_windows_pos: 11046
+  n_windows_neg: 117878
+  n_positive: 11046
+  n_negative: 117878
+  class_balance_ratio: 0.08567838416431386
+  deduplication_stats:
+    total_sequences: 128924
+    unique_ow_sequences: 532
+    num_duplicate_sequences: 128392
+    duplicate_ratio: 0.9958735378982967
+    ambiguous_sequences: 84
+    ambiguous_samples: 48371
+    ambiguous_ratio: 0.37519003443889426
+    avg_label_consistency_per_ow: 0.9578951083738796
+  unique_ratio: 0.004126462101703329
+  dup_ratio_ow_parent: 0.9958735378982967
+  dup_ratio_pw_parent: 0.9992476187521331
+  seq_len_mean_ow_parent: 9.647544289659024
+metrics:
+  execution_time: 0.2448664220000012
+  n_windows: 128924
+  n_positive: 11046
+  n_negative: 117878
+  positive_ratio: 0.08567838416431386
+  target_compatible: true
+  incompatibility_reason: null
+provenance:
+  generated_at: '2026-06-22T21:49:34.989586+00:00'
