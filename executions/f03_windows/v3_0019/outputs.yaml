@@ -1,0 +1,38 @@
+phase: f03_windows
+variant: v3_0019
+artifacts:
+  dataset:
+    path: 03_windows.parquet
+    sha256: f09943efa8e252eccf7d383d36d7de359b711c90880b39e9eeace15258a4d541
+  catalog:
+    path: 03_events_catalog.json
+    sha256: ad5bff0a7b5f5d828ca1b51c1ef14d84921ee47da01e26a8c2fea257ab454ae2
+  report:
+    path: 03_windows_report.html
+    sha256: 0c90a3798e71aaf9b0c4542303bee7f432911f16aa043acbf083dbe6e878668c
+exports:
+  Tu: 10
+  OW: 50
+  LT: 10
+  PW: 10
+  Ratio_PW_OW: 0.2
+  event_type_count: 90
+  window_strategy: synchro
+  nan_mode: discard
+  measure_name: FC_Active_Power
+  parent_f02: v2_0019
+  n_windows: 163974
+  n_unique_ow_hash: 421
+  n_unique_pw_hash: 153
+  dup_ratio_ow: 0.9974325197897228
+  dup_ratio_pw: 0.999066925244246
+  seq_len_mean_ow: 1.6337956017417394
+  seq_len_mean_pw: 0.3267591203483479
+  seq_len_std_ow: 3.1849435217161344
+  seq_len_std_pw: 0.8452190530334803
+metrics:
+  execution_time: 10.480491148999988
+  n_events_in: 3887242
+  n_windows_out: 163974
+provenance:
+  generated_at: '2026-06-22T16:27:57.274161+00:00'
