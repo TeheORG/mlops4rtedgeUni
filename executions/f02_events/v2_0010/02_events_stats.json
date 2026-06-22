@@ -1,0 +1,240 @@
+{
+  "global": {
+    "total_events_generated": 57609,
+    "mean_events_per_row": 0.014820018923442379,
+    "std_events_per_row": 0.12083205684979122,
+    "max_events_per_row": 1,
+    "p95_events_per_row": 0.0,
+    "empty_rows_ratio": 0.9851799810765576,
+    "nonempty_rows_ratio": 0.014820018923442379,
+    "n_event_types_catalog": 90,
+    "n_event_types_observed": 10,
+    "catalog_coverage_ratio": 0.1111111111111111,
+    "effective_catalog_unused_ratio": 0.8888888888888888,
+    "rare_event_count": 17303,
+    "rare_event_ratio": 0.30035237549688415,
+    "rare_event_types_observed": 2,
+    "rare_event_type_ratio": 0.2,
+    "top1_event_ratio": 0.3003350170980229,
+    "top5_event_ratio": 0.9996181152250516,
+    "event_entropy": 1.3712660312013674,
+    "normalized_event_entropy": 0.5955332705721261,
+    "n_consecutive_steps": 3887230,
+    "consecutive_ratio": 0.9999971702294764,
+    "n_broken_steps": 11,
+    "broken_ratio": 2.829770523618165e-06,
+    "n_level_events": 0,
+    "n_unique_level_types_observed": 0,
+    "n_measures_total": 1,
+    "n_eventless_measures": 0,
+    "eventless_measure_ratio": 0.0,
+    "n_non_eventless_measures": 1,
+    "non_eventless_measure_ratio": 1.0,
+    "n_measures_with_high_rare_events": 1,
+    "n_measures_with_low_rare_events": 1,
+    "high_rare_measure_ratio": 1.0,
+    "low_rare_measure_ratio": 1.0,
+    "high_rare_event_count": 17302,
+    "low_rare_event_count": 1,
+    "high_rare_event_ratio": 0.3003350170980229,
+    "low_rare_event_ratio": 1.7358398861289034e-05,
+    "events_per_million_rows": 14820.01892344238,
+    "n_transition_events": 57609,
+    "n_unique_transition_types_observed": 10,
+    "transition_coverage_ratio": 0.1111111111111111,
+    "jump_size_mean": 1.000295092780642,
+    "jump_size_std": 0.04228271517965211,
+    "pct_jump_eq_1": 0.9999305664045548,
+    "pct_jump_ge_2": 6.943359544515614e-05,
+    "pct_jump_ge_3": 5.20751965838671e-05,
+    "f02_quality_score": 0.6128903814754393,
+    "activity_flag": "ok",
+    "diversity_flag": "ok",
+    "catalog_flag": "warning",
+    "dominance_flag": "warning",
+    "continuity_flag": "ok",
+    "measure_coverage_flag": "ok",
+    "f02_gate_status": "warning"
+  },
+  "event_frequency": {
+    "81": {
+      "event_name": "MG-LV-MSB_AC_Voltage_80_90-to-90_100",
+      "count": 17302
+    },
+    "90": {
+      "event_name": "MG-LV-MSB_AC_Voltage_90_100-to-80_90",
+      "count": 17302
+    },
+    "71": {
+      "event_name": "MG-LV-MSB_AC_Voltage_70_80-to-80_90",
+      "count": 11483
+    },
+    "80": {
+      "event_name": "MG-LV-MSB_AC_Voltage_80_90-to-70_80",
+      "count": 11482
+    },
+    "70": {
+      "event_name": "MG-LV-MSB_AC_Voltage_70_80-to-60_70",
+      "count": 18
+    },
+    "61": {
+      "event_name": "MG-LV-MSB_AC_Voltage_60_70-to-70_80",
+      "count": 18
+    },
+    "73": {
+      "event_name": "MG-LV-MSB_AC_Voltage_80_90-to-0_10",
+      "count": 1
+    },
+    "8": {
+      "event_name": "MG-LV-MSB_AC_Voltage_0_10-to-80_90",
+      "count": 1
+    },
+    "78": {
+      "event_name": "MG-LV-MSB_AC_Voltage_80_90-to-50_60",
+      "count": 1
+    },
+    "52": {
+      "event_name": "MG-LV-MSB_AC_Voltage_50_60-to-70_80",
+      "count": 1
+    }
+  },
+  "per_measure": {
+    "MG-LV-MSB_AC_Voltage": {
+      "n_events_generated": 57609,
+      "n_unique_event_types_observed": 10,
+      "top1_ratio": 0.3003350170980229,
+      "rare_event_count": 17303,
+      "rare_event_ratio": 0.30035237549688415,
+      "high_rare_event_count": 17302,
+      "low_rare_event_count": 1,
+      "rare_event_type_count": 2,
+      "high_rare_event_type_count": 1,
+      "low_rare_event_type_count": 1,
+      "high_rare_event_ratio": 0.3003350170980229,
+      "low_rare_event_ratio": 1.7358398861289034e-05,
+      "mean_events_per_row_contributed": 0.014820018923442379,
+      "band_occupancy": {
+        "0_10": 2,
+        "10_20": 0,
+        "20_30": 0,
+        "30_40": 0,
+        "40_50": 0,
+        "50_60": 1,
+        "60_70": 26,
+        "70_80": 162071,
+        "80_90": 2902866,
+        "90_100": 819692
+      },
+      "total_band_count": 3884658,
+      "n_active_bands": 6,
+      "max_band_count": 2902866,
+      "max_band_ratio": 0.7472642379329145,
+      "min_nonzero_band_count": 1,
+      "extreme_band_count": 819694,
+      "extreme_band_ratio": 0.21100802181298842,
+      "middle_band_count": 3064964,
+      "middle_band_ratio": 0.7889919781870116,
+      "occupancy_entropy": 0.67863162311338,
+      "normalized_occupancy_entropy": 0.3787515203732984,
+      "is_eventless_measure": false,
+      "band_degeneracy_flag": false,
+      "extreme_occupancy_flag": false,
+      "jump_size_mean": 1.000295092780642,
+      "measure_transition_score": 0.8146543783835224,
+      "high_target_candidate": true,
+      "low_target_candidate": false
+    }
+  },
+  "top_events": [
+    {
+      "event_id": 81,
+      "event_name": "MG-LV-MSB_AC_Voltage_80_90-to-90_100",
+      "count": 17302,
+      "ratio": 0.3003350170980229
+    },
+    {
+      "event_id": 90,
+      "event_name": "MG-LV-MSB_AC_Voltage_90_100-to-80_90",
+      "count": 17302,
+      "ratio": 0.3003350170980229
+    },
+    {
+      "event_id": 71,
+      "event_name": "MG-LV-MSB_AC_Voltage_70_80-to-80_90",
+      "count": 11483,
+      "ratio": 0.199326494124182
+    },
+    {
+      "event_id": 80,
+      "event_name": "MG-LV-MSB_AC_Voltage_80_90-to-70_80",
+      "count": 11482,
+      "ratio": 0.1993091357253207
+    },
+    {
+      "event_id": 70,
+      "event_name": "MG-LV-MSB_AC_Voltage_70_80-to-60_70",
+      "count": 18,
+      "ratio": 0.0003124511795032026
+    },
+    {
+      "event_id": 61,
+      "event_name": "MG-LV-MSB_AC_Voltage_60_70-to-70_80",
+      "count": 18,
+      "ratio": 0.0003124511795032026
+    },
+    {
+      "event_id": 73,
+      "event_name": "MG-LV-MSB_AC_Voltage_80_90-to-0_10",
+      "count": 1,
+      "ratio": 1.7358398861289034e-05
+    },
+    {
+      "event_id": 8,
+      "event_name": "MG-LV-MSB_AC_Voltage_0_10-to-80_90",
+      "count": 1,
+      "ratio": 1.7358398861289034e-05
+    },
+    {
+      "event_id": 78,
+      "event_name": "MG-LV-MSB_AC_Voltage_80_90-to-50_60",
+      "count": 1,
+      "ratio": 1.7358398861289034e-05
+    },
+    {
+      "event_id": 52,
+      "event_name": "MG-LV-MSB_AC_Voltage_50_60-to-70_80",
+      "count": 1,
+      "ratio": 1.7358398861289034e-05
+    }
+  ],
+  "band_occupancy": {
+    "MG-LV-MSB_AC_Voltage": {
+      "0_10": 2,
+      "10_20": 0,
+      "20_30": 0,
+      "30_40": 0,
+      "40_50": 0,
+      "50_60": 1,
+      "60_70": 26,
+      "70_80": 162071,
+      "80_90": 2902866,
+      "90_100": 819692
+    }
+  },
+  "target_candidates": {
+    "MG-LV-MSB_AC_Voltage": {
+      "high": {
+        "candidate": true,
+        "extreme_event_count": 17302,
+        "extreme_event_ratio": 0.3003350170980229,
+        "reason": "passes high target candidate rules"
+      },
+      "low": {
+        "candidate": false,
+        "extreme_event_count": 1,
+        "extreme_event_ratio": 1.7358398861289034e-05,
+        "reason": "does not pass low target candidate rules"
+      }
+    }
+  }
+}

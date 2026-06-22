@@ -1,0 +1,161 @@
+phase: f02_events
+variant: v2_0010
+artifacts:
+  events:
+    path: 02_events.parquet
+    sha256: 4af48875350b20fa7b358ca52e480cc83c69dbdd1b260ece8b8784058109975b
+  catalog:
+    path: 02_events_catalog.json
+    sha256: d46ec6c5dfc5229597fa583fd6344dfd15886dcd0389fcdecd41f3d49775ef97
+  stats:
+    path: 02_events_stats.json
+    sha256: 5a8193a7611c57185decd9a073ddfc8f5c2fbf55ffe8dc114a7f5fab93024f1a
+  report:
+    path: 02_events_report.html
+    sha256: b317baf71f360b1ef1331b68dd75c710c7f5690bcca574663f2eb8f9ee0c785b
+exports:
+  Tu: 10
+  measure_name: MG-LV-MSB_AC_Voltage
+  event_strategy: transitions
+  bands:
+  - 10
+  - 20
+  - 30
+  - 40
+  - 50
+  - 60
+  - 70
+  - 80
+  - 90
+  event_types:
+  - MG-LV-MSB_AC_Voltage_0_10-to-10_20
+  - MG-LV-MSB_AC_Voltage_0_10-to-20_30
+  - MG-LV-MSB_AC_Voltage_0_10-to-30_40
+  - MG-LV-MSB_AC_Voltage_0_10-to-40_50
+  - MG-LV-MSB_AC_Voltage_0_10-to-50_60
+  - MG-LV-MSB_AC_Voltage_0_10-to-60_70
+  - MG-LV-MSB_AC_Voltage_0_10-to-70_80
+  - MG-LV-MSB_AC_Voltage_0_10-to-80_90
+  - MG-LV-MSB_AC_Voltage_0_10-to-90_100
+  - MG-LV-MSB_AC_Voltage_10_20-to-0_10
+  - MG-LV-MSB_AC_Voltage_10_20-to-20_30
+  - MG-LV-MSB_AC_Voltage_10_20-to-30_40
+  - MG-LV-MSB_AC_Voltage_10_20-to-40_50
+  - MG-LV-MSB_AC_Voltage_10_20-to-50_60
+  - MG-LV-MSB_AC_Voltage_10_20-to-60_70
+  - MG-LV-MSB_AC_Voltage_10_20-to-70_80
+  - MG-LV-MSB_AC_Voltage_10_20-to-80_90
+  - MG-LV-MSB_AC_Voltage_10_20-to-90_100
+  - MG-LV-MSB_AC_Voltage_20_30-to-0_10
+  - MG-LV-MSB_AC_Voltage_20_30-to-10_20
+  - MG-LV-MSB_AC_Voltage_20_30-to-30_40
+  - MG-LV-MSB_AC_Voltage_20_30-to-40_50
+  - MG-LV-MSB_AC_Voltage_20_30-to-50_60
+  - MG-LV-MSB_AC_Voltage_20_30-to-60_70
+  - MG-LV-MSB_AC_Voltage_20_30-to-70_80
+  - MG-LV-MSB_AC_Voltage_20_30-to-80_90
+  - MG-LV-MSB_AC_Voltage_20_30-to-90_100
+  - MG-LV-MSB_AC_Voltage_30_40-to-0_10
+  - MG-LV-MSB_AC_Voltage_30_40-to-10_20
+  - MG-LV-MSB_AC_Voltage_30_40-to-20_30
+  - MG-LV-MSB_AC_Voltage_30_40-to-40_50
+  - MG-LV-MSB_AC_Voltage_30_40-to-50_60
+  - MG-LV-MSB_AC_Voltage_30_40-to-60_70
+  - MG-LV-MSB_AC_Voltage_30_40-to-70_80
+  - MG-LV-MSB_AC_Voltage_30_40-to-80_90
+  - MG-LV-MSB_AC_Voltage_30_40-to-90_100
+  - MG-LV-MSB_AC_Voltage_40_50-to-0_10
+  - MG-LV-MSB_AC_Voltage_40_50-to-10_20
+  - MG-LV-MSB_AC_Voltage_40_50-to-20_30
+  - MG-LV-MSB_AC_Voltage_40_50-to-30_40
+  - MG-LV-MSB_AC_Voltage_40_50-to-50_60
+  - MG-LV-MSB_AC_Voltage_40_50-to-60_70
+  - MG-LV-MSB_AC_Voltage_40_50-to-70_80
+  - MG-LV-MSB_AC_Voltage_40_50-to-80_90
+  - MG-LV-MSB_AC_Voltage_40_50-to-90_100
+  - MG-LV-MSB_AC_Voltage_50_60-to-0_10
+  - MG-LV-MSB_AC_Voltage_50_60-to-10_20
+  - MG-LV-MSB_AC_Voltage_50_60-to-20_30
+  - MG-LV-MSB_AC_Voltage_50_60-to-30_40
+  - MG-LV-MSB_AC_Voltage_50_60-to-40_50
+  - MG-LV-MSB_AC_Voltage_50_60-to-60_70
+  - MG-LV-MSB_AC_Voltage_50_60-to-70_80
+  - MG-LV-MSB_AC_Voltage_50_60-to-80_90
+  - MG-LV-MSB_AC_Voltage_50_60-to-90_100
+  - MG-LV-MSB_AC_Voltage_60_70-to-0_10
+  - MG-LV-MSB_AC_Voltage_60_70-to-10_20
+  - MG-LV-MSB_AC_Voltage_60_70-to-20_30
+  - MG-LV-MSB_AC_Voltage_60_70-to-30_40
+  - MG-LV-MSB_AC_Voltage_60_70-to-40_50
+  - MG-LV-MSB_AC_Voltage_60_70-to-50_60
+  - MG-LV-MSB_AC_Voltage_60_70-to-70_80
+  - MG-LV-MSB_AC_Voltage_60_70-to-80_90
+  - MG-LV-MSB_AC_Voltage_60_70-to-90_100
+  - MG-LV-MSB_AC_Voltage_70_80-to-0_10
+  - MG-LV-MSB_AC_Voltage_70_80-to-10_20
+  - MG-LV-MSB_AC_Voltage_70_80-to-20_30
+  - MG-LV-MSB_AC_Voltage_70_80-to-30_40
+  - MG-LV-MSB_AC_Voltage_70_80-to-40_50
+  - MG-LV-MSB_AC_Voltage_70_80-to-50_60
+  - MG-LV-MSB_AC_Voltage_70_80-to-60_70
+  - MG-LV-MSB_AC_Voltage_70_80-to-80_90
+  - MG-LV-MSB_AC_Voltage_70_80-to-90_100
+  - MG-LV-MSB_AC_Voltage_80_90-to-0_10
+  - MG-LV-MSB_AC_Voltage_80_90-to-10_20
+  - MG-LV-MSB_AC_Voltage_80_90-to-20_30
+  - MG-LV-MSB_AC_Voltage_80_90-to-30_40
+  - MG-LV-MSB_AC_Voltage_80_90-to-40_50
+  - MG-LV-MSB_AC_Voltage_80_90-to-50_60
+  - MG-LV-MSB_AC_Voltage_80_90-to-60_70
+  - MG-LV-MSB_AC_Voltage_80_90-to-70_80
+  - MG-LV-MSB_AC_Voltage_80_90-to-90_100
+  - MG-LV-MSB_AC_Voltage_90_100-to-0_10
+  - MG-LV-MSB_AC_Voltage_90_100-to-10_20
+  - MG-LV-MSB_AC_Voltage_90_100-to-20_30
+  - MG-LV-MSB_AC_Voltage_90_100-to-30_40
+  - MG-LV-MSB_AC_Voltage_90_100-to-40_50
+  - MG-LV-MSB_AC_Voltage_90_100-to-50_60
+  - MG-LV-MSB_AC_Voltage_90_100-to-60_70
+  - MG-LV-MSB_AC_Voltage_90_100-to-70_80
+  - MG-LV-MSB_AC_Voltage_90_100-to-80_90
+  n_event_types: 90
+  n_events: 3887242
+  n_types: 90
+  n_types_observed: 10
+  target_candidates:
+    MG-LV-MSB_AC_Voltage:
+      high:
+        candidate: true
+        extreme_event_count: 17302
+        extreme_event_ratio: 0.3003350170980229
+        reason: passes high target candidate rules
+      low:
+        candidate: false
+        extreme_event_count: 1
+        extreme_event_ratio: 1.7358398861289034e-05
+        reason: does not pass low target candidate rules
+metrics:
+  execution_time: 8.73220991300002
+  n_rows_in: 3887242
+  n_rows_out: 3887242
+  total_events_generated: 57609
+  mean_events_per_row: 0.014820018923442379
+  empty_rows_ratio: 0.9851799810765576
+  n_event_types_observed: 10
+  catalog_coverage_ratio: 0.1111111111111111
+  top1_event_ratio: 0.3003350170980229
+  rare_event_ratio: 0.30035237549688415
+  eventless_measure_ratio: 0.0
+  non_eventless_measure_ratio: 1.0
+  high_rare_measure_ratio: 1.0
+  low_rare_measure_ratio: 1.0
+  high_rare_event_ratio: 0.3003350170980229
+  low_rare_event_ratio: 1.7358398861289034e-05
+  f02_quality_score: 0.6128903814754393
+  f02_gate_status: warning
+  event_entropy: 1.3712660312013674
+  normalized_event_entropy: 0.5955332705721261
+  n_transition_events: 57609
+  jump_size_mean: 1.000295092780642
+provenance:
+  generated_at: '2026-06-22T15:19:12.722919+00:00'
