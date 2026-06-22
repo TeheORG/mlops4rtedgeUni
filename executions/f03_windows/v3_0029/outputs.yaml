@@ -1,0 +1,38 @@
+phase: f03_windows
+variant: v3_0029
+artifacts:
+  dataset:
+    path: 03_windows.parquet
+    sha256: 2178b6b0e94620ff47e23a3fa410addec8e1400c1ec01f4a5c7bf464ae5f40e0
+  catalog:
+    path: 03_events_catalog.json
+    sha256: bb61740e7bdbbadd69b7cfa1e8db786348822252620373c1437b5cb1e4cfa9b9
+  report:
+    path: 03_windows_report.html
+    sha256: a6274e3bca499558e6388ff4b4e3c3e4fac2afa853fbc4104d07a36915f7d582
+exports:
+  Tu: 10
+  OW: 90
+  LT: 10
+  PW: 10
+  Ratio_PW_OW: 0.1111111111111111
+  event_type_count: 30
+  window_strategy: synchro
+  nan_mode: discard
+  measure_name: GE_Active_Power
+  parent_f02: v2_0002
+  n_windows: 87440
+  n_unique_ow_hash: 113
+  n_unique_pw_hash: 28
+  dup_ratio_ow: 0.9987076852698994
+  dup_ratio_pw: 0.99967978042086
+  seq_len_mean_ow: 4.9292086001829825
+  seq_len_mean_pw: 0.5476898444647759
+  seq_len_std_ow: 6.718304154964151
+  seq_len_std_pw: 1.1358598706698175
+metrics:
+  execution_time: 7.6102721939999896
+  n_events_in: 3887242
+  n_windows_out: 87440
+provenance:
+  generated_at: '2026-06-22T16:31:15.384190+00:00'
