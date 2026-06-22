@@ -1,0 +1,62 @@
+phase: f04_targets
+variant: v4_0008
+artifacts:
+  dataset:
+    path: 04_targets.parquet
+    sha256: 3625f0289042e00e42e7d502a9ea72e84a3d1a81f4237b39eae6c087b57505fb
+  report:
+    path: 04_targets_report.html
+    sha256: 62251f1890da8bf66c0070710d0b3ceacd2079f101403713c2c3ad60cfecf275
+exports:
+  Tu: 10
+  OW: 50
+  LT: 10
+  PW: 10
+  prediction_name: outlet_temperature_high_90_coarse_5
+  measure_name: Outlet_Temperature
+  target_operator: OR
+  target_event_types:
+  - Outlet_Temperature_0_10-to-90_100
+  - Outlet_Temperature_10_25-to-90_100
+  - Outlet_Temperature_25_50-to-90_100
+  - Outlet_Temperature_50_75-to-90_100
+  - Outlet_Temperature_75_90-to-90_100
+  target_event_count: 5
+  target_compatible: true
+  incompatibility_reason: null
+  target_candidate_checks:
+  - measure: Outlet_Temperature
+    direction: high
+  event_type_count: 30
+  window_strategy: synchro
+  parent_f03: v3_0005
+  parent_f02: v2_0005
+  n_windows: 113905
+  n_windows_pos: 4058
+  n_windows_neg: 109847
+  n_positive: 4058
+  n_negative: 109847
+  class_balance_ratio: 0.03562617971116281
+  deduplication_stats:
+    total_sequences: 113905
+    unique_ow_sequences: 350
+    num_duplicate_sequences: 113555
+    duplicate_ratio: 0.9969272639480269
+    ambiguous_sequences: 58
+    ambiguous_samples: 16606
+    ambiguous_ratio: 0.14578815679733112
+    avg_label_consistency_per_ow: 0.9508090801889804
+  unique_ratio: 0.0030727360519731354
+  dup_ratio_ow_parent: 0.9969272639480269
+  dup_ratio_pw_parent: 0.9991132961678592
+  seq_len_mean_ow_parent: 9.163776831570168
+metrics:
+  execution_time: 0.21838307900003429
+  n_windows: 113905
+  n_positive: 4058
+  n_negative: 109847
+  positive_ratio: 0.03562617971116281
+  target_compatible: true
+  incompatibility_reason: null
+provenance:
+  generated_at: '2026-06-22T21:40:26.015625+00:00'
