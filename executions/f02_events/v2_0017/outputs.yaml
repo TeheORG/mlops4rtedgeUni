@@ -1,0 +1,97 @@
+phase: f02_events
+variant: v2_0017
+artifacts:
+  events:
+    path: 02_events.parquet
+    sha256: 129f9d85599474cab8649f16dbfb6cc3bd51de576a4861cb5c3833ebf2b8ac32
+  catalog:
+    path: 02_events_catalog.json
+    sha256: 8b1dbc1290e632f858708695cbd382679a335d46f7480ea37992d5ad8bb0be93
+  stats:
+    path: 02_events_stats.json
+    sha256: d41e4731caec81df2d8e8dc144f7cebc303d4dc9185e9a585a38612105ba5efa
+  report:
+    path: 02_events_report.html
+    sha256: 1fb017359be50f306a20128484d2d4bb910133f5a3317e0cd440a04c076a6782
+exports:
+  Tu: 10
+  measure_name: Battery_Active_Power
+  event_strategy: transitions
+  bands:
+  - 10
+  - 25
+  - 50
+  - 75
+  - 90
+  event_types:
+  - Battery_Active_Power_0_10-to-10_25
+  - Battery_Active_Power_0_10-to-25_50
+  - Battery_Active_Power_0_10-to-50_75
+  - Battery_Active_Power_0_10-to-75_90
+  - Battery_Active_Power_0_10-to-90_100
+  - Battery_Active_Power_10_25-to-0_10
+  - Battery_Active_Power_10_25-to-25_50
+  - Battery_Active_Power_10_25-to-50_75
+  - Battery_Active_Power_10_25-to-75_90
+  - Battery_Active_Power_10_25-to-90_100
+  - Battery_Active_Power_25_50-to-0_10
+  - Battery_Active_Power_25_50-to-10_25
+  - Battery_Active_Power_25_50-to-50_75
+  - Battery_Active_Power_25_50-to-75_90
+  - Battery_Active_Power_25_50-to-90_100
+  - Battery_Active_Power_50_75-to-0_10
+  - Battery_Active_Power_50_75-to-10_25
+  - Battery_Active_Power_50_75-to-25_50
+  - Battery_Active_Power_50_75-to-75_90
+  - Battery_Active_Power_50_75-to-90_100
+  - Battery_Active_Power_75_90-to-0_10
+  - Battery_Active_Power_75_90-to-10_25
+  - Battery_Active_Power_75_90-to-25_50
+  - Battery_Active_Power_75_90-to-50_75
+  - Battery_Active_Power_75_90-to-90_100
+  - Battery_Active_Power_90_100-to-0_10
+  - Battery_Active_Power_90_100-to-10_25
+  - Battery_Active_Power_90_100-to-25_50
+  - Battery_Active_Power_90_100-to-50_75
+  - Battery_Active_Power_90_100-to-75_90
+  n_event_types: 30
+  n_events: 3887242
+  n_types: 30
+  n_types_observed: 18
+  target_candidates:
+    Battery_Active_Power:
+      high:
+        candidate: true
+        extreme_event_count: 54
+        extreme_event_ratio: 0.03182086034177961
+        reason: passes high target candidate rules
+      low:
+        candidate: true
+        extreme_event_count: 2
+        extreme_event_ratio: 0.0011785503830288745
+        reason: passes low target candidate rules
+metrics:
+  execution_time: 7.988610919999985
+  n_rows_in: 3887242
+  n_rows_out: 3887242
+  total_events_generated: 1697
+  mean_events_per_row: 0.00043655630392962414
+  empty_rows_ratio: 0.9995634436960704
+  n_event_types_observed: 18
+  catalog_coverage_ratio: 0.6
+  top1_event_ratio: 0.3494401885680613
+  rare_event_ratio: 0.032999410724808484
+  eventless_measure_ratio: 0.0
+  non_eventless_measure_ratio: 1.0
+  high_rare_measure_ratio: 1.0
+  low_rare_measure_ratio: 1.0
+  high_rare_event_ratio: 0.03182086034177961
+  low_rare_event_ratio: 0.0011785503830288745
+  f02_quality_score: 0.7116719195533238
+  f02_gate_status: reject
+  event_entropy: 1.610061918127438
+  normalized_event_entropy: 0.5570431947824473
+  n_transition_events: 1697
+  jump_size_mean: 1.0813199764289922
+provenance:
+  generated_at: '2026-06-22T15:20:43.276150+00:00'
