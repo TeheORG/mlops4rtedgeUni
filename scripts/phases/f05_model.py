@@ -2104,7 +2104,7 @@ def write_parent_incompatible_outputs(
     save_outputs_yaml(variant_dir, outputs_content)
     validate_outputs(PHASE, outputs_content)
 
-    print(f"[WARN] Parent F04 target is incompatible: {reason}")
+    print(f"[WARN] Parent F04 target incompatible: {reason}")
     print(f"===== FASE {PHASE} COMPLETADA SIN ENTRENAMIENTO - variante {variant} =====")
 
 
@@ -2170,7 +2170,7 @@ def main():
             exports_parent.get("incompatibility_reason")
             or "target_compatible=False"
         )
-        reason = f"Parent F04 target is incompatible: {parent_reason}"
+        reason = f"Parent F04 target incompatible: {parent_reason}"
         write_parent_incompatible_outputs(
             variant_dir=variant_dir,
             variant=variant,

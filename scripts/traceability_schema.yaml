@@ -975,7 +975,7 @@ phases:
 
         calibration_dataset:
           type: file
-          required: true
+          required: false
           extension: parquet
 
         model_float:

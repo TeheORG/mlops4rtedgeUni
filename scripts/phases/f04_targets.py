@@ -288,10 +288,32 @@ def main():
     if not target_candidate_eval["compatible"]:
         elapsed = time.perf_counter() - start_time
         reason = str(target_candidate_eval["reason"])
+        report_path = variant_dir / "04_targets_report.html"
+        report_path.write_text(
+            f"""
+            <html>
+            <body>
+            <h1>F04 Targets - {variant}</h1>
+            <p>Parent: {parent_variant}</p>
+            <p>Prediction name: {prediction_name}</p>
+            <p>Operator: {target_operator}</p>
+            <p>Event types: {target_event_types}</p>
+            <p>Target compatible: False</p>
+            <p>Incompatibility reason: {reason}</p>
+            </body>
+            </html>
+            """,
+            encoding="utf-8",
+        )
         outputs_content = {
             "phase": PHASE,
             "variant": variant,
-            "artifacts": {},
+            "artifacts": {
+                "report": {
+                    "path": report_path.name,
+                    "sha256": sha256_of_file(report_path),
+                },
+            },
             "exports": {
                 "Tu": int(parent_exports.get("Tu", params.get("Tu"))),
                 "OW": int(parent_exports.get("OW", params.get("OW"))),
@@ -303,6 +325,11 @@ def main():
                 "target_operator": target_operator,
                 "target_event_types": target_event_types,
                 "target_event_count": int(target_event_count),
+                "n_windows": 0,
+                "n_windows_pos": 0,
+                "n_windows_neg": 0,
+                "n_positive": 0,
+                "n_negative": 0,
                 "target_compatible": False,
                 "incompatibility_reason": reason,
                 "target_candidate_checks": [
@@ -323,13 +350,19 @@ def main():
             },
             "metrics": {
                 "execution_time": float(elapsed),
+                "n_windows": 0,
+                "n_positive": 0,
+                "n_negative": 0,
                 "positive_ratio": 0.0,
+                "target_compatible": False,
+                "incompatibility_reason": reason,
             },
             "provenance": {
                 "generated_at": datetime.now(timezone.utc).isoformat(),
             },
         }
         save_outputs_yaml(variant_dir, outputs_content)
+        validate_outputs(PHASE, outputs_content)
         print(f"[WARN] F04 target incompatible: {reason}")
         print(f"\n===== FASE {PHASE} COMPLETADA SIN DATASET =====")
         return
