@@ -1,0 +1,66 @@
+phase: f04_targets
+variant: v4_0085
+artifacts:
+  dataset:
+    path: 04_targets.parquet
+    sha256: ddf656ec7f876f4124848c0d93d5dd4cda82005541628dadea9aad6eaa9826c9
+  report:
+    path: 04_targets_report.html
+    sha256: 63bd39d58ee81b92ac0ad8e7e340822975c4567517bce9e816581bb1ac277fc1
+exports:
+  Tu: 10
+  OW: 90
+  LT: 10
+  PW: 10
+  prediction_name: battery_active_power_high_90_coarse_10
+  measure_name: Battery_Active_Power
+  target_operator: OR
+  target_event_types:
+  - Battery_Active_Power_0_10-to-90_100
+  - Battery_Active_Power_10_20-to-90_100
+  - Battery_Active_Power_20_30-to-90_100
+  - Battery_Active_Power_30_40-to-90_100
+  - Battery_Active_Power_40_50-to-90_100
+  - Battery_Active_Power_50_60-to-90_100
+  - Battery_Active_Power_60_70-to-90_100
+  - Battery_Active_Power_70_80-to-90_100
+  - Battery_Active_Power_80_90-to-90_100
+  target_event_count: 9
+  target_compatible: true
+  incompatibility_reason: null
+  target_candidate_checks:
+  - measure: Battery_Active_Power
+    direction: high
+  event_type_count: 90
+  window_strategy: synchro
+  parent_f03: v3_0043
+  parent_f02: v2_0016
+  n_windows: 65014
+  n_windows_pos: 437
+  n_windows_neg: 64577
+  n_positive: 437
+  n_negative: 64577
+  class_balance_ratio: 0.006721629187559602
+  deduplication_stats:
+    total_sequences: 65014
+    unique_ow_sequences: 4569
+    num_duplicate_sequences: 60445
+    duplicate_ratio: 0.9297228289291537
+    ambiguous_sequences: 49
+    ambiguous_samples: 15105
+    ambiguous_ratio: 0.23233457409173408
+    avg_label_consistency_per_ow: 0.9978754295125013
+  unique_ratio: 0.07027717107084627
+  dup_ratio_ow_parent: 0.9297228289291537
+  dup_ratio_pw_parent: 0.9899252468699049
+  seq_len_mean_ow_parent: 6.960347002184145
+metrics:
+  execution_time: 0.13101219300000366
+  n_windows: 65014
+  n_positive: 437
+  n_negative: 64577
+  positive_ratio: 0.006721629187559602
+  target_compatible: true
+  incompatibility_reason: null
+provenance:
+  generated_at: '2026-06-22T22:13:34.303611+00:00'
