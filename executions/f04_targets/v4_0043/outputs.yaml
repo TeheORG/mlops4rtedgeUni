@@ -1,0 +1,66 @@
+phase: f04_targets
+variant: v4_0043
+artifacts:
+  dataset:
+    path: 04_targets.parquet
+    sha256: aa838aff78353d3e4cdf56222fbfc44d31caf590157c16c2e3f58e01fd56ff87
+  report:
+    path: 04_targets_report.html
+    sha256: 3358df671200e2961c89321e9abce181e6fe6b57f5e8717e2f120f20379d80fe
+exports:
+  Tu: 10
+  OW: 50
+  LT: 10
+  PW: 10
+  prediction_name: island_mode_mccb_ac_voltage_high_90_coarse_10
+  measure_name: Island_mode_MCCB_AC_Voltage
+  target_operator: OR
+  target_event_types:
+  - Island_mode_MCCB_AC_Voltage_0_10-to-90_100
+  - Island_mode_MCCB_AC_Voltage_10_20-to-90_100
+  - Island_mode_MCCB_AC_Voltage_20_30-to-90_100
+  - Island_mode_MCCB_AC_Voltage_30_40-to-90_100
+  - Island_mode_MCCB_AC_Voltage_40_50-to-90_100
+  - Island_mode_MCCB_AC_Voltage_50_60-to-90_100
+  - Island_mode_MCCB_AC_Voltage_60_70-to-90_100
+  - Island_mode_MCCB_AC_Voltage_70_80-to-90_100
+  - Island_mode_MCCB_AC_Voltage_80_90-to-90_100
+  target_event_count: 9
+  target_compatible: true
+  incompatibility_reason: null
+  target_candidate_checks:
+  - measure: Island_mode_MCCB_AC_Voltage
+    direction: high
+  event_type_count: 90
+  window_strategy: synchro
+  parent_f03: v3_0022
+  parent_f02: v2_0022
+  n_windows: 1718566
+  n_windows_pos: 1818
+  n_windows_neg: 1716748
+  n_positive: 1818
+  n_negative: 1716748
+  class_balance_ratio: 0.001057858703128073
+  deduplication_stats:
+    total_sequences: 1718566
+    unique_ow_sequences: 2682
+    num_duplicate_sequences: 1715884
+    duplicate_ratio: 0.9984393965666725
+    ambiguous_sequences: 53
+    ambiguous_samples: 454360
+    ambiguous_ratio: 0.26438321251555075
+    avg_label_consistency_per_ow: 0.996925997405123
+  unique_ratio: 0.0015606034333275533
+  dup_ratio_ow_parent: 0.9984393965666725
+  dup_ratio_pw_parent: 0.9996700737708066
+  seq_len_mean_ow_parent: 4.39889652186765
+metrics:
+  execution_time: 2.591460755000014
+  n_windows: 1718566
+  n_positive: 1818
+  n_negative: 1716748
+  positive_ratio: 0.001057858703128073
+  target_compatible: true
+  incompatibility_reason: null
+provenance:
+  generated_at: '2026-06-22T22:04:50.882397+00:00'
