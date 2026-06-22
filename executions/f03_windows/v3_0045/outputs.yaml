@@ -1,0 +1,38 @@
+phase: f03_windows
+variant: v3_0045
+artifacts:
+  dataset:
+    path: 03_windows.parquet
+    sha256: 96bcf6e5a6887a18131d4b5946f3e6e545729810f68d2d830693fe4ba0967682
+  catalog:
+    path: 03_events_catalog.json
+    sha256: 7acc3709677cab3fe29fec3abe505f0e0b37a0d4be19458fc3ba026a1e00b59d
+  report:
+    path: 03_windows_report.html
+    sha256: c97bf451c1cbb274e3bc570c54218afd841aa19889d9ac3c131164510ba6236a
+exports:
+  Tu: 10
+  OW: 90
+  LT: 10
+  PW: 10
+  Ratio_PW_OW: 0.1111111111111111
+  event_type_count: 20
+  window_strategy: synchro
+  nan_mode: discard
+  measure_name: Battery_Active_Power
+  parent_f02: v2_0018
+  n_windows: 49975
+  n_unique_ow_hash: 771
+  n_unique_pw_hash: 234
+  dup_ratio_ow: 0.9845722861430716
+  dup_ratio_pw: 0.9953176588294147
+  seq_len_mean_ow: 4.502251125562782
+  seq_len_mean_pw: 0.5002501250625313
+  seq_len_std_ow: 4.49158737124463
+  seq_len_std_pw: 1.001826714482929
+metrics:
+  execution_time: 10.689854432999994
+  n_events_in: 3887242
+  n_windows_out: 49975
+provenance:
+  generated_at: '2026-06-22T21:38:44.582989+00:00'
