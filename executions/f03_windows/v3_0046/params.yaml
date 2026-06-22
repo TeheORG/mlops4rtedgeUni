@@ -1,0 +1,14 @@
+phase: f03_windows
+variant: v3_0046
+parent: v2_0019
+parameters:
+  parent_variant: v2_0019
+  Tu: 10
+  measure_name: FC_Active_Power
+  OW: 90
+  LT: 10
+  PW: 10
+  window_strategy: synchro
+  nan_mode: discard
+parent_hashes:
+  v2_0019: 9023ae0e2206963d001289dd26eab167ad13f3bddb084ea9dd8b07d6dbd96e9f
