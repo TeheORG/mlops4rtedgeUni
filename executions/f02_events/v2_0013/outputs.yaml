@@ -1,0 +1,161 @@
+phase: f02_events
+variant: v2_0013
+artifacts:
+  events:
+    path: 02_events.parquet
+    sha256: 1079334125f92dbdbb0a9596b72d4ca0058b382703fe6e36f3461ed261ab70c7
+  catalog:
+    path: 02_events_catalog.json
+    sha256: 86c000fdf105b9a8da5709caff49305bf6bbf0cd786ed01498029e92859b40b2
+  stats:
+    path: 02_events_stats.json
+    sha256: 5bec8d7145ebc2b677a2aa7ddb256451d864d52647f740a5de75d5e6f3009fd6
+  report:
+    path: 02_events_report.html
+    sha256: 345960f6f23d57d53be95cdb09981ee36f5154d2651a684c93e28d61c71badbe
+exports:
+  Tu: 10
+  measure_name: Inlet_Temperature_of_Chilled_Water
+  event_strategy: transitions
+  bands:
+  - 10
+  - 20
+  - 30
+  - 40
+  - 50
+  - 60
+  - 70
+  - 80
+  - 90
+  event_types:
+  - Inlet_Temperature_of_Chilled_Water_0_10-to-10_20
+  - Inlet_Temperature_of_Chilled_Water_0_10-to-20_30
+  - Inlet_Temperature_of_Chilled_Water_0_10-to-30_40
+  - Inlet_Temperature_of_Chilled_Water_0_10-to-40_50
+  - Inlet_Temperature_of_Chilled_Water_0_10-to-50_60
+  - Inlet_Temperature_of_Chilled_Water_0_10-to-60_70
+  - Inlet_Temperature_of_Chilled_Water_0_10-to-70_80
+  - Inlet_Temperature_of_Chilled_Water_0_10-to-80_90
+  - Inlet_Temperature_of_Chilled_Water_0_10-to-90_100
+  - Inlet_Temperature_of_Chilled_Water_10_20-to-0_10
+  - Inlet_Temperature_of_Chilled_Water_10_20-to-20_30
+  - Inlet_Temperature_of_Chilled_Water_10_20-to-30_40
+  - Inlet_Temperature_of_Chilled_Water_10_20-to-40_50
+  - Inlet_Temperature_of_Chilled_Water_10_20-to-50_60
+  - Inlet_Temperature_of_Chilled_Water_10_20-to-60_70
+  - Inlet_Temperature_of_Chilled_Water_10_20-to-70_80
+  - Inlet_Temperature_of_Chilled_Water_10_20-to-80_90
+  - Inlet_Temperature_of_Chilled_Water_10_20-to-90_100
+  - Inlet_Temperature_of_Chilled_Water_20_30-to-0_10
+  - Inlet_Temperature_of_Chilled_Water_20_30-to-10_20
+  - Inlet_Temperature_of_Chilled_Water_20_30-to-30_40
+  - Inlet_Temperature_of_Chilled_Water_20_30-to-40_50
+  - Inlet_Temperature_of_Chilled_Water_20_30-to-50_60
+  - Inlet_Temperature_of_Chilled_Water_20_30-to-60_70
+  - Inlet_Temperature_of_Chilled_Water_20_30-to-70_80
+  - Inlet_Temperature_of_Chilled_Water_20_30-to-80_90
+  - Inlet_Temperature_of_Chilled_Water_20_30-to-90_100
+  - Inlet_Temperature_of_Chilled_Water_30_40-to-0_10
+  - Inlet_Temperature_of_Chilled_Water_30_40-to-10_20
+  - Inlet_Temperature_of_Chilled_Water_30_40-to-20_30
+  - Inlet_Temperature_of_Chilled_Water_30_40-to-40_50
+  - Inlet_Temperature_of_Chilled_Water_30_40-to-50_60
+  - Inlet_Temperature_of_Chilled_Water_30_40-to-60_70
+  - Inlet_Temperature_of_Chilled_Water_30_40-to-70_80
+  - Inlet_Temperature_of_Chilled_Water_30_40-to-80_90
+  - Inlet_Temperature_of_Chilled_Water_30_40-to-90_100
+  - Inlet_Temperature_of_Chilled_Water_40_50-to-0_10
+  - Inlet_Temperature_of_Chilled_Water_40_50-to-10_20
+  - Inlet_Temperature_of_Chilled_Water_40_50-to-20_30
+  - Inlet_Temperature_of_Chilled_Water_40_50-to-30_40
+  - Inlet_Temperature_of_Chilled_Water_40_50-to-50_60
+  - Inlet_Temperature_of_Chilled_Water_40_50-to-60_70
+  - Inlet_Temperature_of_Chilled_Water_40_50-to-70_80
+  - Inlet_Temperature_of_Chilled_Water_40_50-to-80_90
+  - Inlet_Temperature_of_Chilled_Water_40_50-to-90_100
+  - Inlet_Temperature_of_Chilled_Water_50_60-to-0_10
+  - Inlet_Temperature_of_Chilled_Water_50_60-to-10_20
+  - Inlet_Temperature_of_Chilled_Water_50_60-to-20_30
+  - Inlet_Temperature_of_Chilled_Water_50_60-to-30_40
+  - Inlet_Temperature_of_Chilled_Water_50_60-to-40_50
+  - Inlet_Temperature_of_Chilled_Water_50_60-to-60_70
+  - Inlet_Temperature_of_Chilled_Water_50_60-to-70_80
+  - Inlet_Temperature_of_Chilled_Water_50_60-to-80_90
+  - Inlet_Temperature_of_Chilled_Water_50_60-to-90_100
+  - Inlet_Temperature_of_Chilled_Water_60_70-to-0_10
+  - Inlet_Temperature_of_Chilled_Water_60_70-to-10_20
+  - Inlet_Temperature_of_Chilled_Water_60_70-to-20_30
+  - Inlet_Temperature_of_Chilled_Water_60_70-to-30_40
+  - Inlet_Temperature_of_Chilled_Water_60_70-to-40_50
+  - Inlet_Temperature_of_Chilled_Water_60_70-to-50_60
+  - Inlet_Temperature_of_Chilled_Water_60_70-to-70_80
+  - Inlet_Temperature_of_Chilled_Water_60_70-to-80_90
+  - Inlet_Temperature_of_Chilled_Water_60_70-to-90_100
+  - Inlet_Temperature_of_Chilled_Water_70_80-to-0_10
+  - Inlet_Temperature_of_Chilled_Water_70_80-to-10_20
+  - Inlet_Temperature_of_Chilled_Water_70_80-to-20_30
+  - Inlet_Temperature_of_Chilled_Water_70_80-to-30_40
+  - Inlet_Temperature_of_Chilled_Water_70_80-to-40_50
+  - Inlet_Temperature_of_Chilled_Water_70_80-to-50_60
+  - Inlet_Temperature_of_Chilled_Water_70_80-to-60_70
+  - Inlet_Temperature_of_Chilled_Water_70_80-to-80_90
+  - Inlet_Temperature_of_Chilled_Water_70_80-to-90_100
+  - Inlet_Temperature_of_Chilled_Water_80_90-to-0_10
+  - Inlet_Temperature_of_Chilled_Water_80_90-to-10_20
+  - Inlet_Temperature_of_Chilled_Water_80_90-to-20_30
+  - Inlet_Temperature_of_Chilled_Water_80_90-to-30_40
+  - Inlet_Temperature_of_Chilled_Water_80_90-to-40_50
+  - Inlet_Temperature_of_Chilled_Water_80_90-to-50_60
+  - Inlet_Temperature_of_Chilled_Water_80_90-to-60_70
+  - Inlet_Temperature_of_Chilled_Water_80_90-to-70_80
+  - Inlet_Temperature_of_Chilled_Water_80_90-to-90_100
+  - Inlet_Temperature_of_Chilled_Water_90_100-to-0_10
+  - Inlet_Temperature_of_Chilled_Water_90_100-to-10_20
+  - Inlet_Temperature_of_Chilled_Water_90_100-to-20_30
+  - Inlet_Temperature_of_Chilled_Water_90_100-to-30_40
+  - Inlet_Temperature_of_Chilled_Water_90_100-to-40_50
+  - Inlet_Temperature_of_Chilled_Water_90_100-to-50_60
+  - Inlet_Temperature_of_Chilled_Water_90_100-to-60_70
+  - Inlet_Temperature_of_Chilled_Water_90_100-to-70_80
+  - Inlet_Temperature_of_Chilled_Water_90_100-to-80_90
+  n_event_types: 90
+  n_events: 3887242
+  n_types: 90
+  n_types_observed: 19
+  target_candidates:
+    Inlet_Temperature_of_Chilled_Water:
+      high:
+        candidate: true
+        extreme_event_count: 254
+        extreme_event_ratio: 0.009653390088172696
+        reason: passes high target candidate rules
+      low:
+        candidate: true
+        extreme_event_count: 1847
+        extreme_event_ratio: 0.0701961082395865
+        reason: passes low target candidate rules
+metrics:
+  execution_time: 8.58844079299999
+  n_rows_in: 3887242
+  n_rows_out: 3887242
+  total_events_generated: 26312
+  mean_events_per_row: 0.006768809351205816
+  empty_rows_ratio: 0.9932311906487942
+  n_event_types_observed: 19
+  catalog_coverage_ratio: 0.2111111111111111
+  top1_event_ratio: 0.11511857707509882
+  rare_event_ratio: 0.0798494983277592
+  eventless_measure_ratio: 0.0
+  non_eventless_measure_ratio: 1.0
+  high_rare_measure_ratio: 1.0
+  low_rare_measure_ratio: 1.0
+  high_rare_event_ratio: 0.009653390088172696
+  low_rare_event_ratio: 0.0701961082395865
+  f02_quality_score: 0.7591138023013351
+  f02_gate_status: warning
+  event_entropy: 2.7578929333527733
+  normalized_event_entropy: 0.9366446215616676
+  n_transition_events: 26312
+  jump_size_mean: 1.000038005472788
+provenance:
+  generated_at: '2026-06-22T15:19:49.031057+00:00'
