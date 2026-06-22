@@ -1,0 +1,210 @@
+{
+  "global": {
+    "total_events_generated": 11900,
+    "mean_events_per_row": 0.003061296415299073,
+    "std_events_per_row": 0.055244229377888435,
+    "max_events_per_row": 1,
+    "p95_events_per_row": 0.0,
+    "empty_rows_ratio": 0.9969387035847009,
+    "nonempty_rows_ratio": 0.003061296415299073,
+    "n_event_types_catalog": 20,
+    "n_event_types_observed": 8,
+    "catalog_coverage_ratio": 0.4,
+    "effective_catalog_unused_ratio": 0.6,
+    "rare_event_count": 3028,
+    "rare_event_ratio": 0.25445378151260506,
+    "rare_event_types_observed": 2,
+    "rare_event_type_ratio": 0.25,
+    "top1_event_ratio": 0.15521008403361344,
+    "top5_event_ratio": 0.7047058823529412,
+    "event_entropy": 2.0594478875366313,
+    "normalized_event_entropy": 0.9903850847727833,
+    "n_consecutive_steps": 3887230,
+    "consecutive_ratio": 0.9999971702294764,
+    "n_broken_steps": 11,
+    "broken_ratio": 2.829770523618165e-06,
+    "n_level_events": 0,
+    "n_unique_level_types_observed": 0,
+    "n_measures_total": 1,
+    "n_eventless_measures": 0,
+    "eventless_measure_ratio": 0.0,
+    "n_non_eventless_measures": 1,
+    "non_eventless_measure_ratio": 1.0,
+    "n_measures_with_high_rare_events": 1,
+    "n_measures_with_low_rare_events": 1,
+    "high_rare_measure_ratio": 1.0,
+    "low_rare_measure_ratio": 1.0,
+    "high_rare_event_count": 1665,
+    "low_rare_event_count": 1363,
+    "high_rare_event_ratio": 0.13991596638655462,
+    "low_rare_event_ratio": 0.11453781512605042,
+    "events_per_million_rows": 3061.296415299073,
+    "n_transition_events": 11900,
+    "n_unique_transition_types_observed": 8,
+    "transition_coverage_ratio": 0.4,
+    "jump_size_mean": 1.0,
+    "jump_size_std": 0.0,
+    "pct_jump_eq_1": 1.0,
+    "pct_jump_ge_2": 0.0,
+    "pct_jump_ge_3": 0.0,
+    "f02_quality_score": 0.8326768472170714,
+    "activity_flag": "reject",
+    "diversity_flag": "ok",
+    "catalog_flag": "ok",
+    "dominance_flag": "warning",
+    "continuity_flag": "ok",
+    "measure_coverage_flag": "ok",
+    "f02_gate_status": "reject"
+  },
+  "event_frequency": {
+    "10": {
+      "event_name": "Inlet_Temperature_of_Chilled_Water_40_60-to-20_40",
+      "count": 1847
+    },
+    "6": {
+      "event_name": "Inlet_Temperature_of_Chilled_Water_20_40-to-40_60",
+      "count": 1846
+    },
+    "16": {
+      "event_name": "Inlet_Temperature_of_Chilled_Water_60_80-to-80_100",
+      "count": 1665
+    },
+    "20": {
+      "event_name": "Inlet_Temperature_of_Chilled_Water_80_100-to-60_80",
+      "count": 1665
+    },
+    "5": {
+      "event_name": "Inlet_Temperature_of_Chilled_Water_20_40-to-0_20",
+      "count": 1363
+    },
+    "1": {
+      "event_name": "Inlet_Temperature_of_Chilled_Water_0_20-to-20_40",
+      "count": 1363
+    },
+    "11": {
+      "event_name": "Inlet_Temperature_of_Chilled_Water_40_60-to-60_80",
+      "count": 1076
+    },
+    "15": {
+      "event_name": "Inlet_Temperature_of_Chilled_Water_60_80-to-40_60",
+      "count": 1075
+    }
+  },
+  "per_measure": {
+    "Inlet_Temperature_of_Chilled_Water": {
+      "n_events_generated": 11900,
+      "n_unique_event_types_observed": 8,
+      "top1_ratio": 0.15521008403361344,
+      "rare_event_count": 3028,
+      "rare_event_ratio": 0.25445378151260506,
+      "high_rare_event_count": 1665,
+      "low_rare_event_count": 1363,
+      "rare_event_type_count": 2,
+      "high_rare_event_type_count": 1,
+      "low_rare_event_type_count": 1,
+      "high_rare_event_ratio": 0.13991596638655462,
+      "low_rare_event_ratio": 0.11453781512605042,
+      "mean_events_per_row_contributed": 0.003061296415299073,
+      "band_occupancy": {
+        "0_20": 1046543,
+        "20_40": 737777,
+        "40_60": 683221,
+        "60_80": 1101294,
+        "80_100": 315526
+      },
+      "total_band_count": 3884361,
+      "n_active_bands": 5,
+      "max_band_count": 1101294,
+      "max_band_ratio": 0.2835199920913633,
+      "min_nonzero_band_count": 315526,
+      "extreme_band_count": 1362069,
+      "extreme_band_ratio": 0.35065458643004604,
+      "middle_band_count": 2522292,
+      "middle_band_ratio": 0.649345413569954,
+      "occupancy_entropy": 1.5358107881737162,
+      "normalized_occupancy_entropy": 0.9542528955658618,
+      "is_eventless_measure": false,
+      "band_degeneracy_flag": false,
+      "extreme_occupancy_flag": false,
+      "jump_size_mean": 1.0,
+      "measure_transition_score": 0.9330422154881041,
+      "high_target_candidate": true,
+      "low_target_candidate": true
+    }
+  },
+  "top_events": [
+    {
+      "event_id": 10,
+      "event_name": "Inlet_Temperature_of_Chilled_Water_40_60-to-20_40",
+      "count": 1847,
+      "ratio": 0.15521008403361344
+    },
+    {
+      "event_id": 6,
+      "event_name": "Inlet_Temperature_of_Chilled_Water_20_40-to-40_60",
+      "count": 1846,
+      "ratio": 0.15512605042016805
+    },
+    {
+      "event_id": 16,
+      "event_name": "Inlet_Temperature_of_Chilled_Water_60_80-to-80_100",
+      "count": 1665,
+      "ratio": 0.13991596638655462
+    },
+    {
+      "event_id": 20,
+      "event_name": "Inlet_Temperature_of_Chilled_Water_80_100-to-60_80",
+      "count": 1665,
+      "ratio": 0.13991596638655462
+    },
+    {
+      "event_id": 5,
+      "event_name": "Inlet_Temperature_of_Chilled_Water_20_40-to-0_20",
+      "count": 1363,
+      "ratio": 0.11453781512605042
+    },
+    {
+      "event_id": 1,
+      "event_name": "Inlet_Temperature_of_Chilled_Water_0_20-to-20_40",
+      "count": 1363,
+      "ratio": 0.11453781512605042
+    },
+    {
+      "event_id": 11,
+      "event_name": "Inlet_Temperature_of_Chilled_Water_40_60-to-60_80",
+      "count": 1076,
+      "ratio": 0.09042016806722689
+    },
+    {
+      "event_id": 15,
+      "event_name": "Inlet_Temperature_of_Chilled_Water_60_80-to-40_60",
+      "count": 1075,
+      "ratio": 0.09033613445378151
+    }
+  ],
+  "band_occupancy": {
+    "Inlet_Temperature_of_Chilled_Water": {
+      "0_20": 1046543,
+      "20_40": 737777,
+      "40_60": 683221,
+      "60_80": 1101294,
+      "80_100": 315526
+    }
+  },
+  "target_candidates": {
+    "Inlet_Temperature_of_Chilled_Water": {
+      "high": {
+        "candidate": true,
+        "extreme_event_count": 1665,
+        "extreme_event_ratio": 0.13991596638655462,
+        "reason": "passes high target candidate rules"
+      },
+      "low": {
+        "candidate": true,
+        "extreme_event_count": 1363,
+        "extreme_event_ratio": 0.11453781512605042,
+        "reason": "passes low target candidate rules"
+      }
+    }
+  }
+}
