@@ -1,0 +1,57 @@
+phase: f04_targets
+variant: v4_0103
+artifacts:
+  report:
+    path: 04_targets_report.html
+    sha256: c06511f0271489089c2d1f425ba34d56ee872780e444d327dd171d2ab3fa41e8
+exports:
+  Tu: 10
+  OW: 90
+  LT: 10
+  PW: 10
+  event_type_count: 90
+  prediction_name: island_mode_mccb_active_power_high_90_coarse_10
+  measure_name: Island_mode_MCCB_Active_Power
+  target_operator: OR
+  target_event_types:
+  - Island_mode_MCCB_Active_Power_0_10-to-90_100
+  - Island_mode_MCCB_Active_Power_10_20-to-90_100
+  - Island_mode_MCCB_Active_Power_20_30-to-90_100
+  - Island_mode_MCCB_Active_Power_30_40-to-90_100
+  - Island_mode_MCCB_Active_Power_40_50-to-90_100
+  - Island_mode_MCCB_Active_Power_50_60-to-90_100
+  - Island_mode_MCCB_Active_Power_60_70-to-90_100
+  - Island_mode_MCCB_Active_Power_70_80-to-90_100
+  - Island_mode_MCCB_Active_Power_80_90-to-90_100
+  target_event_count: 9
+  n_windows: 0
+  n_windows_pos: 0
+  n_windows_neg: 0
+  n_positive: 0
+  n_negative: 0
+  target_compatible: false
+  incompatibility_reason: 'F04 target incompatible segun target_candidates de F02.
+    parent_f02=v2_0025. Island_mode_MCCB_Active_Power.high: candidate=false (does
+    not pass high target candidate rules)'
+  target_candidate_checks:
+  - measure: Island_mode_MCCB_Active_Power
+    direction: high
+  target_candidate_failures:
+  - measure: Island_mode_MCCB_Active_Power
+    direction: high
+    reason: does not pass high target candidate rules
+  parent_f03: v3_0052
+  parent_f02: v2_0025
+  parent_f01: null
+metrics:
+  execution_time: 0.009315494000020408
+  n_windows: 0
+  n_positive: 0
+  n_negative: 0
+  positive_ratio: 0.0
+  target_compatible: false
+  incompatibility_reason: 'F04 target incompatible segun target_candidates de F02.
+    parent_f02=v2_0025. Island_mode_MCCB_Active_Power.high: candidate=false (does
+    not pass high target candidate rules)'
+provenance:
+  generated_at: '2026-06-22T22:14:57.615217+00:00'
