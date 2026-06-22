@@ -1,0 +1,97 @@
+phase: f02_events
+variant: v2_0014
+artifacts:
+  events:
+    path: 02_events.parquet
+    sha256: b30f7eb6a2a792f5e1e5e7e69e7ef15ea6780022196103bd2870aad7607cea10
+  catalog:
+    path: 02_events_catalog.json
+    sha256: 1d1885c2c7ea1a7cfceca3a54d74b3257d63939429829b4176aea9d3754a7bac
+  stats:
+    path: 02_events_stats.json
+    sha256: b06b551104fa96af5e168ca88b938204ed7b56ffb61b64240daeaf75e0d53a2d
+  report:
+    path: 02_events_report.html
+    sha256: e37053d0b5fc91cfd87e3bc3b93a06de7ddad2dfd242a80e293e29ebc25cb7d0
+exports:
+  Tu: 10
+  measure_name: Inlet_Temperature_of_Chilled_Water
+  event_strategy: transitions
+  bands:
+  - 10
+  - 25
+  - 50
+  - 75
+  - 90
+  event_types:
+  - Inlet_Temperature_of_Chilled_Water_0_10-to-10_25
+  - Inlet_Temperature_of_Chilled_Water_0_10-to-25_50
+  - Inlet_Temperature_of_Chilled_Water_0_10-to-50_75
+  - Inlet_Temperature_of_Chilled_Water_0_10-to-75_90
+  - Inlet_Temperature_of_Chilled_Water_0_10-to-90_100
+  - Inlet_Temperature_of_Chilled_Water_10_25-to-0_10
+  - Inlet_Temperature_of_Chilled_Water_10_25-to-25_50
+  - Inlet_Temperature_of_Chilled_Water_10_25-to-50_75
+  - Inlet_Temperature_of_Chilled_Water_10_25-to-75_90
+  - Inlet_Temperature_of_Chilled_Water_10_25-to-90_100
+  - Inlet_Temperature_of_Chilled_Water_25_50-to-0_10
+  - Inlet_Temperature_of_Chilled_Water_25_50-to-10_25
+  - Inlet_Temperature_of_Chilled_Water_25_50-to-50_75
+  - Inlet_Temperature_of_Chilled_Water_25_50-to-75_90
+  - Inlet_Temperature_of_Chilled_Water_25_50-to-90_100
+  - Inlet_Temperature_of_Chilled_Water_50_75-to-0_10
+  - Inlet_Temperature_of_Chilled_Water_50_75-to-10_25
+  - Inlet_Temperature_of_Chilled_Water_50_75-to-25_50
+  - Inlet_Temperature_of_Chilled_Water_50_75-to-75_90
+  - Inlet_Temperature_of_Chilled_Water_50_75-to-90_100
+  - Inlet_Temperature_of_Chilled_Water_75_90-to-0_10
+  - Inlet_Temperature_of_Chilled_Water_75_90-to-10_25
+  - Inlet_Temperature_of_Chilled_Water_75_90-to-25_50
+  - Inlet_Temperature_of_Chilled_Water_75_90-to-50_75
+  - Inlet_Temperature_of_Chilled_Water_75_90-to-90_100
+  - Inlet_Temperature_of_Chilled_Water_90_100-to-0_10
+  - Inlet_Temperature_of_Chilled_Water_90_100-to-10_25
+  - Inlet_Temperature_of_Chilled_Water_90_100-to-25_50
+  - Inlet_Temperature_of_Chilled_Water_90_100-to-50_75
+  - Inlet_Temperature_of_Chilled_Water_90_100-to-75_90
+  n_event_types: 30
+  n_events: 3887242
+  n_types: 30
+  n_types_observed: 10
+  target_candidates:
+    Inlet_Temperature_of_Chilled_Water:
+      high:
+        candidate: true
+        extreme_event_count: 254
+        extreme_event_ratio: 0.01837916063675832
+        reason: passes high target candidate rules
+      low:
+        candidate: true
+        extreme_event_count: 1847
+        extreme_event_ratio: 0.1336468885672938
+        reason: passes low target candidate rules
+metrics:
+  execution_time: 8.612434489999998
+  n_rows_in: 3887242
+  n_rows_out: 3887242
+  total_events_generated: 13820
+  mean_events_per_row: 0.0035552198705406045
+  empty_rows_ratio: 0.9964447801294594
+  n_event_types_observed: 10
+  catalog_coverage_ratio: 0.3333333333333333
+  top1_event_ratio: 0.1979739507959479
+  rare_event_ratio: 0.1520260492040521
+  eventless_measure_ratio: 0.0
+  non_eventless_measure_ratio: 1.0
+  high_rare_measure_ratio: 1.0
+  low_rare_measure_ratio: 1.0
+  high_rare_event_ratio: 0.01837916063675832
+  low_rare_event_ratio: 0.1336468885672938
+  f02_quality_score: 0.7785800519237814
+  f02_gate_status: reject
+  event_entropy: 2.0974806588428017
+  normalized_event_entropy: 0.9109242760342258
+  n_transition_events: 13820
+  jump_size_mean: 1.0
+provenance:
+  generated_at: '2026-06-22T15:20:08.627141+00:00'
