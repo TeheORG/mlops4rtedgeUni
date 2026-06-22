@@ -1,0 +1,14 @@
+phase: f03_windows
+variant: v3_0012
+parent: v2_0012
+parameters:
+  parent_variant: v2_0012
+  Tu: 10
+  measure_name: MG-LV-MSB_AC_Voltage
+  OW: 50
+  LT: 10
+  PW: 10
+  window_strategy: synchro
+  nan_mode: discard
+parent_hashes:
+  v2_0012: 4fa1ec36ef9b9db2e9355015a1faf5ad33fea6e1b6ad68320a7582057e64db4b
