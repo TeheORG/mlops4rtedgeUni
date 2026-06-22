@@ -1,0 +1,86 @@
+phase: f02_events
+variant: v2_0018
+artifacts:
+  events:
+    path: 02_events.parquet
+    sha256: f007acffb889b5bdcabb1a07ac1fcc3a938bd34f6fe91accfbe51d340b5d8546
+  catalog:
+    path: 02_events_catalog.json
+    sha256: 7acc3709677cab3fe29fec3abe505f0e0b37a0d4be19458fc3ba026a1e00b59d
+  stats:
+    path: 02_events_stats.json
+    sha256: 9fd47f95d77d94295fa40b68ed962487e1c6957d0f660a40bd5d975e023b0f19
+  report:
+    path: 02_events_report.html
+    sha256: 4fbdd6d918d6b8913673ccfb372136d43211af5b47d1079e050081da1fb7af00
+exports:
+  Tu: 10
+  measure_name: Battery_Active_Power
+  event_strategy: transitions
+  bands:
+  - 20
+  - 40
+  - 60
+  - 80
+  event_types:
+  - Battery_Active_Power_0_20-to-20_40
+  - Battery_Active_Power_0_20-to-40_60
+  - Battery_Active_Power_0_20-to-60_80
+  - Battery_Active_Power_0_20-to-80_100
+  - Battery_Active_Power_20_40-to-0_20
+  - Battery_Active_Power_20_40-to-40_60
+  - Battery_Active_Power_20_40-to-60_80
+  - Battery_Active_Power_20_40-to-80_100
+  - Battery_Active_Power_40_60-to-0_20
+  - Battery_Active_Power_40_60-to-20_40
+  - Battery_Active_Power_40_60-to-60_80
+  - Battery_Active_Power_40_60-to-80_100
+  - Battery_Active_Power_60_80-to-0_20
+  - Battery_Active_Power_60_80-to-20_40
+  - Battery_Active_Power_60_80-to-40_60
+  - Battery_Active_Power_60_80-to-80_100
+  - Battery_Active_Power_80_100-to-0_20
+  - Battery_Active_Power_80_100-to-20_40
+  - Battery_Active_Power_80_100-to-40_60
+  - Battery_Active_Power_80_100-to-60_80
+  n_event_types: 20
+  n_events: 3887242
+  n_types: 20
+  n_types_observed: 16
+  target_candidates:
+    Battery_Active_Power:
+      high:
+        candidate: true
+        extreme_event_count: 145
+        extreme_event_ratio: 0.058
+        reason: passes high target candidate rules
+      low:
+        candidate: true
+        extreme_event_count: 5
+        extreme_event_ratio: 0.002
+        reason: passes low target candidate rules
+metrics:
+  execution_time: 8.66190813099999
+  n_rows_in: 3887242
+  n_rows_out: 3887242
+  total_events_generated: 2500
+  mean_events_per_row: 0.0006431294990124104
+  empty_rows_ratio: 0.9993568705009875
+  n_event_types_observed: 16
+  catalog_coverage_ratio: 0.8
+  top1_event_ratio: 0.4272
+  rare_event_ratio: 0.06
+  eventless_measure_ratio: 0.0
+  non_eventless_measure_ratio: 1.0
+  high_rare_measure_ratio: 1.0
+  low_rare_measure_ratio: 1.0
+  high_rare_event_ratio: 0.058
+  low_rare_event_ratio: 0.002
+  f02_quality_score: 0.6779312784593712
+  f02_gate_status: reject
+  event_entropy: 1.3076085090159624
+  normalized_event_entropy: 0.47162007784538507
+  n_transition_events: 2500
+  jump_size_mean: 1.0572
+provenance:
+  generated_at: '2026-06-22T15:21:07.792305+00:00'
