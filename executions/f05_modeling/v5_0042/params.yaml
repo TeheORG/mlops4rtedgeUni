@@ -1,0 +1,59 @@
+phase: f05_modeling
+variant: v5_0042
+parent: v4_0042
+parameters:
+  parent_variant: v4_0042
+  Tu: 10
+  OW: 50
+  LT: 10
+  PW: 10
+  prediction_name: fc_active_power_low_20_fine_4
+  event_type_count: 20
+  model_family: cnn1d
+  automl:
+    enabled: true
+    max_trials: 3
+    seed: 42
+  search_space:
+    common:
+      batch_size:
+      - 128
+      - 256
+      learning_rate:
+      - 0.001
+      - 0.0005
+      n_layers:
+      - 1
+      - 2
+      units:
+      - 64
+      - 128
+      dropout:
+      - 0.0
+      - 0.2
+    dense_bow: {}
+    sequence_embedding:
+      embed_dim:
+      - 64
+      - 128
+    cnn1d:
+      embed_dim:
+      - 64
+      filters:
+      - 64
+      - 128
+      kernel_size:
+      - 3
+      - 5
+  training:
+    epochs: 5
+    max_samples: null
+  deduplication_mode: none
+  seed: 42
+  evaluation:
+    val_max_samples: 20000
+    test_max_samples: 20000
+  imbalance_strategy: rare_events
+  imbalance_max_majority_samples: 20000
+parent_hashes:
+  v4_0042: de99fa67f9be130e1e7cacaa748a88fae7e050499442d5eedef94faa430f04fe
