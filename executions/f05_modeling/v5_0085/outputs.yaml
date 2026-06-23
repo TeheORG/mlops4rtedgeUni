@@ -194,3 +194,7 @@ mlflow_registration:
   - /__w/mlops4rtedgeUni/mlops4rtedgeUni/executions/f05_modeling/v5_0085/05_modeling_model.h5
   - /__w/mlops4rtedgeUni/mlops4rtedgeUni/executions/f05_modeling/v5_0085/05_modeling_history.json
   - /__w/mlops4rtedgeUni/mlops4rtedgeUni/executions/f05_modeling/v5_0085/05_modeling_trials_summary.json
+mlflow:
+  run_id: 9d7611e2fdab4be68997b36717d8d7e6
+  experiment_id: '29'
+  experiment_name: F05_battery_active_power_high_90_coarse_10
