@@ -1,0 +1,25 @@
+
+===== CHECKING f05_modeling (v5_0032) with spec =====
+[INFO] Spec: makefile_check_phases.yml
+[OK] exists: 05_modeling_model.h5
+[OK] exists: 05_modeling_report.html
+[OK] exists: 05_modeling_parent_dataset.parquet
+[OK] exists: 05_modeling_training_dataset.parquet
+[OK] exists: outputs.yaml
+[OK] exists: experiments/* (3 match(es))
+[OK] not empty: 05_modeling_report.html
+[OK] not empty: outputs.yaml
+[OK] exists: experiments/exp_000/model.h5
+[OK] exists: experiments/exp_000/metrics.json
+[OK] not empty: experiments/exp_000/metrics.json
+[OK] exists: experiments/exp_001/model.h5
+[OK] exists: experiments/exp_001/metrics.json
+[OK] not empty: experiments/exp_001/metrics.json
+[OK] exists: experiments/exp_002/model.h5
+[OK] exists: experiments/exp_002/metrics.json
+[OK] not empty: experiments/exp_002/metrics.json
+
+======####@@@@@@@@@@@@####======
+✅[SUCCESS] Validation passed
+======####@@@@@@@@@@@@####======
+
