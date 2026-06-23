@@ -1,0 +1,89 @@
+phase: f06_quant
+variant: v6_0084
+artifacts:
+  calibration_dataset:
+    path: 06_calibration_dataset.parquet
+    sha256: acc4b61c2652e7a59931ccf378c91ebfa4a922770ff3f72b33c9b3e882ed4308
+  report:
+    path: 06_quant_report.html
+    sha256: d0ea70d273249165f7f5e0c75b3d3a245ef4399e20372b7d6acea321acbe7b8b
+  test_dataset:
+    path: 06_test_dataset.parquet
+    sha256: 94dc0861268b1acf3b7cba97da49f7e8dc30a2cb75e870b841078c75df3fcc95
+  model_float:
+    path: 06_model_float.h5
+    sha256: 61f1a9259452772298c5d32d32b31d6911abe75de5631d4d2729b79a397bdd70
+  model_tflite:
+    path: 06_model_tflite.tflite
+    sha256: 8187bd62886f711c36841cced14f77d25ae6666e8e923525d1ad67c9f507dd23
+  eedu_manifest:
+    path: eedu/eedu_manifest.yaml
+    sha256: e8a652a6ade90edeef1010a0c2f40c7f0c4f1146f111eede835d6568be8ca3f5
+exports:
+  Tu: 10
+  OW: 90
+  LT: 10
+  PW: 10
+  event_type_count: 20
+  prediction_name: inlet_temperature_of_chilled_water_low_20_fine_4
+  runtime_model_name: inlet_temperature_of_chilled_water_low_20_fine_4-cnn1d-v5_0084
+  model_family: cnn1d
+  edge_capable: true
+  event_id_dtype: int8
+  event_id_np_dtype: int8
+  event_id_tf_dtype: int8
+  event_ids_are_categorical: true
+  requires_cast_to_int32: true
+  decision_threshold: 0.4063626527786255
+  tflite_eval_threshold: 0.38847842812538147
+  tflite_test_precision: 0.30921595598349383
+  tflite_test_recall: 0.9108589951377634
+  tflite_test_f1: 0.46169644690901623
+  tflite_test_pr_auc: 0.43677778109466187
+  tflite_test_fp: 2511
+  tflite_test_fn: 110
+  model_size_bytes: 37520
+  arena_estimated_bytes: 56280
+  footprint_estimated_bytes: 93800
+  operators:
+  - CAST
+  - CONV_2D
+  - EXPAND_DIMS
+  - FULLY_CONNECTED
+  - GATHER
+  - LOGISTIC
+  - REDUCE_MAX
+  - RESHAPE
+  input_dtype: int8
+  output_dtype: int8
+  input_shape:
+  - 1
+  - 33
+  output_shape:
+  - 1
+  - 1
+  input_bytes: 33
+  output_bytes: 1
+metrics:
+  execution_time: 4.968258136000003
+  tflm_compatible: true
+  operators_detected: 8
+  unsupported_operators: 0
+  n_calibration_samples: 56116
+  single_input_output_int8: true
+  single_input_output_integer: true
+  event_type_count: 20
+  event_id_dtype: int8
+  event_id_np_dtype: int8
+  event_id_tf_dtype: int8
+  event_ids_are_categorical: true
+  requires_cast_to_int32: true
+  tflite_eval_threshold: 0.38847842812538147
+  tflite_test_precision: 0.30921595598349383
+  tflite_test_recall: 0.9108589951377634
+  tflite_test_f1: 0.46169644690901623
+  tflite_test_pr_auc: 0.43677778109466187
+  tflite_test_tp: 1124
+  tflite_test_tn: 11434
+  tflite_test_fp: 2511
+  tflite_test_fn: 110
