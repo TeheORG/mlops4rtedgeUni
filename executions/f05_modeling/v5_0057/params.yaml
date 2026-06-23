@@ -1,0 +1,59 @@
+phase: f05_modeling
+variant: v5_0057
+parent: v4_0057
+parameters:
+  parent_variant: v4_0057
+  Tu: 10
+  OW: 90
+  LT: 10
+  PW: 10
+  prediction_name: ge_active_power_high_80_fine_4
+  event_type_count: 20
+  model_family: cnn1d
+  automl:
+    enabled: true
+    max_trials: 3
+    seed: 42
+  search_space:
+    common:
+      batch_size:
+      - 128
+      - 256
+      learning_rate:
+      - 0.001
+      - 0.0005
+      n_layers:
+      - 1
+      - 2
+      units:
+      - 64
+      - 128
+      dropout:
+      - 0.0
+      - 0.2
+    dense_bow: {}
+    sequence_embedding:
+      embed_dim:
+      - 64
+      - 128
+    cnn1d:
+      embed_dim:
+      - 64
+      filters:
+      - 64
+      - 128
+      kernel_size:
+      - 3
+      - 5
+  training:
+    epochs: 5
+    max_samples: null
+  deduplication_mode: none
+  seed: 42
+  evaluation:
+    val_max_samples: 20000
+    test_max_samples: 20000
+  imbalance_strategy: rare_events
+  imbalance_max_majority_samples: 20000
+parent_hashes:
+  v4_0057: 63d5cf777a80ac6df4528717f39f15b7aea1b01a0460d9bd5f6a325a95160c3a
