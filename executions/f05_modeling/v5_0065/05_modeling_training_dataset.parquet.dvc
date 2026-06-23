@@ -1,0 +1,5 @@
+outs:
+- md5: ab9f4be9a364c31e3fe2f25fd636a5bb
+  size: 242592
+  hash: md5
+  path: 05_modeling_training_dataset.parquet
