@@ -1,0 +1,33 @@
+phase: f06_quant
+variant: v6_0061
+parent: v5_0061
+parameters:
+  parent_variant: v5_0061
+  Tu: 10
+  OW: 90
+  LT: 10
+  PW: 10
+  prediction_name: outlet_temperature_high_90_coarse_10
+  event_type_count: 90
+  deployment:
+    target: esp32
+    runtime: esp-tflite-micro
+    runtime_version: 1.3.3
+    require_int8: true
+    memory_limit_bytes: 327680
+  quantization:
+    tflite_optimization: DEFAULT
+    representative_dataset: val
+    calibration_samples: 512
+    symmetric_int8: true
+    per_channel: true
+    keep_float_fallback: false
+  thresholding:
+    strategy: recalibrate_on_quantized
+    maximize_metric: recall
+    grid_points: 101
+  eedu:
+    version: '1.0'
+    layout: default
+parent_hashes:
+  v5_0061: 269ac59a8bdcac48700b7e88d7ea35a4d1345948c62d64f3b4e9d3d453ffb4fc
