@@ -1,0 +1,19 @@
+phase: f06_quant
+variant: v6_0010
+parent_phase: f05_modeling
+parent_variant: v5_0010
+model_family: cnn1d
+operators:
+- CAST
+- CONV_2D
+- EXPAND_DIMS
+- FULLY_CONNECTED
+- GATHER
+- LOGISTIC
+- REDUCE_MAX
+- RESHAPE
+model_size_bytes: 71960
+generated_at: '2026-06-23T02:02:25.554672+00:00'
+runtime:
+  tflite_version: 2.15.1
+  python_platform: Linux-6.17.0-1018-azure-x86_64-with-glibc2.41
