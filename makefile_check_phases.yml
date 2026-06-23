@@ -93,13 +93,13 @@ f01_explore:
 f02_events:
   files:
     - path: 02_events_catalog.json
-      required: true
+      required: false
       not_empty: true
     - path: 02_events_report.html
       required: true
       not_empty: true
     - path: 02_events.parquet
-      required: true
+      required: false
     - path: outputs.yaml
       required: true
       not_empty: true
@@ -118,13 +118,12 @@ f02_events:
             - not_empty
         - type: yaml_key
           key: exports.event_types
-          constraints:
-            - not_empty
+          required: false
         - type: yaml_key
           key: exports.n_event_types
+          required: false
           constraints:
             - integer
-            - { gt: 0 }
     - path: metadata.yaml
       required: true
       not_empty: true
@@ -135,13 +134,13 @@ f02_events:
 f03_windows:
   files:
     - path: 03_events_catalog.json
-      required: true
+      required: false
       not_empty: true
     - path: 03_windows_report.html
       required: true
       not_empty: true
     - path: 03_windows.parquet
-      required: true
+      required: false
       not_empty: true
     - path: outputs.yaml
       required: true

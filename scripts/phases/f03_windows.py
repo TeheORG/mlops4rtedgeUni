@@ -63,6 +63,42 @@ def register_window(rows, ow, pw, ow_lengths, pw_lengths, ow_hashes, pw_hashes):
     ow_hashes.add(stable_array_hash(ow))
     pw_hashes.add(stable_array_hash(pw))
 
+
+def evaluate_measure_target_candidates(parent_exports: dict, measure_name: str | None) -> dict:
+    target_candidates = parent_exports.get("target_candidates") or {}
+    if not measure_name or not isinstance(target_candidates, dict):
+        return {"compatible": True, "reason": None, "checks": []}
+
+    measure_candidates = target_candidates.get(measure_name)
+    if not isinstance(measure_candidates, dict):
+        return {"compatible": True, "reason": None, "checks": []}
+
+    checks = []
+    for direction in ("high", "low"):
+        direction_info = measure_candidates.get(direction) or {}
+        checks.append({
+            "measure": measure_name,
+            "direction": direction,
+            "candidate": bool(direction_info.get("candidate", False)),
+            "reason": str(direction_info.get("reason", "reason no disponible")),
+        })
+
+    if checks and not any(check["candidate"] for check in checks):
+        details = "; ".join(
+            f"{check['direction']}: candidate=false ({check['reason']})"
+            for check in checks
+        )
+        return {
+            "compatible": False,
+            "reason": (
+                f"F03 skipped because measure_name={measure_name} has no viable "
+                f"F02 target candidates for high or low. {details}"
+            ),
+            "checks": checks,
+        }
+
+    return {"compatible": True, "reason": None, "checks": checks}
+
 # ============================================================
 # MAIN
 # ============================================================
@@ -97,6 +133,142 @@ def main():
         "F03",
     )
 
+    # --------------------------------------------------------
+    # Parámetros
+    # --------------------------------------------------------
+
+    Tu = params["Tu"]
+    OW = params["OW"]
+    LT = params["LT"]
+    PW = params["PW"]
+    window_strategy = params["window_strategy"]
+    nan_mode = params["nan_mode"]
+    parent_exports = parent_outputs.get("exports", {}) or {}
+    measure_name = params.get("measure_name") or parent_exports.get("measure_name")
+    BATCH = 10_000
+
+    if parent_exports.get("compatible") is False:
+        elapsed = time.perf_counter() - start_time
+        parent_reason = parent_exports.get("incompatibility_reason") or "compatible=false"
+        reason = f"Parent F02 incompatible: {parent_reason}"
+        report_path = variant_dir / "03_windows_report.html"
+        report_path.write_text(
+            f"""
+            <html>
+            <body>
+            <h1>F03 Windows - {variant}</h1>
+            <p>Parent F02: {parent_variant}</p>
+            <p>Measure: {measure_name}</p>
+            <p>Compatible: False</p>
+            <p>Incompatibility reason: {reason}</p>
+            </body>
+            </html>
+            """,
+            encoding="utf-8",
+        )
+        outputs_content = {
+            "phase": PHASE,
+            "variant": variant,
+            "artifacts": {
+                "report": {
+                    "path": report_path.name,
+                    "sha256": sha256_of_file(report_path),
+                },
+            },
+            "exports": {
+                "Tu": int(Tu),
+                "OW": int(OW),
+                "LT": int(LT),
+                "PW": int(PW),
+                "Ratio_PW_OW": PW / OW if OW > 0 else None,
+                "event_type_count": int(parent_exports.get("n_event_types", 0)),
+                "window_strategy": window_strategy,
+                "nan_mode": nan_mode,
+                "measure_name": measure_name,
+                "parent_f02": parent_variant,
+                "n_windows": 0,
+                "compatible": False,
+                "incompatibility_reason": reason,
+                "target_candidate_checks": [],
+            },
+            "metrics": {
+                "execution_time": float(elapsed),
+                "n_events_in": 0,
+                "n_windows_out": 0,
+                "compatible": False,
+                "incompatibility_reason": reason,
+            },
+            "provenance": {
+                "generated_at": datetime.now(timezone.utc).isoformat(),
+            },
+        }
+        save_outputs_yaml(variant_dir, outputs_content)
+        validate_outputs(PHASE, outputs_content)
+        print(f"[WARN] F03 incompatible: {reason}")
+        print(f"\n===== FASE {PHASE} COMPLETADA SIN DATASET =====")
+        return
+
+    target_candidate_eval = evaluate_measure_target_candidates(parent_exports, measure_name)
+    if not target_candidate_eval["compatible"]:
+        elapsed = time.perf_counter() - start_time
+        reason = str(target_candidate_eval["reason"])
+        report_path = variant_dir / "03_windows_report.html"
+        report_path.write_text(
+            f"""
+            <html>
+            <body>
+            <h1>F03 Windows - {variant}</h1>
+            <p>Parent F02: {parent_variant}</p>
+            <p>Measure: {measure_name}</p>
+            <p>Compatible: False</p>
+            <p>Incompatibility reason: {reason}</p>
+            </body>
+            </html>
+            """,
+            encoding="utf-8",
+        )
+        outputs_content = {
+            "phase": PHASE,
+            "variant": variant,
+            "artifacts": {
+                "report": {
+                    "path": report_path.name,
+                    "sha256": sha256_of_file(report_path),
+                },
+            },
+            "exports": {
+                "Tu": int(Tu),
+                "OW": int(OW),
+                "LT": int(LT),
+                "PW": int(PW),
+                "Ratio_PW_OW": PW / OW if OW > 0 else None,
+                "event_type_count": int(parent_exports.get("n_event_types", parent_exports.get("event_type_count", 0))),
+                "window_strategy": window_strategy,
+                "nan_mode": nan_mode,
+                "measure_name": measure_name,
+                "parent_f02": parent_variant,
+                "n_windows": 0,
+                "compatible": False,
+                "incompatibility_reason": reason,
+                "target_candidate_checks": target_candidate_eval["checks"],
+            },
+            "metrics": {
+                "execution_time": float(elapsed),
+                "n_events_in": 0,
+                "n_windows_out": 0,
+                "compatible": False,
+                "incompatibility_reason": reason,
+            },
+            "provenance": {
+                "generated_at": datetime.now(timezone.utc).isoformat(),
+            },
+        }
+        save_outputs_yaml(variant_dir, outputs_content)
+        validate_outputs(PHASE, outputs_content)
+        print(f"[WARN] F03 incompatible: {reason}")
+        print(f"\n===== FASE {PHASE} COMPLETADA SIN DATASET =====")
+        return
+
     parent_dataset_path = resolve_artifact_path(
         parent_dir,
         parent_outputs,
@@ -111,19 +283,6 @@ def main():
     )
 
     df = pq.read_table(parent_dataset_path, memory_map=True).to_pandas()
-
-    # --------------------------------------------------------
-    # Parámetros
-    # --------------------------------------------------------
-
-    Tu = params["Tu"]
-    OW = params["OW"]
-    LT = params["LT"]
-    PW = params["PW"]
-    window_strategy = params["window_strategy"]
-    nan_mode = params["nan_mode"]
-    measure_name = params.get("measure_name") or parent_outputs.get("exports", {}).get("measure_name")
-    BATCH = 10_000
 
     # --------------------------------------------------------
     # Validaciones básicas
@@ -387,6 +546,8 @@ def main():
             "measure_name": measure_name,
             "parent_f02": parent_variant,
             "n_windows": windows_written,
+            "compatible": True,
+            "incompatibility_reason": None,
             "n_unique_ow_hash": n_unique_ow_hash,
             "n_unique_pw_hash": n_unique_pw_hash,
             "dup_ratio_ow": float(dup_ratio_ow),
@@ -400,6 +561,8 @@ def main():
             "execution_time": float(elapsed),
             "n_events_in": int(len(df)),
             "n_windows_out": int(windows_written),
+            "compatible": True,
+            "incompatibility_reason": None,
         },
         "provenance": {
             "generated_at": datetime.now(timezone.utc).isoformat(),

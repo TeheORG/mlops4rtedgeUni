@@ -191,18 +191,36 @@ phases:
           - keep
           - discard
 
+      min_std_for_measure_compatibility:
+        type: float
+        required: false
+        inherited: false
+        default: 0.0
+
+      target_candidate_min_unique_types:
+        type: integer
+        required: false
+        inherited: false
+        default: 3
+
+      target_candidate_min_ratio:
+        type: float
+        required: false
+        inherited: false
+        default: 0.001
+
     outputs:
 
       artifacts:
 
         events:
           type: file
-          required: true
+          required: false
           extension: parquet
 
         catalog:
           type: file
-          required: true
+          required: false
           extension: json
 
         report:
@@ -248,6 +266,50 @@ phases:
           type: integer
           required: true
 
+        compatible:
+          type: boolean
+          required: false
+
+        measure_compatible:
+          type: boolean
+          required: false
+
+        target_candidate_compatible:
+          type: boolean
+          required: false
+
+        incompatibility_reason:
+          type: string
+          required: false
+          nullable: true
+
+        compatibility_checks:
+          type: list
+          required: false
+          items:
+            type: dict
+
+        measure_std:
+          type: float
+          required: false
+          nullable: true
+
+        min_std_for_measure_compatibility:
+          type: float
+          required: false
+
+        min_measure_std_for_compatibility:
+          type: float
+          required: false
+
+        target_candidate_min_unique_types:
+          type: integer
+          required: false
+
+        target_candidate_min_ratio:
+          type: float
+          required: false
+
       metrics:
 
         execution_time:
@@ -269,6 +331,28 @@ phases:
         nan_ratio_out:
           type: float
           required: false
+
+        measure_std:
+          type: float
+          required: false
+          nullable: true
+
+        compatible:
+          type: boolean
+          required: false
+
+        measure_compatible:
+          type: boolean
+          required: false
+
+        target_candidate_compatible:
+          type: boolean
+          required: false
+
+        incompatibility_reason:
+          type: string
+          required: false
+          nullable: true
 
   f03_windows:
 
@@ -335,12 +419,12 @@ phases:
 
         dataset:
           type: file
-          required: true
+          required: false
           extension: parquet
 
         catalog:
           type: file
-          required: true
+          required: false
           extension: json
 
         report:
@@ -387,6 +471,19 @@ phases:
           type: integer
           required: true
 
+        compatible:
+          type: boolean
+          required: false
+
+        incompatibility_reason:
+          type: string
+          required: false
+          nullable: true
+
+        target_candidate_checks:
+          type: list
+          required: false
+
       metrics:
 
         execution_time:
@@ -396,6 +493,19 @@ phases:
         n_events_in:
           type: integer
           required: true
+
+        n_windows_out:
+          type: integer
+          required: false
+
+        compatible:
+          type: boolean
+          required: false
+
+        incompatibility_reason:
+          type: string
+          required: false
+          nullable: true
 
   # ------------------------------------------------------------
   # F04 — TARGET ENGINEERING (WINDOW LABELING)
@@ -462,6 +572,12 @@ phases:
         inherited: false
         items:
           type: string
+
+      min_positive_ratio_for_target_compatibility:
+        type: float
+        required: false
+        inherited: false
+        default: 0.001
 
     outputs:
 
@@ -536,6 +652,10 @@ phases:
           type: integer
           required: false
 
+        compatible:
+          type: boolean
+          required: false
+
         target_compatible:
           type: boolean
           required: true
@@ -544,6 +664,16 @@ phases:
           type: string
           required: false
           nullable: true
+
+        compatibility_checks:
+          type: list
+          required: false
+          items:
+            type: dict
+
+        min_positive_ratio_for_target_compatibility:
+          type: float
+          required: false
 
         target_candidate_checks:
           type: list
@@ -572,6 +702,10 @@ phases:
         positive_ratio:
           type: float
           required: true
+
+        compatible:
+          type: boolean
+          required: false
 
         target_compatible:
           type: boolean

@@ -37,8 +37,9 @@ from scripts.core.traceability import validate_outputs
 PHASE = "f02_events"
 PROJECT_ROOT = REPO_ROOT
 
-TARGET_CANDIDATE_MIN_UNIQUE_TYPES = 3
-TARGET_CANDIDATE_MIN_RATIO = 0.001
+DEFAULT_TARGET_CANDIDATE_MIN_UNIQUE_TYPES = 3
+DEFAULT_TARGET_CANDIDATE_MIN_RATIO = 0.001
+DEFAULT_MIN_STD_FOR_MEASURE_COMPATIBILITY = 0.0
 
 MEASURE_SCORE_WEIGHT_EVENTS = 0.35
 MEASURE_SCORE_WEIGHT_OCCUPANCY_ENTROPY = 0.25
@@ -345,7 +346,11 @@ def compute_band_occupancy_metrics(band_counts):
     }
 
 
-def compute_measure_quality_scores(per_measure):
+def compute_measure_quality_scores(
+    per_measure,
+    target_candidate_min_unique_types,
+    target_candidate_min_ratio,
+):
     max_log_events = max(
         (math.log1p(float(stats["n_events_generated"])) for stats in per_measure.values()),
         default=0.0,
@@ -380,18 +385,77 @@ def compute_measure_quality_scores(per_measure):
         stats["measure_transition_score"] = float(score)
         stats["high_target_candidate"] = bool(
             n_events > 0
-            and int(stats["n_unique_event_types_observed"]) >= TARGET_CANDIDATE_MIN_UNIQUE_TYPES
+            and int(stats["n_unique_event_types_observed"]) >= target_candidate_min_unique_types
             and int(stats["high_rare_event_count"]) > 0
-            and float(stats["high_rare_event_ratio"]) >= TARGET_CANDIDATE_MIN_RATIO
+            and float(stats["high_rare_event_ratio"]) >= target_candidate_min_ratio
         )
         stats["low_target_candidate"] = bool(
             n_events > 0
-            and int(stats["n_unique_event_types_observed"]) >= TARGET_CANDIDATE_MIN_UNIQUE_TYPES
+            and int(stats["n_unique_event_types_observed"]) >= target_candidate_min_unique_types
             and int(stats["low_rare_event_count"]) > 0
-            and float(stats["low_rare_event_ratio"]) >= TARGET_CANDIDATE_MIN_RATIO
+            and float(stats["low_rare_event_ratio"]) >= target_candidate_min_ratio
         )
 
     return per_measure
+
+
+def build_target_candidate_compatibility_checks(
+    measure_name,
+    per_measure,
+    target_candidate_min_unique_types,
+    target_candidate_min_ratio,
+):
+    stats = per_measure.get(measure_name, {}) or {}
+    unique_types = int(stats.get("n_unique_event_types_observed", 0))
+    high_count = int(stats.get("high_rare_event_count", 0))
+    low_count = int(stats.get("low_rare_event_count", 0))
+    high_ratio = float(stats.get("high_rare_event_ratio", 0.0))
+    low_ratio = float(stats.get("low_rare_event_ratio", 0.0))
+    high_passed = bool(
+        unique_types >= target_candidate_min_unique_types
+        and high_count > 0
+        and high_ratio >= target_candidate_min_ratio
+    )
+    low_passed = bool(
+        unique_types >= target_candidate_min_unique_types
+        and low_count > 0
+        and low_ratio >= target_candidate_min_ratio
+    )
+
+    return [
+        {
+            "name": "target_candidate.high",
+            "value": {
+                "n_unique_event_types_observed": unique_types,
+                "extreme_event_count": high_count,
+                "extreme_event_ratio": high_ratio,
+            },
+            "minimum": {
+                "n_unique_event_types_observed": int(target_candidate_min_unique_types),
+                "extreme_event_count": 1,
+                "extreme_event_ratio": float(target_candidate_min_ratio),
+            },
+            "maximum": None,
+            "passed": high_passed,
+            "reason": "high target candidate rules passed" if high_passed else "high target candidate rules failed",
+        },
+        {
+            "name": "target_candidate.low",
+            "value": {
+                "n_unique_event_types_observed": unique_types,
+                "extreme_event_count": low_count,
+                "extreme_event_ratio": low_ratio,
+            },
+            "minimum": {
+                "n_unique_event_types_observed": int(target_candidate_min_unique_types),
+                "extreme_event_count": 1,
+                "extreme_event_ratio": float(target_candidate_min_ratio),
+            },
+            "maximum": None,
+            "passed": low_passed,
+            "reason": "low target candidate rules passed" if low_passed else "low target candidate rules failed",
+        },
+    ]
 
 
 def build_target_candidates(per_measure):
@@ -568,13 +632,13 @@ def render_gate_criteria_table(global_stats):
     )
 
 
-def render_target_rule_table():
+def render_target_rule_table(target_candidate_min_unique_types, target_candidate_min_ratio):
     rows = [
         ("High", "high_rare_event_count", "> 0"),
-        ("High", "high_rare_event_ratio", ">= 0.001"),
+        ("High", "high_rare_event_ratio", f">= {target_candidate_min_ratio:g}"),
         ("Low", "low_rare_event_count", "> 0"),
-        ("Low", "low_rare_event_ratio", ">= 0.001"),
-        ("Ambos", "n_unique_event_types_observed", ">= 3"),
+        ("Low", "low_rare_event_ratio", f">= {target_candidate_min_ratio:g}"),
+        ("Ambos", "n_unique_event_types_observed", f">= {target_candidate_min_unique_types}"),
     ]
     body = "".join(
         "<tr>"
@@ -694,6 +758,8 @@ def compute_measure_stats(
     event_metadata,
     band_assignments,
     strategy,
+    target_candidate_min_unique_types,
+    target_candidate_min_ratio,
 ):
     per_measure = {}
     band_occupancy = {}
@@ -794,12 +860,28 @@ def compute_measure_stats(
         per_measure[col] = measure_entry
         band_occupancy[col] = band_counts
 
-    per_measure = compute_measure_quality_scores(per_measure)
+    per_measure = compute_measure_quality_scores(
+        per_measure,
+        target_candidate_min_unique_types=target_candidate_min_unique_types,
+        target_candidate_min_ratio=target_candidate_min_ratio,
+    )
 
     return per_measure, band_occupancy
 
 
-def compute_event_stats(df, df_events, epoch_col, measure_cols, bands, event_to_id, strategy, nan_mode, Tu):
+def compute_event_stats(
+    df,
+    df_events,
+    epoch_col,
+    measure_cols,
+    bands,
+    event_to_id,
+    strategy,
+    nan_mode,
+    Tu,
+    target_candidate_min_unique_types,
+    target_candidate_min_ratio,
+):
     row_lengths = df_events["events"].apply(len).to_numpy(dtype=int)
     total_events_generated = int(row_lengths.sum())
     total_rows = int(len(df_events))
@@ -865,6 +947,8 @@ def compute_event_stats(df, df_events, epoch_col, measure_cols, bands, event_to_
         event_metadata=event_metadata,
         band_assignments=band_assignments,
         strategy=strategy,
+        target_candidate_min_unique_types=target_candidate_min_unique_types,
+        target_candidate_min_ratio=target_candidate_min_ratio,
     )
 
     transition_stats = {
@@ -1176,7 +1260,16 @@ def _build_report_html_legacy(variant, parent_variant, strategy, bands_pct, nan_
     """
 
 
-def build_report_html(variant, parent_variant, strategy, bands_pct, nan_mode, stats):
+def build_report_html(
+    variant,
+    parent_variant,
+    strategy,
+    bands_pct,
+    nan_mode,
+    stats,
+    target_candidate_min_unique_types,
+    target_candidate_min_ratio,
+):
     global_stats = stats.get("global", {})
 
     top_events_df = pd.DataFrame(stats.get("top_events", []))
@@ -1214,7 +1307,10 @@ def build_report_html(variant, parent_variant, strategy, bands_pct, nan_mode, st
         [{"metric": key, "value": value} for key, value in global_stats.items()]
     ).to_html(index=False, classes="tbl", escape=True)
     gate_criteria_html = render_gate_criteria_table(global_stats)
-    target_rules_html = render_target_rule_table()
+    target_rules_html = render_target_rule_table(
+        target_candidate_min_unique_types,
+        target_candidate_min_ratio,
+    )
     target_candidates_html = render_target_candidates_table(stats)
 
     return f"""
@@ -1463,6 +1559,24 @@ def main():
     strategy = params["strategy"]
     bands_pct = params["bands"]
     nan_mode = params["nan_mode"]
+    min_std_for_measure_compatibility = float(
+        params.get(
+            "min_std_for_measure_compatibility",
+            DEFAULT_MIN_STD_FOR_MEASURE_COMPATIBILITY,
+        )
+    )
+    target_candidate_min_unique_types = int(
+        params.get(
+            "target_candidate_min_unique_types",
+            DEFAULT_TARGET_CANDIDATE_MIN_UNIQUE_TYPES,
+        )
+    )
+    target_candidate_min_ratio = float(
+        params.get(
+            "target_candidate_min_ratio",
+            DEFAULT_TARGET_CANDIDATE_MIN_RATIO,
+        )
+    )
 
     # --------------------------------------------------------
     # Determinar columna temporal 'segs'
@@ -1503,6 +1617,110 @@ def main():
             f"Columnas de medida declaradas en F01 no están en el dataset padre: {missing}"
         )
     
+    measure_values = pd.to_numeric(df[measure_name], errors="coerce")
+    measure_std = float(measure_values.std(skipna=True, ddof=0))
+    measure_compatible = (
+        math.isfinite(measure_std)
+        and measure_std > min_std_for_measure_compatibility
+    )
+    measure_std_check = {
+        "name": "measure_std",
+        "value": float(measure_std) if math.isfinite(measure_std) else None,
+        "minimum": float(min_std_for_measure_compatibility),
+        "maximum": None,
+        "passed": bool(measure_compatible),
+        "reason": "measure std above minimum" if measure_compatible else "measure std not above minimum",
+    }
+    if not measure_compatible:
+        execution_time = float(time.perf_counter() - start_time)
+        incompatibility_reason = (
+            f"measure_std={measure_std:.12g} below or equal minimum "
+            f"{min_std_for_measure_compatibility:.12g}"
+            if math.isfinite(measure_std)
+            else "measure_std is not finite"
+        )
+        report_path = variant_dir / "02_events_report.html"
+        report_path.write_text(
+            f"""
+            <html>
+            <body>
+            <h1>F02 Events - {variant}</h1>
+            <p>Parent F01: {parent_variant}</p>
+            <p>Measure: {measure_name}</p>
+            <p>Compatible: False</p>
+            <p>Measure std: {measure_std}</p>
+            <p>Minimum std: {min_std_for_measure_compatibility}</p>
+            <p>Incompatibility reason: {incompatibility_reason}</p>
+            </body>
+            </html>
+            """,
+            encoding="utf-8",
+        )
+        outputs_content = {
+            "phase": PHASE,
+            "variant": variant,
+            "artifacts": {
+                "report": {
+                    "path": report_path.name,
+                    "sha256": sha256_of_file(report_path),
+                },
+            },
+            "exports": {
+                "Tu": int(Tu),
+                "measure_name": measure_name,
+                "event_strategy": strategy,
+                "bands": bands_pct,
+                "event_types": [],
+                "n_event_types": 0,
+                "n_events": 0,
+                "n_types": 0,
+                "n_types_observed": 0,
+                "target_candidates": {
+                    measure_name: {
+                        "high": {
+                            "candidate": False,
+                            "reason": incompatibility_reason,
+                            "extreme_event_count": 0,
+                            "extreme_event_ratio": 0.0,
+                        },
+                        "low": {
+                            "candidate": False,
+                            "reason": incompatibility_reason,
+                            "extreme_event_count": 0,
+                            "extreme_event_ratio": 0.0,
+                        },
+                    }
+                },
+                "compatible": False,
+                "measure_compatible": False,
+                "target_candidate_compatible": False,
+                "incompatibility_reason": incompatibility_reason,
+                "compatibility_checks": [measure_std_check],
+                "measure_std": float(measure_std) if math.isfinite(measure_std) else None,
+                "min_std_for_measure_compatibility": float(min_std_for_measure_compatibility),
+                "min_measure_std_for_compatibility": float(min_std_for_measure_compatibility),
+                "target_candidate_min_unique_types": int(target_candidate_min_unique_types),
+                "target_candidate_min_ratio": float(target_candidate_min_ratio),
+            },
+            "metrics": {
+                "execution_time": float(execution_time),
+                "n_rows_in": int(len(df)),
+                "n_rows_out": 0,
+                "measure_std": float(measure_std) if math.isfinite(measure_std) else None,
+                "compatible": False,
+                "measure_compatible": False,
+                "incompatibility_reason": incompatibility_reason,
+            },
+            "provenance": {
+                "generated_at": datetime.now(timezone.utc).isoformat(),
+            },
+        }
+        save_outputs_yaml(variant_dir, outputs_content)
+        validate_outputs(PHASE, outputs_content)
+        print(f"[WARN] F02 incompatible: {incompatibility_reason}")
+        print(f"\n===== FASE {PHASE} COMPLETADA SIN EVENTOS =====")
+        return
+
     # --------------------------------------------------------
     # Generar eventos
     # --------------------------------------------------------
@@ -1525,17 +1743,13 @@ def main():
     )
 
     # --------------------------------------------------------
-    # Guardar artefactos
+    # Preparar artefactos: solo se escriben si la fase es compatible
     # --------------------------------------------------------
 
     events_path = variant_dir / "02_events.parquet"
     catalog_path = variant_dir / "02_events_catalog.json"
     stats_path = variant_dir / "02_events_stats.json"
     report_path = variant_dir / "02_events_report.html"
-
-    df_events.to_parquet(events_path, index=False)
-
-    save_json(catalog_path, event_to_id)
 
     stats = compute_event_stats(
         df=df,
@@ -1547,8 +1761,25 @@ def main():
         strategy=strategy,
         nan_mode=nan_mode,
         Tu=Tu,
+        target_candidate_min_unique_types=target_candidate_min_unique_types,
+        target_candidate_min_ratio=target_candidate_min_ratio,
     )
-    save_json(stats_path, stats)
+    target_candidate_checks = build_target_candidate_compatibility_checks(
+        measure_name=measure_name,
+        per_measure=stats.get("per_measure", {}),
+        target_candidate_min_unique_types=target_candidate_min_unique_types,
+        target_candidate_min_ratio=target_candidate_min_ratio,
+    )
+    target_candidate_compatible = any(
+        bool(check.get("passed")) for check in target_candidate_checks
+    )
+    compatibility_checks = [measure_std_check, *target_candidate_checks]
+    incompatibility_reason = None
+    if not target_candidate_compatible:
+        incompatibility_reason = (
+            f"target_candidate_compatible=false for measure_name={measure_name}; "
+            "both high and low candidates failed"
+        )
 
     report_html = build_report_html(
         variant=variant,
@@ -1557,6 +1788,8 @@ def main():
         bands_pct=bands_pct,
         nan_mode=nan_mode,
         stats=stats,
+        target_candidate_min_unique_types=target_candidate_min_unique_types,
+        target_candidate_min_ratio=target_candidate_min_ratio,
     )
 
     report_path.write_text(report_html, encoding="utf-8")
@@ -1564,6 +1797,65 @@ def main():
     execution_time = float(time.perf_counter() - start_time)
     target_candidates = stats["target_candidates"]
     event_types = list(event_to_id.keys())
+
+    if not target_candidate_compatible:
+        outputs_content = {
+            "phase": PHASE,
+            "variant": variant,
+            "artifacts": {
+                "report": {
+                    "path": report_path.name,
+                    "sha256": sha256_of_file(report_path),
+                },
+            },
+            "exports": {
+                "Tu": int(Tu),
+                "measure_name": measure_name,
+                "event_strategy": strategy,
+                "bands": bands_pct,
+                "event_types": event_types,
+                "n_event_types": int(len(event_to_id)),
+                "n_events": int(len(df_events)),
+                "n_types": int(len(event_to_id)),
+                "n_types_observed": int(stats["global"]["n_event_types_observed"]),
+                "target_candidates": target_candidates,
+                "compatible": False,
+                "measure_compatible": True,
+                "target_candidate_compatible": False,
+                "incompatibility_reason": incompatibility_reason,
+                "compatibility_checks": compatibility_checks,
+                "measure_std": float(measure_std),
+                "min_std_for_measure_compatibility": float(min_std_for_measure_compatibility),
+                "min_measure_std_for_compatibility": float(min_std_for_measure_compatibility),
+                "target_candidate_min_unique_types": int(target_candidate_min_unique_types),
+                "target_candidate_min_ratio": float(target_candidate_min_ratio),
+            },
+            "metrics": {
+                **build_outputs_metrics(
+                    stats=stats,
+                    execution_time=execution_time,
+                    n_rows_in=len(df),
+                    n_rows_out=0,
+                ),
+                "measure_std": float(measure_std),
+                "compatible": False,
+                "measure_compatible": True,
+                "target_candidate_compatible": False,
+                "incompatibility_reason": incompatibility_reason,
+            },
+            "provenance": {
+                "generated_at": datetime.now(timezone.utc).isoformat(),
+            },
+        }
+        save_outputs_yaml(variant_dir, outputs_content)
+        validate_outputs(PHASE, outputs_content)
+        print(f"[WARN] F02 incompatible: {incompatibility_reason}")
+        print(f"\n===== FASE {PHASE} COMPLETADA SIN EVENTOS =====")
+        return
+
+    df_events.to_parquet(events_path, index=False)
+    save_json(catalog_path, event_to_id)
+    save_json(stats_path, stats)
 
     # --------------------------------------------------------
     # Construir outputs.yaml
@@ -1601,13 +1893,30 @@ def main():
             "n_types": int(len(event_to_id)),
             "n_types_observed": int(stats["global"]["n_event_types_observed"]),
             "target_candidates": target_candidates,
+            "compatible": True,
+            "measure_compatible": True,
+            "target_candidate_compatible": True,
+            "incompatibility_reason": None,
+            "compatibility_checks": compatibility_checks,
+            "measure_std": float(measure_std),
+            "min_std_for_measure_compatibility": float(min_std_for_measure_compatibility),
+            "min_measure_std_for_compatibility": float(min_std_for_measure_compatibility),
+            "target_candidate_min_unique_types": int(target_candidate_min_unique_types),
+            "target_candidate_min_ratio": float(target_candidate_min_ratio),
         },
-        "metrics": build_outputs_metrics(
+        "metrics": {
+            **build_outputs_metrics(
             stats=stats,
             execution_time=execution_time,
             n_rows_in=len(df),
             n_rows_out=len(df_events),
-        ),
+            ),
+            "measure_std": float(measure_std),
+            "compatible": True,
+            "measure_compatible": True,
+            "target_candidate_compatible": True,
+            "incompatibility_reason": None,
+        },
         "provenance": {
             "generated_at": datetime.now(timezone.utc).isoformat(),
         },

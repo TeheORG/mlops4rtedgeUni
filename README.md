@@ -211,6 +211,19 @@ F02 stores the selected measure and event definition in `outputs.yaml` under
 `exports.event_types`, `exports.n_event_types`, and the legacy-compatible
 `exports.n_types`.
 
+Compatibility thresholds are variant parameters, so they are materialized in
+`params.yaml` and echoed in `outputs.yaml`. Override them with the existing
+`EXTRA_FLAGS` path:
+
+```bash
+make variant2 VARIANT=v2_0001 PARENT=v1_0000 MEASURE=Battery_Active_Power STRATEGY=transitions BANDS='[10,20,30,40,50,60,70,80,90]' NAN_MODE=discard EXTRA_FLAGS="min_std_for_measure_compatibility=0.001 target_candidate_min_unique_types=3 target_candidate_min_ratio=0.001"
+```
+
+If `measure_std` is not above `min_std_for_measure_compatibility`, or both
+high/low target-candidate checks fail, F02 writes `outputs.yaml` with
+`compatible: false`, `incompatibility_reason`, and `compatibility_checks`
+without writing the events parquet/catalog.
+
 ### F03: Build windows dataset
 
 ```bash
@@ -228,6 +241,15 @@ make script4 VARIANT=v4_0001
 make check4 VARIANT=v4_0001
 make register4 VARIANT=v4_0001
 ```
+
+F04 also exposes its minimum positive ratio as a variant parameter:
+
+```bash
+make variant4 VARIANT=v4_0001 PARENT=v3_0001 NAME=battery_active_power_high_90 OPERATOR=OR EVENTS='["Battery_Active_Power_80_90-to-90_100"]' EXTRA_FLAGS="min_positive_ratio_for_target_compatibility=0.001"
+```
+
+When the positive ratio is below that threshold, F04 writes traceable
+incompatibility outputs and does not write `04_targets.parquet`.
 
 ### F05: Train models
 

@@ -27,7 +27,7 @@ from scripts.core.traceability import validate_outputs
 # ============================================================
 PHASE = "f04_targets"
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
-MIN_POSITIVE_RATIO_FOR_TARGET_COMPATIBILITY = 0.001
+DEFAULT_MIN_POSITIVE_RATIO_FOR_TARGET_COMPATIBILITY = 0.001
 # ============================================================
 
 
@@ -188,6 +188,12 @@ def main():
     params_data = load_params(PHASE, variant)
     params = params_data["parameters"]
     parent_variant = params_data["parent"]
+    min_positive_ratio_for_target_compatibility = float(
+        params.get(
+            "min_positive_ratio_for_target_compatibility",
+            DEFAULT_MIN_POSITIVE_RATIO_FOR_TARGET_COMPATIBILITY,
+        )
+    )
 
     print(f"\n===== INICIO {PHASE} / {variant} =====")
 
@@ -205,6 +211,102 @@ def main():
         parent_variant,
         "F04",
     )
+
+    parent_exports = parent_outputs.get("exports", {}) or {}
+    if parent_exports.get("compatible") is False:
+        elapsed = time.perf_counter() - start_time
+        parent_reason = parent_exports.get("incompatibility_reason") or "compatible=false"
+        reason = f"Parent F03 incompatible: {parent_reason}"
+        prediction_name = params["prediction_name"]
+        target_operator = params["target_operator"]
+        target_event_types_raw = params["target_event_types"]
+        target_event_types = (
+            [target_event_types_raw]
+            if isinstance(target_event_types_raw, str)
+            else list(target_event_types_raw)
+        )
+        measure_name = parent_exports.get("measure_name") or extract_measure_name(prediction_name)
+        report_path = variant_dir / "04_targets_report.html"
+        report_path.write_text(
+            f"""
+            <html>
+            <body>
+            <h1>F04 Targets - {variant}</h1>
+            <p>Parent F03: {parent_variant}</p>
+            <p>Prediction name: {prediction_name}</p>
+            <p>Target compatible: False</p>
+            <p>Incompatibility reason: {reason}</p>
+            </body>
+            </html>
+            """,
+            encoding="utf-8",
+        )
+        outputs_content = {
+            "phase": PHASE,
+            "variant": variant,
+            "artifacts": {
+                "report": {
+                    "path": report_path.name,
+                    "sha256": sha256_of_file(report_path),
+                },
+            },
+            "exports": {
+                "Tu": int(parent_exports.get("Tu", params.get("Tu", 0))),
+                "OW": int(parent_exports.get("OW", params.get("OW", 0))),
+                "LT": int(parent_exports.get("LT", params.get("LT", 0))),
+                "PW": int(parent_exports.get("PW", params.get("PW", 0))),
+                "event_type_count": int(parent_exports.get("event_type_count", params.get("event_type_count", 0))),
+                "prediction_name": prediction_name,
+                "measure_name": measure_name,
+                "target_operator": target_operator,
+                "target_event_types": target_event_types,
+                "target_event_count": int(len(target_event_types)),
+                "compatible": False,
+                "target_compatible": False,
+                "incompatibility_reason": reason,
+                "compatibility_checks": [
+                    {
+                        "name": "parent_f03.compatible",
+                        "value": False,
+                        "minimum": True,
+                        "maximum": None,
+                        "passed": False,
+                        "reason": reason,
+                    }
+                ],
+                "min_positive_ratio_for_target_compatibility": float(
+                    min_positive_ratio_for_target_compatibility
+                ),
+                "target_candidate_checks": parent_exports.get("target_candidate_checks", []),
+                "parent_f03": parent_variant,
+                "parent_f02": parent_exports.get("parent_f02"),
+                "parent_f01": parent_exports.get("parent_f01"),
+                "n_windows": 0,
+                "n_windows_pos": 0,
+                "n_windows_neg": 0,
+                "n_positive": 0,
+                "n_negative": 0,
+                "class_balance_ratio": 0.0,
+            },
+            "metrics": {
+                "execution_time": float(elapsed),
+                "n_windows": 0,
+                "n_positive": 0,
+                "n_negative": 0,
+                "positive_ratio": 0.0,
+                "compatible": False,
+                "target_compatible": False,
+                "incompatibility_reason": reason,
+            },
+            "provenance": {
+                "generated_at": datetime.now(timezone.utc).isoformat(),
+            },
+        }
+        save_outputs_yaml(variant_dir, outputs_content)
+        validate_outputs(PHASE, outputs_content)
+        print(f"[WARN] F04 target incompatible: {reason}")
+        print(f"\n===== FASE {PHASE} COMPLETADA SIN DATASET =====")
+        return
 
     parent_dataset_path = resolve_artifact_path(
         parent_dir,
@@ -330,8 +432,22 @@ def main():
                 "n_windows_neg": 0,
                 "n_positive": 0,
                 "n_negative": 0,
+                "compatible": False,
                 "target_compatible": False,
                 "incompatibility_reason": reason,
+                "compatibility_checks": [
+                    {
+                        "name": "target_candidates_f02",
+                        "value": False,
+                        "minimum": True,
+                        "maximum": None,
+                        "passed": False,
+                        "reason": reason,
+                    }
+                ],
+                "min_positive_ratio_for_target_compatibility": float(
+                    min_positive_ratio_for_target_compatibility
+                ),
                 "target_candidate_checks": [
                     {"measure": measure, "direction": direction}
                     for measure, direction in target_candidate_checks
@@ -354,6 +470,7 @@ def main():
                 "n_positive": 0,
                 "n_negative": 0,
                 "positive_ratio": 0.0,
+                "compatible": False,
                 "target_compatible": False,
                 "incompatibility_reason": reason,
             },
@@ -450,12 +567,20 @@ def main():
         """
     )
 
-    target_compatible = ratio >= MIN_POSITIVE_RATIO_FOR_TARGET_COMPATIBILITY
+    target_compatible = ratio >= min_positive_ratio_for_target_compatibility
+    positive_ratio_check = {
+        "name": "positive_ratio",
+        "value": float(ratio),
+        "minimum": float(min_positive_ratio_for_target_compatibility),
+        "maximum": None,
+        "passed": bool(target_compatible),
+        "reason": "positive ratio above minimum" if target_compatible else "positive ratio below minimum",
+    }
     incompatibility_reason = None
     if not target_compatible:
         incompatibility_reason = (
             f"positive_ratio={ratio:.6f} below minimum "
-            f"{MIN_POSITIVE_RATIO_FOR_TARGET_COMPATIBILITY:.6f}"
+            f"{min_positive_ratio_for_target_compatibility:.6f}"
         )
 
     if not target_compatible:
@@ -482,8 +607,13 @@ def main():
                 "target_operator": target_operator,
                 "target_event_types": target_event_types,
                 "target_event_count": int(target_event_count),
+                "compatible": False,
                 "target_compatible": False,
                 "incompatibility_reason": incompatibility_reason,
+                "compatibility_checks": [positive_ratio_check],
+                "min_positive_ratio_for_target_compatibility": float(
+                    min_positive_ratio_for_target_compatibility
+                ),
                 "target_candidate_checks": [
                     {"measure": measure, "direction": direction}
                     for measure, direction in target_candidate_checks
@@ -506,6 +636,7 @@ def main():
                 "n_positive": int(positives),
                 "n_negative": int(negatives),
                 "positive_ratio": float(ratio),
+                "compatible": False,
                 "target_compatible": False,
                 "incompatibility_reason": incompatibility_reason,
             },
@@ -647,8 +778,13 @@ def main():
             "target_operator": target_operator,
             "target_event_types": target_event_types,
             "target_event_count": int(target_event_count),
+            "compatible": True,
             "target_compatible": True,
             "incompatibility_reason": None,
+            "compatibility_checks": [positive_ratio_check],
+            "min_positive_ratio_for_target_compatibility": float(
+                min_positive_ratio_for_target_compatibility
+            ),
             "target_candidate_checks": [
                 {"measure": measure, "direction": direction}
                 for measure, direction in target_candidate_checks
@@ -675,6 +811,7 @@ def main():
             "n_positive": int(positives),
             "n_negative": int(negatives),
             "positive_ratio": float(ratio),
+            "compatible": True,
             "target_compatible": True,
             "incompatibility_reason": None,
         },
