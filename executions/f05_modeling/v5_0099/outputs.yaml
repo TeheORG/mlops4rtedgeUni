@@ -194,3 +194,7 @@ mlflow_registration:
   - /__w/mlops4rtedgeUni/mlops4rtedgeUni/executions/f05_modeling/v5_0099/05_modeling_model.h5
   - /__w/mlops4rtedgeUni/mlops4rtedgeUni/executions/f05_modeling/v5_0099/05_modeling_history.json
   - /__w/mlops4rtedgeUni/mlops4rtedgeUni/executions/f05_modeling/v5_0099/05_modeling_trials_summary.json
+mlflow:
+  run_id: 3586425b801a4ac3b456c43c359996e5
+  experiment_id: '37'
+  experiment_name: F05_island_mode_mccb_ac_voltage_high_80_fine_4
