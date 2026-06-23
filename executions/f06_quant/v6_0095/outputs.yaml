@@ -1,0 +1,89 @@
+phase: f06_quant
+variant: v6_0095
+artifacts:
+  calibration_dataset:
+    path: 06_calibration_dataset.parquet
+    sha256: 266fd568b111840839079682328790a0d8ca40af63a9dd652b903c455432277d
+  report:
+    path: 06_quant_report.html
+    sha256: 5252106cf6e42e9000cdc9ec77e6d6b3a0932e6d56ffce96b0ffeab14b407b6b
+  test_dataset:
+    path: 06_test_dataset.parquet
+    sha256: fd197291e6d03c43742714227ba174bb579c34394a9a7262c357b79ece007a33
+  model_float:
+    path: 06_model_float.h5
+    sha256: cb86eb5fcc9434cc8150e1a72633046f528c81cb3f62a0f3ab5dd3be1c6413c7
+  model_tflite:
+    path: 06_model_tflite.tflite
+    sha256: 16dd3df77bd5554c84598f8d88817e81421258d639d82924dcbe88080b2f9a9c
+  eedu_manifest:
+    path: eedu/eedu_manifest.yaml
+    sha256: aa5a7dc7c1a1915fefcc009bda425fb6e1c8c4d52217b346b521fe83ad171b1f
+exports:
+  Tu: 10
+  OW: 90
+  LT: 10
+  PW: 10
+  event_type_count: 30
+  prediction_name: fc_active_power_low_10_coarse_5
+  runtime_model_name: fc_active_power_low_10_coarse_5-cnn1d-v5_0095
+  model_family: cnn1d
+  edge_capable: true
+  event_id_dtype: int8
+  event_id_np_dtype: int8
+  event_id_tf_dtype: int8
+  event_ids_are_categorical: true
+  requires_cast_to_int32: true
+  decision_threshold: 0.1384081393480301
+  tflite_eval_threshold: 0.13748089969158173
+  tflite_test_precision: 0.42696629213483145
+  tflite_test_recall: 0.41304347826086957
+  tflite_test_f1: 0.4198895027624309
+  tflite_test_pr_auc: 0.324306838546701
+  tflite_test_fp: 51
+  tflite_test_fn: 54
+  model_size_bytes: 48144
+  arena_estimated_bytes: 72216
+  footprint_estimated_bytes: 120360
+  operators:
+  - CAST
+  - CONV_2D
+  - EXPAND_DIMS
+  - FULLY_CONNECTED
+  - GATHER
+  - LOGISTIC
+  - REDUCE_MAX
+  - RESHAPE
+  input_dtype: int8
+  output_dtype: int8
+  input_shape:
+  - 1
+  - 5
+  output_shape:
+  - 1
+  - 1
+  input_bytes: 5
+  output_bytes: 1
+metrics:
+  execution_time: 2.8979313620000084
+  tflm_compatible: true
+  operators_detected: 8
+  unsupported_operators: 0
+  n_calibration_samples: 29330
+  single_input_output_int8: true
+  single_input_output_integer: true
+  event_type_count: 30
+  event_id_dtype: int8
+  event_id_np_dtype: int8
+  event_id_tf_dtype: int8
+  event_ids_are_categorical: true
+  requires_cast_to_int32: true
+  tflite_eval_threshold: 0.13748089969158173
+  tflite_test_precision: 0.42696629213483145
+  tflite_test_recall: 0.41304347826086957
+  tflite_test_f1: 0.4198895027624309
+  tflite_test_pr_auc: 0.324306838546701
+  tflite_test_tp: 38
+  tflite_test_tn: 4306
+  tflite_test_fp: 51
+  tflite_test_fn: 54
