@@ -1,0 +1,25 @@
+{
+  "trial_id": 0,
+  "hyperparameters": {
+    "batch_size": 128,
+    "learning_rate": 0.0005,
+    "n_layers": 2,
+    "units": 64,
+    "dropout": 0.0,
+    "embed_dim": 64,
+    "filters": 128,
+    "kernel_size": 3
+  },
+  "decision_threshold": 0.09972013533115387,
+  "threshold_source": "validation",
+  "threshold_policy": "optimal_f2",
+  "threshold_metric": "f2",
+  "threshold_warning": null,
+  "val_precision": 0.3870967741935484,
+  "val_recall": 0.5538461538461539,
+  "val_f1": 0.45569620253164556,
+  "val_pr_auc": 0.3860960986480275,
+  "epochs": 5,
+  "batch_size": 128,
+  "requested_batch_size": 128
+}
