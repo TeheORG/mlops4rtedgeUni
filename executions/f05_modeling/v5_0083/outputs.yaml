@@ -194,3 +194,7 @@ mlflow_registration:
   - /__w/mlops4rtedgeUni/mlops4rtedgeUni/executions/f05_modeling/v5_0083/05_modeling_model.h5
   - /__w/mlops4rtedgeUni/mlops4rtedgeUni/executions/f05_modeling/v5_0083/05_modeling_history.json
   - /__w/mlops4rtedgeUni/mlops4rtedgeUni/executions/f05_modeling/v5_0083/05_modeling_trials_summary.json
+mlflow:
+  run_id: 7a9d569427f74aee87ac007771407b44
+  experiment_id: '32'
+  experiment_name: F05_inlet_temperature_of_chilled_water_low_10_coarse_5
