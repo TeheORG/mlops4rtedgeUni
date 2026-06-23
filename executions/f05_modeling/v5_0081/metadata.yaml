@@ -1,0 +1,8 @@
+created_at: '2026-06-23T01:51:36.923978+00:00'
+params_path: executions/f05_modeling/v5_0081/params.yaml
+lifecycle_state: VARIANT_CREATED
+lifecycle_updated_at: '2026-06-23T01:51:37.330270+00:00'
+verified: none
+verified_updated_at: '2026-06-23T01:51:37.195459+00:00'
+registred: none
+runner: GithubActions
