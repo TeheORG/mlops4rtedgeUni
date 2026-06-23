@@ -1,0 +1,31 @@
+
+===== CHECKING f06_quant (v6_0099) with spec =====
+[INFO] Spec: makefile_check_phases.yml
+[OK] exists: 06_calibration_dataset.parquet
+[OK] exists: 06_model_float.h5
+[OK] exists: 06_model_tflite.tflite
+[OK] exists: 06_quant_report.html
+[OK] exists: outputs.yaml
+[OK] exists: params.yaml
+[OK] exists: metadata.yaml
+[OK] exists: 06_model_tflite.tflite
+[OK] exists: eedu/eedu_manifest.yaml
+[OK] size: 06_calibration_dataset.parquet (> 0B)
+[OK] size: 06_model_float.h5 (> 0B)
+[OK] size: 06_model_tflite.tflite (> 0B)
+[OK] not empty: 06_quant_report.html
+[OK] not empty: outputs.yaml
+[OK] content checks: outputs.yaml
+[OK] not empty: params.yaml
+[OK] size: params.yaml (> 0B & < 5KB)
+[OK] content checks: params.yaml
+[OK] not empty: metadata.yaml
+[OK] content checks: metadata.yaml
+[OK] size: 06_model_tflite.tflite (> 0B)
+[OK] not empty: eedu/eedu_manifest.yaml
+[OK] content checks: eedu/eedu_manifest.yaml
+
+======####@@@@@@@@@@@@####======
+✅[SUCCESS] Validation passed
+======####@@@@@@@@@@@@####======
+
