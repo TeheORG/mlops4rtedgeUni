@@ -2,7 +2,7 @@ created_at: '2026-06-23T01:12:24.494995+00:00'
 params_path: executions/f06_quant/v6_0062/params.yaml
 lifecycle_state: EXECUTION_COMPLETED
 lifecycle_updated_at: '2026-06-23T01:12:47.699122+00:00'
-verified: none
-verified_updated_at: '2026-06-23T01:12:33.558258+00:00'
+verified: true
+verified_updated_at: '2026-06-23T01:12:55.838933+00:00'
 registred: none
 runner: GithubActions
