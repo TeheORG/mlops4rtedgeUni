@@ -1,0 +1,14 @@
+
+===== CHECKING f05_modeling (v5_0102) with spec =====
+[INFO] Spec: makefile_check_phases.yml
+[SKIP] optional file missing: 05_modeling_model.h5
+[⭕️FAIL] missing required file: 05_modeling_report.html
+[SKIP] optional file missing: 05_modeling_parent_dataset.parquet
+[SKIP] optional file missing: 05_modeling_training_dataset.parquet
+[⭕️FAIL] missing required file: outputs.yaml
+[SKIP] optional directory pattern missing: experiments/*
+
+======####@@@@@@@@@@@@####======
+❌[ERROR] Validation failed with 2 issue(s)
+======####@@@@@@@@@@@@####======
+
