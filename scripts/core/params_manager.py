@@ -98,6 +98,16 @@ def parse_value_by_rule(raw_value: str, rule: dict, key: str):
             return int(raw_value)
         except ValueError:
             raise ValueError(f"{key} debe ser number")
+        
+    if expected == "boolean":
+        raw_lower = str(raw_value).strip().lower()
+        if raw_lower in ("true", "yes", "1", "on"):
+            return True
+        elif raw_lower in ("false", "no", "0", "off"):
+            return False
+        else:
+            raise ValueError(f"{key} debe ser boolean (true/false, yes/no, 1/0, on/off)")
+
 
     if expected in ("list", "dict"):
         try:

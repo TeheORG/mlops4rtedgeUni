@@ -3,17 +3,16 @@
 F07 — MODEL VALIDATION (EDGE) — PREPARE BUILD
 """
 
-# True  → memory_events.h embeds the full dataset (or max_rows rows) in the binary.
-# False → memory_events.h gets a 1-row placeholder; use serial mode for validation.
-# NOTE: with 2MB flash / 1MB app partition, max safe max_rows ≈ 10000 (~56 bytes/row
-# compiled). Default max_rows in params.yaml of 5000 → ~584KB binary, well within limit.
-# Full dataset (~35K rows) → ~2.2MB binary → overflow. Do NOT embed full dataset.
-EMBED_DATASET = False
+# memory_events.h embebe max_rows filas del dataset en el binario (modo memoria).
+# NOTE: con 2MB flash / 1MB app partition, max_rows seguro ≈ 10000 (~56 bytes/fila
+# compilada). Default max_rows en params.yaml de 5000 → ~584KB binario.
 import argparse
+import hashlib
 import shutil
 from pathlib import Path
 
 import yaml
+import numpy as np
 
 from scripts.core.artifacts import PROJECT_ROOT, get_variant_dir
 from scripts.core.edge_prepare_common import (
@@ -21,7 +20,6 @@ from scripts.core.edge_prepare_common import (
     compute_tu_ms,
     copy_or_convert_dataset_to_csv,
     copy_dataset_to_csv,
-    ensure_clean_dir,
     generate_memory_events_header,
     generate_runtime_config,
     generate_tflm_resolver,
@@ -38,6 +36,8 @@ PHASE = "f07_modval"
 PARENT_PHASE = "f06_quant"
 
 EDGE_DIR = PROJECT_ROOT / "edge"
+ESP_FLASH_SIZES_MB = {2, 4, 8, 16, 32, 64, 128}
+PRESERVED_PROJECT_DIRS = ("build", "managed_components")
 
 
 # ============================================================
@@ -80,6 +80,104 @@ def build_model_manifest_single(
             "tflite_path": str(tflite_path),
         }
     ]
+
+
+def configure_esp32_flash_layout(project_dir: Path, flash_size_mb: int | None):
+    if flash_size_mb is None:
+        return None
+
+    flash_size_mb = int(flash_size_mb)
+    if flash_size_mb not in ESP_FLASH_SIZES_MB:
+        supported = ", ".join(str(v) for v in sorted(ESP_FLASH_SIZES_MB))
+        raise RuntimeError(f"esp_flash_size_mb={flash_size_mb} no soportado. Valores: {supported}")
+
+    app_offset = 0x10000
+    flash_bytes = flash_size_mb * 1024 * 1024
+    app_size = flash_bytes - app_offset
+    if app_size <= 0:
+        raise RuntimeError("esp_flash_size_mb demasiado pequeno para una app ESP32")
+
+    partitions_path = project_dir / "partitions.csv"
+    partitions_path.write_text(
+        "\n".join(
+            [
+                "# Name,   Type, SubType, Offset,  Size,     Flags",
+                "nvs,      data, nvs,     0x9000,  0x6000,",
+                "phy_init, data, phy,     0xf000,  0x1000,",
+                f"factory,  app,  factory, 0x{app_offset:x}, 0x{app_size:x},",
+                "",
+            ]
+        )
+    )
+
+    defaults_path = project_dir / "sdkconfig.defaults"
+    defaults_text = defaults_path.read_text() if defaults_path.exists() else ""
+    flash_config = "\n".join(
+        [
+            "",
+            f"CONFIG_ESPTOOLPY_FLASHSIZE_{flash_size_mb}MB=y",
+            f'CONFIG_ESPTOOLPY_FLASHSIZE="{flash_size_mb}MB"',
+            "CONFIG_PARTITION_TABLE_CUSTOM=y",
+            'CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions.csv"',
+            'CONFIG_PARTITION_TABLE_FILENAME="partitions.csv"',
+            "",
+        ]
+    )
+    if "CONFIG_PARTITION_TABLE_CUSTOM=y" not in defaults_text:
+        defaults_path.write_text(defaults_text.rstrip() + flash_config)
+
+    return {
+        "flash_size_mb": flash_size_mb,
+        "app_offset": app_offset,
+        "app_partition_size_bytes": app_size,
+        "partition_table": str(partitions_path),
+    }
+
+
+def verify_parent_artifact(path: Path, artifact_meta: dict, label: str):
+    if not path.exists():
+        raise RuntimeError(f"{label} missing: {path}")
+
+    expected_sha256 = (artifact_meta or {}).get("sha256")
+    if expected_sha256:
+        actual_sha256 = hashlib.sha256(path.read_bytes()).hexdigest()
+        if actual_sha256 != expected_sha256:
+            raise RuntimeError(
+                f"{label} artifact mismatch: expected_sha256={expected_sha256}, "
+                f"actual_sha256={actual_sha256}, path={path}. "
+                "Restore the F06 DVC artifact or rerun F06 so outputs.yaml and "
+                "the artifact files describe the same variant."
+            )
+
+
+def refresh_project_dir(template_project_dir: Path, edge_project_dir: Path):
+    preserved_root = edge_project_dir.parent / ".f07_preparebuild_preserved"
+    if preserved_root.exists():
+        shutil.rmtree(preserved_root)
+    preserved_root.mkdir(parents=True, exist_ok=True)
+
+    preserved_names = []
+    if edge_project_dir.exists():
+        for name in PRESERVED_PROJECT_DIRS:
+            src = edge_project_dir / name
+            if src.exists():
+                shutil.move(str(src), str(preserved_root / name))
+                preserved_names.append(name)
+        shutil.rmtree(edge_project_dir)
+
+    shutil.copytree(
+        template_project_dir,
+        edge_project_dir,
+        dirs_exist_ok=True,
+    )
+
+    for name in preserved_names:
+        dst = edge_project_dir / name
+        if dst.exists():
+            shutil.rmtree(dst)
+        shutil.move(str(preserved_root / name), str(dst))
+
+    shutil.rmtree(preserved_root, ignore_errors=True)
 
 
 def write_initial_model_profile(
@@ -196,7 +294,7 @@ def main():
     params = params_data.get("parameters", {})
     virtualized = bool(params.get("virtual", False)) or args.virtual
 
-    time_scale = float(params.get("time_scale_factor", 0.01))
+    time_scale = float(params.get("time_scale_factor", 1.0))
 
     parent_variant = params_data.get("parent")
 
@@ -207,6 +305,8 @@ def main():
     legacy_mti = params.get("MTI")
     ITmax = params.get("ITmax")
     max_rows = params.get("max_rows")
+    serial_max_lines = params.get("serial_max_lines")
+    esp_flash_size_mb = params.get("esp_flash_size_mb")
 
     platform = resolve_platform(params, "F07")
     template_project_dir = resolve_template_project_dir(EDGE_DIR, platform, "F07")
@@ -243,7 +343,7 @@ def main():
     arena_global = int(float(arena_bytes) * 1.15) + 1024
     model_size = exports.get("model_size_bytes")
 
-    if input_dtype not in {"int8", "uint8"}:
+    if input_dtype not in {"int8", "uint8", "int16"}:
         raise RuntimeError(f"Modelo incompatible: input_dtype={input_dtype}")
 
     if output_dtype != "int8":
@@ -275,9 +375,10 @@ def main():
             "Regenera F03->F06 con el pipeline actualizado antes de preparar F07."
         )
     event_type_count = int(event_type_count)
-    if event_type_count > 256:
+    max_supported = int(np.iinfo(np.int16).max)
+    if event_type_count > max_supported:
         raise RuntimeError(
-            f"event_type_count={event_type_count} exceeds uint8 capacity (256)."
+            f"event_type_count={event_type_count} exceeds supported capacity ({max_supported})."
         )
 
     Tu = exports["Tu"]
@@ -313,25 +414,30 @@ def main():
     if ITmax is None:
         ITmax = int(round(float(mti_ms)))
 
+    if serial_max_lines is not None:
+        serial_max_lines = int(serial_max_lines)
+        if serial_max_lines < 1:
+            raise RuntimeError("serial_max_lines must be >= 1 when provided")
+
     tu_ms = compute_tu_ms(Tu, time_scale)
 
     variant_dir = get_variant_dir(PHASE, variant)
     project_dir_name = f"{platform}_project"
     edge_project_dir = variant_dir / project_dir_name
 
-    ensure_clean_dir(edge_project_dir)
+    refresh_project_dir(template_project_dir, edge_project_dir)
 
-    shutil.copytree(
-        template_project_dir,
-        edge_project_dir,
-        dirs_exist_ok=True,
-    )
+    storage_cfg = None
+    if platform == "esp32":
+        storage_cfg = configure_esp32_flash_layout(edge_project_dir, esp_flash_size_mb)
 
     runner_dir_name = None
     if runner_dir is not None:
         runner_dir_name = f"{platform}_runner"
         runner_dst = variant_dir / runner_dir_name
-        ensure_clean_dir(runner_dst)
+        if runner_dst.exists():
+            shutil.rmtree(runner_dst)
+        runner_dst.mkdir(parents=True, exist_ok=True)
         shutil.copytree(
             runner_dir,
             runner_dst,
@@ -343,11 +449,29 @@ def main():
     tflite_path = f06_dir / artifacts["model_tflite"]["path"]
     calib_path = f06_dir / artifacts["calibration_dataset"]["path"]
 
-    if not tflite_path.exists():
-        raise RuntimeError("TFLite model missing")
+    verify_parent_artifact(
+        tflite_path,
+        artifacts.get("model_tflite", {}),
+        "F06 model_tflite",
+    )
+    verify_parent_artifact(
+        calib_path,
+        artifacts.get("calibration_dataset", {}),
+        "F06 calibration_dataset",
+    )
 
-    if tflite_path.stat().st_size != model_size:
-        raise RuntimeError("Model size mismatch")    
+    actual_model_size = tflite_path.stat().st_size
+    if actual_model_size != model_size:
+        actual_sha256 = hashlib.sha256(tflite_path.read_bytes()).hexdigest()
+        expected_sha256 = (artifacts.get("model_tflite", {}) or {}).get("sha256")
+        raise RuntimeError(
+            "Model size mismatch: "
+            f"expected {model_size} bytes from F06 outputs.yaml, "
+            f"found {actual_model_size} bytes at {tflite_path}. "
+            f"expected_sha256={expected_sha256}, actual_sha256={actual_sha256}. "
+            "Restore the F06 DVC artifact or rerun F06 so outputs.yaml and "
+            "06_model_tflite.tflite describe the same model."
+        )
 
     models_data_path = build_gen / "models_data.c"
 
@@ -385,6 +509,7 @@ def main():
         OW,
         global_mti_ms,
         tu_ms,
+        input_dtype,
     )
 
     csv_variant = variant_dir / "07_input_dataset.csv"
@@ -414,7 +539,7 @@ def main():
         csv_variant,
         memory_events_path,
         event_type_count=event_type_count,
-        max_rows=max_rows if EMBED_DATASET else 1,
+        max_rows=max_rows,
     )
 
     recommended_drain_seconds = compute_recommended_drain_seconds(
@@ -455,10 +580,16 @@ def main():
             "recommended_drain_seconds": float(recommended_drain_seconds)
         },
 
+        "serial": {
+            "max_lines": int(serial_max_lines) if serial_max_lines is not None else None
+        },
+
         "memory": {
             "arena_per_model": arena_bytes,
             "arena_global": arena_global
         },
+
+        "storage": storage_cfg,
 
         "models": [
             {
