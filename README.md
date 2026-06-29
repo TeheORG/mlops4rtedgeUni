@@ -1,195 +1,161 @@
 # MLOps4RT-Edge
 
 ![Python 3.11](https://img.shields.io/badge/python-3.11-blue)
-![Platforms macOS Linux Windows](https://img.shields.io/badge/platforms-macOS%20%7C%20Linux%20%7C%20Windows-success)
-![Repository scope code only](https://img.shields.io/badge/repository-code--only-informational)
-![Artifacts DVC backend](https://img.shields.io/badge/artifacts-DVC%20backend-orange)
+![GNU Make](https://img.shields.io/badge/build-GNU%20Make-informational)
+![Docker](https://img.shields.io/badge/docker-F05%2FF06%2Fedge-orange)
+![Traceability](https://img.shields.io/badge/traceability-schema%20driven-success)
 
-MLOps4RT-Edge is a reproducible, phase-based MLOps pipeline for edge machine learning workflows, from raw time-series data to quantized models and on-device validation.
+Pipeline MLOps por fases para transformar series temporales en modelos cuantizados y validarlos en edge. El repositorio contiene codigo, automatizacion, schemas y plantillas; los datos, ejecuciones, modelos, logs, caches DVC y estado de MLflow son artefactos locales del proyecto.
 
-It is intended for teams that need a structured and traceable path from data preparation to embedded deployment experiments, while keeping binary artifacts and execution state outside the public code repository.
+La unidad de trabajo es la **variante**. Cada fase crea una carpeta trazable en:
 
-This README is written for users who want to run the pipeline with their own data, generate their own execution artifacts, and store those artifacts in their own project storage backends.
-
-If you want to work on the pipeline code itself, see [DEVELOPERS.md](DEVELOPERS.md).
-
-## At A Glance
-
-1. Eight-phase pipeline from exploration to edge system validation.
-2. Setup-driven project configuration for Git, DVC, and MLflow backends.
-3. Cross-platform workflow for macOS, Linux, and Windows.
-4. Public repository kept code-only by design.
-5. Intended for project workspaces that keep executions and artifacts outside this repo.
-
-## Project Status
-
-This project is intended to be published as a reusable public pipeline codebase.
-
-Current status:
-
-1. The repository is maintained as a code-only public repository.
-2. Generated executions, local DVC state, MLflow state, and project artifacts are intentionally excluded from Git.
-3. Users are expected to run the pipeline in their own project workspace and connect it to their own DVC and MLflow backends.
-
-## What This Project Does
-
-The pipeline is organized into eight phases:
-
-1. Explore raw data.
-2. Build an events dataset.
-3. Build a windows dataset.
-4. Engineer prediction targets.
-5. Train models.
-6. Quantize and package models for edge deployment.
-7. Validate a model on edge hardware.
-8. Validate a multi-model system on edge hardware.
-
-Each phase creates a variant under a local executions workspace and can be validated, registered, and removed independently.
-
-## Repository Scope
-
-This public repository is the pipeline codebase only.
-
-- It does contain: source code, setup templates, tests, documentation, and automation.
-- It does not contain: your local DVC cache, your MLflow state, your execution outputs, or your project-specific DVC references.
-
-When you run the pipeline for your own project:
-
-- Your generated outputs are written to your local workspace under executions/.
-- Large binary artifacts must go to the DVC backend configured by your project setup.
-- Your project Git repository, if used, is the repository defined in your setup, not this public code repository.
-
-## Prerequisites
-
-Minimum prerequisites:
-
-1. Python 3.11.
-2. GNU Make.
-3. Git.
-4. A working virtual environment can be created locally by the setup flow.
-
-Optional but commonly needed:
-
-1. Docker for containerized phases such as F06 and embedded build flows.
-2. A supported edge platform toolchain and hardware for F07 and F08.
-3. DVC and MLflow backends, configured through the project setup.
-
-## Platform Compatibility
-
-The pipeline is designed to be cross-platform at the project level and should be usable from macOS, Linux, and Windows.
-
-What is platform-independent:
-
-1. The phase model.
-2. The Makefile-based workflow.
-3. Setup-driven DVC and MLflow configuration.
-4. Variant creation, validation, traceability, and registration logic.
-
-What may still vary by operating system in practice:
-
-1. Serial port names, such as `/dev/ttyUSB0` on Linux-like systems and `COMx` on Windows.
-2. Serial port permissions on systems that protect device access.
-3. Docker path handling, especially on Windows shells.
-4. Vendor-specific toolchain installation details for embedded targets.
-
-These are operational differences, not pipeline design differences.
-
-## Quick Start
-
-### 1. Clone the pipeline code
-
-```bash
-git clone https://github.com/STRAST-UPM/mlops4rtedge.git
-cd mlops4rtedge
+```text
+executions/<fase>/<variante>/
 ```
 
-### 2. Choose a setup mode
+Ejemplo:
 
-For a fully local project workspace:
+```text
+executions/f05_modeling/v5_0001/
+```
+
+## Que Hace
+
+El flujo completo tiene ocho fases encadenadas:
+
+| Fase | Carpeta | Objetivo | Parent | Salida principal |
+| --- | --- | --- | --- | --- |
+| F01 | `f01_explore` | explorar, limpiar y perfilar datos brutos | ninguno | dataset limpio y columnas de medida |
+| F02 | `f02_events` | convertir una senal en eventos | F01 | eventos y catalogo |
+| F03 | `f03_windows` | construir ventanas temporales | F02 | dataset de ventanas |
+| F04 | `f04_targets` | etiquetar ventanas con targets predictivos | F03 | dataset supervisado |
+| F05 | `f05_modeling` | entrenar modelos | F04 | modelo, metricas y dataset etiquetado |
+| F06 | `f06_quant` | cuantizar y empaquetar para edge | F05 | TFLite/EEDU y compatibilidad edge |
+| F07 | `f07_modval` | validar un modelo en edge | F06 | metricas runtime de un modelo |
+| F08 | `f08_sysval` | validar un sistema multimodelo | F07(s) | seleccion/configuracion y metricas globales |
+
+El contrato formal de parametros, artefactos, exports y metricas vive en [`scripts/traceability_schema.yaml`](scripts/traceability_schema.yaml). El `Makefile` traduce comandos comodos (`RAW`, `PARENT`, `MODEL_FAMILY`, etc.) a los nombres schema-native que se congelan en `params.yaml`.
+
+## Requisitos
+
+Minimos:
+
+- Python 3.11
+- GNU Make
+- Git
+
+Recomendados:
+
+- Docker para F05, F06 y flujos ESP32 reproducibles.
+- DVC para artefactos pesados.
+- MLflow si se activa tracking de entrenamiento.
+- Toolchain, placa o entorno virtual ESP32 para F07/F08.
+
+En Windows se recomienda ejecutar `make` desde Git Bash o desde un entorno que soporte las recetas POSIX del Makefile.
+
+## Setup
+
+Modo local:
 
 ```bash
 make setup SETUP_CFG=setup/local.yaml
 make check-setup
 ```
 
-For a project that should publish to its own remote services, start from the remote template:
+Modo remoto:
 
 ```bash
 cp setup/remote.yaml .mlops4ofp.remote.yaml
-# edit the file with your own Git, DVC, and MLflow endpoints
+# editar endpoints Git, DVC y MLflow
 make setup SETUP_CFG=.mlops4ofp.remote.yaml
 make check-setup
 ```
 
-The local setup template uses:
-
-- local DVC storage at ./.dvc_storage
-- local MLflow tracking at file:./mlruns
-- no Git publishing from pipeline register commands
-
-## Recommended Usage Model
-
-For project work, use this repository as the pipeline engine and keep your data and executions in your own working copy or project repository.
-
-Recommended pattern:
-
-1. Clone this repository.
-2. Run setup with either local or remote configuration.
-3. Place your raw dataset in data/.
-4. Create and execute variants phase by phase.
-5. Store binary artifacts in the DVC backend configured by your project.
-6. Keep any project-specific execution history in your own project environment.
-
-## Common Commands
-
-Show the built-in help:
+Ver ayuda:
 
 ```bash
 make help
 ```
 
-Set up the environment:
-
-```bash
-make setup SETUP_CFG=setup/local.yaml
-make check-setup
-```
-
-Reset the local project environment:
+Limpiar setup local:
 
 ```bash
 make clean-setup
 ```
 
-Remove all variants from a phase:
+## Patron De Uso
+
+Cada fase sigue el mismo ciclo:
 
 ```bash
-make remove-phase-all PHASE=f05_modeling VARIANTS_DIR=executions/f05_modeling
+make variantN ...
+make scriptN VARIANT=vN_XXXX
+make checkN VARIANT=vN_XXXX
+make registerN VARIANT=vN_XXXX
 ```
 
-## Phase-by-Phase Example
+`variantN` crea la carpeta y escribe `params.yaml`. Si la variante ya existe, falla para evitar sobrescrituras accidentales. Para reejecutar una variante existente usa `scriptN`, no `variantN`.
 
-### F01: Explore raw data
+Los IDs cortos se normalizan por fase. Por ejemplo, `VARIANT=v701` en F07 se normaliza a `v7_0701` segun las reglas de `params_manager.py`; el formato canonico del schema es `v<fase>_<4 digitos>`.
+
+## Trazabilidad
+
+Cada variante contiene, como minimo:
+
+- `params.yaml`: snapshot de fase, variante, parent, parametros resueltos y hashes de parents.
+- `metadata.yaml`: estado de ciclo de vida, verificacion y registro.
+- `outputs.yaml`: artefactos, exports y metricas producidas por la ejecucion.
+
+El schema define:
+
+- parametros requeridos, heredados y por defecto;
+- regex de parent por fase, por ejemplo F05 requiere parent `v4_XXXX`;
+- artefactos esperados y sus extensiones;
+- exports propagables aguas abajo;
+- metricas obligatorias u opcionales.
+
+El pipeline calcula `parent_hashes` sobre `outputs.yaml` del parent. Si un parent cambia despues de crear una variante hija, la auditoria puede detectarlo como ruptura de trazabilidad.
+
+Comandos utiles:
 
 ```bash
-make variant1 VARIANT=v001 RAW=./data/raw.csv CLEANING=basic NAN_VALUES='[-999999]'
-make script1 VARIANT=v001
-make check1 VARIANT=v001
-make register1 VARIANT=v001
+make checkN VARIANT=vN_XXXX
+make generate_lineage
 ```
 
-#### Limpieza profunda F01:
+El dashboard de linaje se genera en:
+
+```text
+executions/pipeline_lineage.html
+```
+
+## Ejecucion Completa Por Fases
+
+### F01: Exploracion y limpieza
+
+Parametros schema principales: `raw_path`, `cleaning`, `nan_values`, `error_values`, `first_line`, `max_lines`.
+
 ```bash
-make variant1 VARIANT=v000 RAW=data/raw.csv CLEANING=basic NAN_VALUES='[-999999]' ERROR_VALUES='{"MG-LV-MSB_AC_Voltage":[0.0],"Receiving_Point_AC_Voltage":[0.0],"Island_mode_MCCB_AC_Voltage":[0.0],"Island_mode_MCCB_Frequency":[-327.679993,0.0],"MG-LV-MSB_Frequency":[-327.679993,0.0],"Outlet_Temperature":[-52.5],"Inlet_Temperature_of_Chilled_Water":[-52.5,-52.400002,-52.299999]}'
-make script1 VARIANT=v000
-make check1 VARIANT=v000
-make register1 VARIANT=v000
+make variant1 VARIANT=v1_0000 RAW=data/raw.csv CLEANING=basic NAN_VALUES='[-999999]'
+make script1 VARIANT=v1_0000
+make check1 VARIANT=v1_0000
+make register1 VARIANT=v1_0000
 ```
 
+Limpieza profunda con valores erroneos por columna:
 
+```bash
+make variant1 VARIANT=v1_0001 RAW=data/raw.csv CLEANING=basic NAN_VALUES='[-999999]' ERROR_VALUES='{"MG-LV-MSB_AC_Voltage":[0.0],"Receiving_Point_AC_Voltage":[0.0],"Island_mode_MCCB_AC_Voltage":[0.0],"Island_mode_MCCB_Frequency":[-327.679993,0.0],"MG-LV-MSB_Frequency":[-327.679993,0.0],"Outlet_Temperature":[-52.5],"Inlet_Temperature_of_Chilled_Water":[-52.5,-52.400002,-52.299999]}'
+make script1 VARIANT=v1_0001
+make check1 VARIANT=v1_0001
+make register1 VARIANT=v1_0001
+```
 
+F01 exporta `Tu`, `n_rows`, `n_columns` y `measure_cols`. F02 valida `MEASURE` contra `exports.measure_cols`.
 
-### F02: Build events dataset
+### F02: Eventos
+
+Parametros schema principales: `parent_variant`, `Tu`, `measure_name`, `strategy`, `bands`, `nan_mode`.
 
 ```bash
 make variant2 VARIANT=v2_0001 PARENT=v1_0000 MEASURE=Battery_Active_Power STRATEGY=transitions BANDS='[10,20,30,40,50,60,70,80,90]' NAN_MODE=discard
@@ -198,29 +164,28 @@ make check2 VARIANT=v2_0001
 make register2 VARIANT=v2_0001
 ```
 
-F02 is univariate: each F02 variant selects exactly one measure through `MEASURE`.
-The selected measure is validated against `exports.measure_cols` from the F01 parent
-`outputs.yaml`. If it is invalid, variant creation stops with:
+F02 es univariante: cada variante selecciona una sola medida con `MEASURE`. Si quieres comparar varias senales, crea una variante F02 por medida.
+
+Exports relevantes: `measure_name`, `event_strategy`, `bands`, `event_types`, `n_event_types`, `n_events`, `n_types`.
+
+### F03: Ventanas
+
+Parametros schema principales: `parent_variant`, `Tu`, `measure_name`, `OW`, `LT`, `PW`, `window_strategy`, `nan_mode`.
 
 ```bash
-[ERROR] Invalid MEASURE. Must be one of: ...
-```
-
-F02 stores the selected measure and event definition in `outputs.yaml` under
-`exports.measure_name`, `exports.event_strategy`, `exports.bands`,
-`exports.event_types`, `exports.n_event_types`, and the legacy-compatible
-`exports.n_types`.
-
-### F03: Build windows dataset
-
-```bash
-make variant3 VARIANT=v3_0001 PARENT=v2_0001 OW=600 LT=10 PW=10 STRATEGY=synchro NAN_MODE=discard
+make variant3 VARIANT=v3_0001 PARENT=v2_0001 OW=600 LT=100 PW=100 STRATEGY=synchro NAN_MODE=discard
 make script3 VARIANT=v3_0001
 make check3 VARIANT=v3_0001
 make register3 VARIANT=v3_0001
 ```
 
-### F04: Create prediction targets
+Estrategias permitidas: `synchro`, `asynOW`, `withinPW`, `asynPW`.
+
+Exports relevantes: `Tu`, `OW`, `LT`, `PW`, `event_type_count`, `window_strategy`, `nan_mode`, `measure_name`, `n_windows`.
+
+### F04: Targets
+
+Parametros schema principales: `parent_variant`, `prediction_name`, `target_operator`, `target_event_types`.
 
 ```bash
 make variant4 VARIANT=v4_0001 PARENT=v3_0001 NAME=battery_active_power_high_90 OPERATOR=OR EVENTS='["Battery_Active_Power_80_90-to-90_100"]'
@@ -229,7 +194,13 @@ make check4 VARIANT=v4_0001
 make register4 VARIANT=v4_0001
 ```
 
-### F05: Train models
+`NAME` debe cumplir el regex del schema: minusculas, numeros y guion bajo (`^[a-z0-9_]+$`). El operador soportado en el schema actual es `OR`.
+
+Exports relevantes: geometria heredada (`Tu`, `OW`, `LT`, `PW`), `prediction_name`, `target_operator`, `target_event_types`, `n_windows_pos`, `n_windows_neg`.
+
+### F05: Modelado
+
+Parametros schema principales: `parent_variant`, `model_family`, `automl`, `search_space`, `training`, `deduplication_mode`, `seed`, `evaluation`, `imbalance_strategy`, `imbalance_max_majority_samples`.
 
 ```bash
 make variant5 VARIANT=v5_0001 PARENT=v4_0001 MODEL_FAMILY=cnn1d IMBALANCE_STRATEGY=rare_events IMBALANCE_MAX_MAJ=20000 SEED=42
@@ -238,153 +209,310 @@ make check5 VARIANT=v5_0001
 make register5 VARIANT=v5_0001
 ```
 
-Common F05 overrides include batch size, epochs, learning rate, embedding size, hidden units, dropout, AutoML, and evaluation split.
+Familias permitidas: `dense_bow`, `sequence_embedding`, `cnn1d`.
 
-### F06: Quantize and package for edge
+F05 corre en Docker. Para GPU:
 
 ```bash
-make variant6 VARIANT=v6_0001 PARENT=v5_0001
+make script5 VARIANT=v5_0001 F56_GPU=true
+```
+
+Overrides utiles:
+
+```bash
+make variant5 VARIANT=v5_0002 PARENT=v4_0001 MODEL_FAMILY=cnn1d TRAINING='{"epochs":20,"max_samples":50000}' AUTOML='{"enabled":true,"max_trials":8,"seed":42}' EVALUATION='{"split":{"train":0.7,"val":0.15,"test":0.15}}'
+```
+
+Exports relevantes: `models`, `prediction_name`, `model_family`, `decision_threshold`, `best_val_recall`, `test_precision`, `test_recall`, `test_f1`.
+
+### F06: Cuantizacion y empaquetado edge
+
+Parametros schema principales: `parent_variant`, geometria heredada, `deployment`, `quantization`, `thresholding`, `eedu`.
+
+```bash
+make variant6 VARIANT=v6_0001 PARENT=v5_0001 DEPLOY_TARGET=esp32 REQUIRE_INT8=true MEMORY_LIMIT=327680
 make script6 VARIANT=v6_0001
 make check6 VARIANT=v6_0001
 make register6 VARIANT=v6_0001
 ```
 
-F06 uses Docker for reproducible packaging in the default flow.
-
-## Univariate F02 Change Summary
-
-Modified files:
-
-1. `Makefile`
-2. `scripts/phases/f02_events.py`
-3. `scripts/phases/f03_windows.py`
-4. `scripts/phases/f04_targets.py`
-5. `scripts/traceability_schema.yaml`
-6. `makefile_check_phases.yml`
-7. `README.md`
-
-What changed:
-
-1. `make variant2` now requires `MEASURE=<measure>`.
-2. `MEASURE` is validated against `executions/f01_explore/<PARENT>/outputs.yaml`
-   at `exports.measure_cols`.
-3. F02 passes `measure_name=<MEASURE>` to the parameter manager.
-4. F02 loads the clean F01 dataset but generates levels/transitions/both only
-   for the selected measure.
-5. F02 exports `measure_name`, `event_strategy`, `bands`, `event_types`,
-   `n_event_types`, `Tu`, and the existing compatible count fields.
-6. F03 carries `measure_name` forward in its exports when available.
-7. F04 prefers the inherited univariate `measure_name` when available.
-8. F05 and F06 keep their command shape and consume the univariate parent
-   artifacts through the existing catalog/window/target flow.
-
-Recommended full-flow test:
+F06 tambien corre en Docker. Para GPU:
 
 ```bash
-make variant2 VARIANT=v2_0001 PARENT=v1_0000 MEASURE=Battery_Active_Power STRATEGY=transitions BANDS='[10,20,30,40,50,60,70,80,90]' NAN_MODE=discard
-make script2 VARIANT=v2_0001
-make check2 VARIANT=v2_0001
-
-make variant3 VARIANT=v3_0001 PARENT=v2_0001 OW=600 LT=100 PW=100 STRATEGY=synchro NAN_MODE=discard
-make script3 VARIANT=v3_0001
-make check3 VARIANT=v3_0001
-
-make variant4 VARIANT=v4_0001 PARENT=v3_0001 NAME=battery_active_power_high_90 OPERATOR=OR EVENTS='["Battery_Active_Power_80_90-to-90_100"]'
-make script4 VARIANT=v4_0001
-make check4 VARIANT=v4_0001
-
-make variant5 VARIANT=v5_0001 PARENT=v4_0001 MODEL_FAMILY=cnn1d IMBALANCE_STRATEGY=rare_events IMBALANCE_MAX_MAJ=20000 SEED=42
-make script5 VARIANT=v5_0001
-make check5 VARIANT=v5_0001
-
-make variant6 VARIANT=v6_0001 PARENT=v5_0001
-make script6 VARIANT=v6_0001
-make check6 VARIANT=v6_0001
+make script6 VARIANT=v6_0001 F56_GPU=true
 ```
 
-Known limitation:
-
-F02 is now intentionally one-measure-per-variant. To compare multiple measures,
-create one F02 variant per measure and run the downstream phases from each
-univariate F02 parent.
-
-### F07: Validate a model on edge hardware
+Ejemplo con dicts schema-native:
 
 ```bash
-# make variant7 VARIANT=v701 PARENT=v601 PLATFORM=esp32 MTI_MS=100000
-make variant7 VARIANT=v701 PARENT=v601 PLATFORM=esp32 MTI_MS=100 TIME_SCALE=0.01
-make script7 VARIANT=v701
-make check7 VARIANT=v701
-make register7 VARIANT=v701
+make variant6 VARIANT=v6_0002 PARENT=v5_0001 QUANTIZATION='{"calibration_samples":512,"symmetric_int8":true,"per_channel":true}' THRESHOLDING='{"strategy":"recalibrate_on_quantized","maximize_metric":"recall","grid_points":101}' EEDU='{"version":"1.0","layout":"default"}'
 ```
 
-You can also run F07 step by step:
+Exports relevantes: `edge_capable`, `incompatibility_reason`, `operators`, `model_size_bytes`, `arena_bytes`, `decision_threshold`, metricas float vs quantized.
+
+### F07: Validacion de un modelo en edge
+
+Parametros schema principales: `parent_variant`, `time_scale_factor`, geometria heredada, `MTI_MS`, `ITmax`, `max_rows`, `serial_max_lines`, `esp_flash_size_mb`, `platform`, `virtual`.
+
+ESP32 virtual:
 
 ```bash
-make script7-prepare-build VARIANT=v701
-make script7-flash-run VARIANT=v701
-make script7-post VARIANT=v701
+make variant7 VARIANT=v7_0001 PARENT=v6_0001 PLATFORM=esp32 MTI_MS=100 TIME_SCALE=0.01 VIRTUAL=true MAX_ROWS=10000 ESP_FLASH_MB=4
+make script7 VARIANT=v7_0001
+make check7 VARIANT=v7_0001
+make register7 VARIANT=v7_0001
 ```
 
-### F08: Validate a multi-model edge system
+Placa fisica:
 
 ```bash
-make variant8 VARIANT=v801 PARENTS=v702,v703 PLATFORM=esp32 MTI_MS=100
-make script8 VARIANT=v801
-make check8 VARIANT=v801
-make register8 VARIANT=v801
+make variant7 VARIANT=v7_0002 PARENT=v6_0001 PLATFORM=esp32 MTI_MS=100 TIME_SCALE=0.01 VIRTUAL=false MAX_ROWS=10000 ESP_FLASH_MB=4
+make script7 VARIANT=v7_0002 PORT=/dev/ttyUSB0 BAUD=115200
+make check7 VARIANT=v7_0002
+make register7 VARIANT=v7_0002
 ```
 
-F08 also supports manual and ILP-based selection modes.
+Ejecucion paso a paso:
 
-## Where Outputs Go
+```bash
+make script7-prepare-build VARIANT=v7_0001
+make script7-build-only VARIANT=v7_0001
+make script7-flash-run VARIANT=v7_0001
+make script7-post VARIANT=v7_0001
+```
 
-During execution, the pipeline writes generated files to your local workspace under executions/.
+Opciones utiles:
 
-Examples of generated content:
+- `MTI_MS`: presupuesto temporal de inferencia en milisegundos.
+- `TIME_SCALE`: escala temporal usada para reproducir ventanas en edge.
+- `MAX_ROWS`: limita filas incluidas en el dataset generado.
+- `MAX_LINES`: limita lineas enviadas por serial sin recortar el dataset generado.
+- `ESP_FLASH_MB`: tamano de flash declarado para ESP-IDF/QEMU.
+- `F07_FORCE_REBUILD=true`: fuerza recompilacion aunque exista build previo.
 
-1. params.yaml and outputs.yaml for each variant.
-2. Reports, catalogs, metrics, and calibration datasets.
-3. Model binaries and quantized artifacts.
-4. Edge build outputs and runtime logs for hardware phases.
+Exports relevantes: `model_id`, `platform`, `runtime_model_name`, `operators`, `arena_bytes`, `model_memory_bytes`, `edge_capable`, `quality_score`, `ok_rate`, `offload_rate`, `watchdog_rate`, `edge_run_completed`.
 
-These files are local project outputs and are intentionally not versioned in this public repository.
+### F08: Validacion multimodelo
 
-## DVC, MLflow, and Git Responsibilities
+Parametros schema principales: `parent_variant` en modo lista, `selection_mode`, `objective`, `solver_time_limit_sec`, `time_scale_factor`, `MTI_MS`, `max_rows`, `platform`, `memory_budget_bytes`, `max_models`, `min_quality_score`, `min_precision`, `min_recall`.
 
-The intended split is:
+Seleccion manual:
 
-1. Git in this public repository stores the reusable pipeline code only.
-2. DVC stores large binary artifacts generated by your project.
-3. MLflow stores experiment tracking data for your project.
-4. If your project uses its own Git repository, that repository is configured through your setup file.
+```bash
+make variant8 VARIANT=v8_0001 PARENTS=v7_0001,v7_0002 PLATFORM=esp32 MTI_MS=100 SELECTION_MODE=manual
+make script8 VARIANT=v8_0001 PORT=/dev/ttyUSB0 BAUD=115200
+make check8 VARIANT=v8_0001
+make register8 VARIANT=v8_0001
+```
+
+Seleccion automatica por ILP:
+
+```bash
+make variant8 VARIANT=v8_0002 PARENTS=v7_0001,v7_0002 PLATFORM=esp32 MTI_MS=100 SELECTION_MODE=auto_ilp OBJECTIVE=max_global_recall MEMORY_BUDGET_BYTES=327680 MAX_MODELS=2 MIN_QUALITY_SCORE=0.7
+make script8 VARIANT=v8_0002
+make check8 VARIANT=v8_0002
+make register8 VARIANT=v8_0002
+```
+
+Ejecucion paso a paso:
+
+```bash
+make script8-select-config VARIANT=v8_0001
+make script8-prepare-build VARIANT=v8_0001
+make script8-build-only VARIANT=v8_0001
+make script8-flash-run VARIANT=v8_0001 PORT=/dev/ttyUSB0
+make script8-post VARIANT=v8_0001
+```
+
+Exports relevantes: `selected_variants`, `model_ids`, `operators_union`, `compatible_input_signature`, `configuration_edge_capable`, `selection_global_precision`, `selection_global_recall`, `system_viable`.
+
+## ESP32 Virtual
+
+F07 soporta `VIRTUAL=true` como parametro trazable. En ese modo, `make script7` usa el entorno virtual basado en Docker, QEMU y `socat`.
+
+Comandos utiles:
+
+```bash
+make esp32-virt-verify
+make script7-virtualESP32 VARIANT=v7_0001
+make esp32-virt-stop
+```
+
+El host solo necesita Docker. ESP-IDF, QEMU, `socat` y dependencias Python viven dentro del contenedor.
+
+## ESP32 Fisica
+
+Para placa real:
+
+1. Crear variante F07 con `VIRTUAL=false`.
+2. Conectar la placa.
+3. Ejecutar `make script7 VARIANT=... PORT=...`.
+4. Revisar logs y metricas dentro de la carpeta de variante.
+
+Ejemplo:
+
+```bash
+make script7 VARIANT=v7_0002 PORT=/dev/ttyUSB0 BAUD=115200
+```
+
+En Windows el puerto suele tener forma `COM3`, `COM4`, etc.
+
+## Artefactos
+
+El pipeline genera:
+
+- `params.yaml`: parametros resueltos y linaje.
+- `metadata.yaml`: estado de ciclo de vida.
+- `outputs.yaml`: contrato de artefactos, exports y metricas.
+- datasets intermedios `.parquet` o `.csv`.
+- reportes `.html`.
+- modelos `.h5` y `.tflite`.
+- logs de build, flash y monitor en fases edge.
+- perfiles `07_model_profile.yaml`, `08_system_profile.yaml` y configuraciones efectivas.
+
+Estos archivos viven bajo `executions/`. No son codigo fuente.
+
+## DVC, MLflow Y Git
+
+Responsabilidades:
+
+- Git: codigo, documentacion, schemas, Makefile y plantillas.
+- DVC: artefactos pesados generados por fases.
+- MLflow: tracking de entrenamientos F05 si esta habilitado.
+- `executions/`: estado local de variantes y resultados.
+
+Traer artefactos registrados:
+
+```bash
+make dvc-pull VARIANT=v5_0001
+make dvc-pull VARIANT=v2_0001,v5_0001,v7_0001
+make dvc-pull VARIANT=v7
+```
+
+Limpiar artefactos descargados:
+
+```bash
+make dvc-clean VARIANT=v5_0001
+```
+
+## Limpieza
+
+Eliminar una variante, solo si no tiene hijos dependientes:
+
+```bash
+make remove5 VARIANT=v5_0001
+```
+
+Eliminar todas las variantes de una fase en modo seguro:
+
+```bash
+make remove5-all
+```
+
+Resetear setup local:
+
+```bash
+make clean-setup
+```
 
 ## Troubleshooting
 
-### Setup validation fails
+### `La carpeta ya existe`
 
-Run:
+`make variantN` crea variantes nuevas. Si ya existe `executions/<fase>/<variante>`, usa otra variante o ejecuta la existente:
 
 ```bash
-make check-setup
+make script7 VARIANT=v7_0000
 ```
 
-Then inspect your setup file, Python version, DVC backend, and MLflow endpoint.
+### Una fase no encuentra el parent
 
-### A phase fails after a parent changes
+Comprueba que el parent existe y pertenece a la fase correcta:
 
-The pipeline tracks parent-child relationships across variants. Re-run the affected phase after fixing the parent or create a new variant that references the updated parent.
+```text
+F02 -> parent F01: v1_XXXX
+F03 -> parent F02: v2_XXXX
+F04 -> parent F03: v3_XXXX
+F05 -> parent F04: v4_XXXX
+F06 -> parent F05: v5_XXXX
+F07 -> parent F06: v6_XXXX
+F08 -> parents F07: v7_XXXX
+```
 
-### Edge execution fails on serial or flash steps
+### `Parent outputs.yaml modified`
 
-Check:
+La variante hija guarda hashes del `outputs.yaml` del parent. Si el parent se regenero despues de crear la hija, crea una nueva variante hija o restaura los artefactos coherentes.
 
-1. That the target board is connected.
-2. That the serial port is correct.
-3. That your user has permission to access the port.
-4. That Docker and board toolchains are installed if the selected phase requires them.
+### F02 rechaza `MEASURE`
 
-## Additional References
+F02 valida `MEASURE` contra `executions/f01_explore/<PARENT>/outputs.yaml` en `exports.measure_cols`. Ejecuta y registra/comprueba F01 antes de crear F02.
 
-1. [DEVELOPERS.md](DEVELOPERS.md) for contributors and maintainers.
-2. [setup/local.yaml](setup/local.yaml) and [setup/remote.yaml](setup/remote.yaml) as setup templates.
+### F05/F06 falla en Docker
+
+Comprueba:
+
+- Docker arrancado.
+- imagen construible.
+- espacio en disco.
+- `F56_GPU=true` solo si tienes GPU y runtime NVIDIA configurado.
+
+### F07/F08 no flashea
+
+Comprueba:
+
+- `PORT` y `BAUD`.
+- permisos del puerto serie.
+- placa en modo correcto.
+- logs `07_esp_flash_log.txt`, `07_esp_monitor_log.txt`, `08_esp_flash_log.txt` o `08_esp_monitor_log.txt`.
+
+### Firmware ESP32 demasiado grande
+
+Declara una flash mayor si tu placa o QEMU la soporta:
+
+```bash
+make variant7 VARIANT=v7_0003 PARENT=v6_0001 PLATFORM=esp32 MTI_MS=100 ESP_FLASH_MB=4
+```
+
+Si la placa solo tiene 2 MB, reduce modelo, operadores o trazas, o cambia de hardware.
+
+### Inferencias edge incompletas
+
+Revisa:
+
+- `metrics_models.csv`
+- `metrics_inference_records.csv`, si existe.
+- logs de monitor.
+- `phase_status_reason` en `outputs.yaml`.
+
+Indicadores comunes:
+
+- `wd_late`: inferencia fuera de deadline.
+- `urgent`: fallback por deadline.
+- `inference_incomplete`: inicio de inferencia sin fin registrado.
+- `no_successful_inferences`: no hubo inferencias validas.
+
+## Estructura Del Repositorio
+
+```text
+scripts/core/              logica comun, parametros, trazabilidad y artefactos
+scripts/phases/            implementacion de fases F01-F08
+scripts/runtime_analysis/  parser y metricas runtime edge
+scripts/esp32_virtual/     soporte Docker/QEMU/socat para ESP32 virtual
+scripts/docker/            imagenes reproducibles F05/F06
+edge/                      plantillas y runners edge
+setup/                     configuracion local/remota
+test/                      auditorias, comparativas y experimentos
+executions/                salidas locales generadas
+```
+
+## Para Desarrolladores
+
+Lee [`DEVELOPERS.md`](DEVELOPERS.md).
+
+Antes de publicar cambios:
+
+- no subir datos privados;
+- no subir `.env`;
+- no subir caches DVC/MLflow;
+- revisar que `executions/` no contenga artefactos pesados no deseados;
+- actualizar este README si cambian comandos, parametros o contratos del schema.
