@@ -159,7 +159,7 @@ f04_targets:
       required: true
       not_empty: true
     - path: 04_targets.parquet
-      required: false
+      required: true
       not_empty: true
     - path: metadata.yaml
       required: true
@@ -174,19 +174,19 @@ f04_targets:
 f05_modeling:
   files:
     - path: 05_modeling_model.h5
-      required: false
+      required: true
     - path: 05_modeling_report.html
       required: true
       not_empty: true
     - path: 05_modeling_parent_dataset.parquet
-      required: false
+      required: true
     - path: 05_modeling_training_dataset.parquet
-      required: false
+      required: true
     - path: outputs.yaml
       required: true
       not_empty: true
     - path: experiments/*
-      required: false
+      required: true
       children:
         - path: model.h5
           required: true
@@ -197,13 +197,13 @@ f05_modeling:
 f06_quant:
   files:
     - path: 06_calibration_dataset.parquet
-      required: false
+      required: true
       size: "> 0B"
     - path: 06_model_float.h5
-      required: false
+      required: true
       size: "> 0B"
     - path: 06_model_tflite.tflite
-      required: false
+      required: true
       size: "> 0B"
     - path: 06_quant_report.html
       required: true
@@ -235,13 +235,13 @@ f06_quant:
             - { gt: 0 }
         - type: yaml_key
           key: exports.model_size_bytes
-          required: false
+          required: true
           constraints:
             - integer
             - { gt: 0 }
         - type: yaml_key
           key: exports.footprint_estimated_bytes
-          required: false
+          required: true
           constraints:
             - integer
             - { gt: 0 }
@@ -255,9 +255,10 @@ f06_quant:
             - not_empty
         - type: yaml_key
           key: metrics.n_calibration_samples
-          required: false
+          required: true
           constraints:
             - integer
+            - { gt: 0 }
         - type: yaml_key
           key: metrics.tflm_compatible
           required: true
@@ -320,7 +321,7 @@ f06_quant:
       required: false
       size: "> 0B"
     - path: eedu/eedu_manifest.yaml
-      required: false
+      required: true
       not_empty: true
       checks:
         - type: yaml_key

@@ -1,4 +1,8 @@
-SHELL := /bin/bash
+ifeq ($(OS),Windows_NT)
+  SHELL := C:/PROGRA~1/Git/bin/bash.exe
+else
+  SHELL := /bin/bash
+endif
 
 ifeq ($(OS),Windows_NT)
   PYTHON_LOCAL ?= python
@@ -7,7 +11,13 @@ else
 endif
 
 
-ifeq ($(shell command -v $(PYTHON_LOCAL) 2>/dev/null),)
+ifeq ($(OS),Windows_NT)
+  PYTHON_LOCAL_FOUND := $(shell powershell.exe -NoProfile -Command "if (Get-Command $(PYTHON_LOCAL) -ErrorAction SilentlyContinue) { 'yes' }")
+else
+  PYTHON_LOCAL_FOUND := $(shell command -v $(PYTHON_LOCAL) 2>/dev/null)
+endif
+
+ifeq ($(PYTHON_LOCAL_FOUND),)
   $(error python3.11 not found. Please install it before running make setup)
 endif
 
@@ -350,7 +360,7 @@ endef
 # Update lifecycle state in metadata.yaml for a concrete phase/variant.
 # Usage:
 #   $(UPDATE_VARIANT_STATE) <phase> <variant> <state>
-UPDATE_VARIANT_STATE = $(PYTHON) -c 'import sys, os, yaml; from pathlib import Path; from datetime import datetime, timezone; phase, variant, state = sys.argv[1], sys.argv[2], sys.argv[3]; variant_dir = Path("executions") / phase / variant; meta_path = variant_dir / "metadata.yaml"; data = {}; \
+UPDATE_VARIANT_STATE = $(PYTHON) -c 'import sys, yaml; from pathlib import Path; from datetime import datetime, timezone; phase, variant, state = sys.argv[1], sys.argv[2], sys.argv[3]; variant_dir = Path("executions") / phase / variant; meta_path = variant_dir / "metadata.yaml"; data = {}; \
 variant_dir.exists() or sys.exit(0); \
 data = yaml.safe_load(meta_path.read_text()) if meta_path.exists() else {}; \
 data = data if isinstance(data, dict) else {}; \
@@ -358,9 +368,8 @@ data.setdefault("params_path", str((variant_dir / "params.yaml").as_posix())); \
 data.setdefault("created_at", datetime.now(timezone.utc).isoformat()); \
 data["lifecycle_state"] = state; \
 data["lifecycle_updated_at"] = datetime.now(timezone.utc).isoformat(); \
-data["runner"] = os.environ.get("MLOPS_RUNNER") or os.popen("whoami").read().strip(); \
 data.setdefault("registred", "none"); \
-preferred = ["created_at", "params_path", "lifecycle_state", "lifecycle_updated_at", "verified", "verified_updated_at", "registred", "runner"]; \
+preferred = ["created_at", "params_path", "lifecycle_state", "lifecycle_updated_at", "verified", "verified_updated_at", "registred"]; \
 ordered = {k: data[k] for k in preferred if k in data}; \
 ordered.update({k: v for k, v in data.items() if k not in ordered}); \
 data = ordered; \
@@ -379,7 +388,7 @@ verified_map = {"true": True, "false": False, "none": "none", "not_checked": "no
 data["verified"] = verified_map.get(verified_raw, "none"); \
 data["verified_updated_at"] = datetime.now(timezone.utc).isoformat(); \
 data.setdefault("registred", "none"); \
-preferred = ["created_at", "params_path", "lifecycle_state", "lifecycle_updated_at", "verified", "verified_updated_at", "registred", "runner"]; \
+preferred = ["created_at", "params_path", "lifecycle_state", "lifecycle_updated_at", "verified", "verified_updated_at", "registred"]; \
 ordered = {k: data[k] for k in preferred if k in data}; \
 ordered.update({k: v for k, v in data.items() if k not in ordered}); \
 data = ordered; \
@@ -397,7 +406,7 @@ data.setdefault("created_at", datetime.now(timezone.utc).isoformat()); \
 data.setdefault("verified", "none"); \
 registred_map = {"true": True, "false": False, "none": "none", "not_checked": "none", "no": "none", "no_hecho": "none"}; \
 data["registred"] = registred_map.get(registred_raw, "none"); \
-preferred = ["created_at", "params_path", "lifecycle_state", "lifecycle_updated_at", "verified", "verified_updated_at", "registred", "runner"]; \
+preferred = ["created_at", "params_path", "lifecycle_state", "lifecycle_updated_at", "verified", "verified_updated_at", "registred"]; \
 ordered = {k: data[k] for k in preferred if k in data}; \
 ordered.update({k: v for k, v in data.items() if k not in ordered}); \
 data = ordered; \
@@ -1384,10 +1393,11 @@ help6:
 #        [ITMAX=...]
 #		 [TIME_SCALE=0.01] \
 #        [MAX_ROWS=200]
+#        [MAX_LINES=1000]
 #
 #   make script7-prepare-build VARIANT=v701
 #   make script7-build-only   VARIANT=v701
-#   make script7-flash-run    VARIANT=v701 PORT=/dev/ttyUSB0 [MODE=serial|memory] [BAUD=115200] [DRAIN_SECONDS=..]
+#   make script7-flash-run    VARIANT=v701 PORT=/dev/ttyUSB0 [BAUD=115200] [DRAIN_SECONDS=..]
 #   make script7-post         VARIANT=v701
 #
 #   make script7 VARIANT=v701 PORT=/dev/ttyUSB0
@@ -1406,6 +1416,8 @@ VARIANTS_DIR7  = executions/$(PHASE7)
 ESP32_VIRT_DIR := $(abspath scripts/esp32_virtual)
 VIRTUAL_PORT   ?= /tmp/ttyVUSB0
 SOCAT_PORT     ?= 4000
+ESP32_VIRT_DOCKER_IMAGE    ?= mlops4rtedge-esp32-virtual:latest
+ESP32_VIRT_DOCKER_PLATFORM ?= linux/amd64
 
 ############################################
 # Create variant
@@ -1437,11 +1449,19 @@ endif
 ifneq ($(TIME_SCALE),)
 	@$(eval EXTRA_FLAGS += time_scale_factor=$(TIME_SCALE))
 else
-	@echo "[INFO] TIME_SCALE not provided -> default=0.01"
+	@echo "[INFO] TIME_SCALE not provided -> default=1.0"
 endif
 
 ifneq ($(MAX_ROWS),)
 	@$(eval EXTRA_FLAGS += max_rows=$(MAX_ROWS))
+endif
+
+ifneq ($(MAX_LINES),)
+	@$(eval EXTRA_FLAGS += serial_max_lines=$(MAX_LINES))
+endif
+
+ifneq ($(ESP_FLASH_MB),)
+	@$(eval EXTRA_FLAGS += esp_flash_size_mb=$(ESP_FLASH_MB))
 endif
 
 	@$(MAKE) variant-generic \
@@ -1456,7 +1476,7 @@ endif
 
 script7-prepare-build:
 	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE7) $(VARIANT))"; \
-	$(PYTHON) -m $(SCRIPT7_PREP) --variant $$VARIANT_NORM $$([ "$(VIRTUAL)" = "true" ] && printf -- "--virtual")
+	$(PYTHON) -m $(SCRIPT7_PREP) --variant $$VARIANT_NORM
 
 script7-build-only:
 	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE7) $(VARIANT))"; \
@@ -1469,7 +1489,6 @@ script7-flash-run:
 	$(PYTHON) -m $(SCRIPT7_RUN) \
 		--variant $$VARIANT_NORM \
 		$(if $(PORT),--port $(PORT),) \
-		$(if $(MODE),--mode $(MODE),) \
 		$(if $(BAUD),--baud $(BAUD),) \
 		$(if $(DRAIN_SECONDS),--drain-seconds $(DRAIN_SECONDS),)
 
@@ -1477,6 +1496,11 @@ script7-post:
 	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE7) $(VARIANT))"; \
 	$(PYTHON) -m $(SCRIPT7_POST) --variant $$VARIANT_NORM
 
+
+
+############################################
+# Virtual ESP32 — Infraestructura compartida
+############################################
 # Bare "python3" + $(abspath) = /repo/python3 (doesn't exist).
 # If PYTHON has no slash it's a command name → resolve via which.
 PYTHON_ABS = $(if $(findstring /,$(PYTHON)),$(abspath $(PYTHON)),$(shell which $(PYTHON)))
@@ -1492,6 +1516,33 @@ esp32-virt-install:
 
 esp32-virt-stop:
 	@$(MAKE) -C $(ESP32_VIRT_DIR) stop PYTHON="$(PYTHON_ABS)"
+
+esp32-virt-docker-build:
+	@docker build --platform $(ESP32_VIRT_DOCKER_PLATFORM) \
+		-f "$(ESP32_VIRT_DIR)/Dockerfile" \
+		-t $(ESP32_VIRT_DOCKER_IMAGE) \
+		"$(DOCKER_HOST_PWD)"
+
+esp32-virt-docker-ensure:
+	@docker image inspect $(ESP32_VIRT_DOCKER_IMAGE) >/dev/null 2>&1 || \
+		$(MAKE) --no-print-directory esp32-virt-docker-build
+
+esp32-virt-docker-run: esp32-virt-docker-ensure
+	@[ -n "$(VARIANT)" ] || { echo "[ERROR] VARIANT requerido."; exit 1; }
+	@EXTRA_MAKE_ARGS=""; \
+	if [ -n "$(BAUD)" ]; then EXTRA_MAKE_ARGS="$$EXTRA_MAKE_ARGS BAUD=$(BAUD)"; fi; \
+	if [ -n "$(DRAIN_SECONDS)" ]; then EXTRA_MAKE_ARGS="$$EXTRA_MAKE_ARGS DRAIN_SECONDS=$(DRAIN_SECONDS)"; fi; \
+	docker run --rm -i \
+		--platform $(ESP32_VIRT_DOCKER_PLATFORM) \
+		-v "$(DOCKER_HOST_PWD):$(DOCKER_WORKSPACE_PATH)" \
+		-w $(DOCKER_WORKSPACE_PATH) \
+		--tmpfs /tmp:exec,size=512m \
+		-e F07_IDF_RUNNER=native \
+		$(ESP32_VIRT_DOCKER_IMAGE) \
+		make script7-virtualESP32 VARIANT=$(VARIANT) \
+			PYTHON=//opt/esp32-virt-venv/bin/python3 \
+			PYTHON_LOCAL=//opt/esp32-virt-venv/bin/python3 \
+			$$EXTRA_MAKE_ARGS
 
 esp32-socat-start:
 	@$(MAKE) -C $(ESP32_VIRT_DIR) start-socat \
@@ -1511,70 +1562,107 @@ esp32-qemu-start:
 # Requiere: PHASE FLASH_MODULE VARIANT
 esp32-flash-run-virtual:
 	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE) $(VARIANT))"; \
+	EXTRA_RUN_ARGS=""; \
+	if [ -n "$(BAUD)" ]; then EXTRA_RUN_ARGS="$$EXTRA_RUN_ARGS --baud $(BAUD)"; fi; \
+	if [ -n "$(DRAIN_SECONDS)" ]; then EXTRA_RUN_ARGS="$$EXTRA_RUN_ARGS --drain-seconds $(DRAIN_SECONDS)"; fi; \
 	$(PYTHON) -m $(FLASH_MODULE) --variant $$VARIANT_NORM \
 		--port $(VIRTUAL_PORT) \
 		--skip-flash \
-		$(if $(BAUD),--baud $(BAUD),) \
-		$(if $(DRAIN_SECONDS),--drain-seconds $(DRAIN_SECONDS),)
+		$$EXTRA_RUN_ARGS
 
 ############################################
 # Full execution (robust)
 ############################################
 script7:
 	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE7) $(VARIANT))"; \
-	$(UPDATE_VARIANT_VERIFIED) $(PHASE7) $$VARIANT_NORM none >/dev/null 2>&1 || true; \
-	$(UPDATE_VARIANT_STATE) $(PHASE7) $$VARIANT_NORM $(LIFECYCLE_STATE_EXECUTION_RUNNING) >/dev/null 2>&1 || true; \
+	VIRTUALIZED="$$($(PYTHON) -c 'import sys, yaml; from pathlib import Path; phase, variant = sys.argv[1:3]; p=Path("executions")/phase/variant/"params.yaml"; d=(yaml.safe_load(p.read_text()) or {}) if p.exists() else {}; print("true" if d.get("parameters", {}).get("virtual", False) else "false")' "$(PHASE7)" "$$VARIANT_NORM")"; \
+	EXTRA_MAKE_ARGS=""; \
+	if [ -n "$(PORT)" ]; then EXTRA_MAKE_ARGS="$$EXTRA_MAKE_ARGS PORT=$(PORT)"; fi; \
+	if [ -n "$(BAUD)" ]; then EXTRA_MAKE_ARGS="$$EXTRA_MAKE_ARGS BAUD=$(BAUD)"; fi; \
+	if [ -n "$(DRAIN_SECONDS)" ]; then EXTRA_MAKE_ARGS="$$EXTRA_MAKE_ARGS DRAIN_SECONDS=$(DRAIN_SECONDS)"; fi; \
+	if [ "$$VIRTUALIZED" = "true" ] && [ "$${F07_IDF_RUNNER:-}" != "native" ]; then \
+		echo "[INFO] Execution mode: virtual"; \
+		echo "[INFO] Virtual ESP32 selected -> running F07 inside Docker runner"; \
+		$(MAKE) --no-print-directory esp32-virt-docker-run VARIANT=$$VARIANT_NORM $$EXTRA_MAKE_ARGS; \
+	else \
+		$(MAKE) --no-print-directory script7-native VARIANT=$$VARIANT_NORM $$EXTRA_MAKE_ARGS; \
+	fi
+
+script7-native:
+	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE7) $(VARIANT))"; \
+	LOCK_DIR="executions/$(PHASE7)/$$VARIANT_NORM/.script7.lock"; \
+	if ! mkdir "$$LOCK_DIR" 2>/dev/null; then \
+		echo "[ERROR] F07 $$VARIANT_NORM ya esta en ejecucion ($$LOCK_DIR)."; \
+		echo "        Si no hay ningun proceso activo, elimina ese directorio de lock manualmente."; \
+		exit 1; \
+	fi; \
+	trap 'rmdir "$$LOCK_DIR" 2>/dev/null || true' EXIT; \
+	$(MAKE) --no-print-directory script7-mark-verified VARIANT=$$VARIANT_NORM VERIFIED=none; \
+	$(MAKE) --no-print-directory script7-mark-state VARIANT=$$VARIANT_NORM STATE=$(LIFECYCLE_STATE_EXECUTION_RUNNING); \
 	echo "==> Regenerating lineage dashboard"; \
 	$(MAKE) --no-print-directory generate_lineage || true; \
 	EDGE_CAPABLE="$$($(PYTHON) -c 'import yaml, sys; from pathlib import Path; v=sys.argv[1]; p=Path("executions")/"f07_modval"/v/"params.yaml"; d=(yaml.safe_load(p.read_text()) or {}) if p.exists() else {}; parent=d.get("parent"); o=(Path("executions")/"f06_quant"/str(parent)/"outputs.yaml") if parent else None; e=((yaml.safe_load(o.read_text()) or {}).get("exports", {})) if (o and o.exists()) else {}; print("true" if bool(e.get("edge_capable", False)) else "false")' "$$VARIANT_NORM")"; \
 	if [ "$$EDGE_CAPABLE" = "false" ]; then \
 		echo "[INFO] Parent not edge_capable -> running post only"; \
-		$(PYTHON) -m $(SCRIPT7_POST) --variant $$VARIANT_NORM || { $(UPDATE_VARIANT_STATE) $(PHASE7) $$VARIANT_NORM $(LIFECYCLE_STATE_EXECUTION_FAILED) >/dev/null 2>&1 || true; echo "==> Regenerating lineage dashboard"; $(MAKE) --no-print-directory generate_lineage || true; exit 1; }; \
-		$(UPDATE_VARIANT_STATE) $(PHASE7) $$VARIANT_NORM $(LIFECYCLE_STATE_EXECUTION_COMPLETED) >/dev/null 2>&1 || true; \
-		echo "==> Regenerating lineage dashboard"; \
-		$(MAKE) --no-print-directory generate_lineage || true; \
+		$(MAKE) --no-print-directory script7-native-post-only VARIANT=$$VARIANT_NORM; \
 	else \
-		VIRTUALIZED="$$($(PYTHON) -c 'import sys, yaml; from pathlib import Path; phase, variant = sys.argv[1:3]; p=Path("executions")/phase/variant/"params.yaml"; d=(yaml.safe_load(p.read_text()) or {}) if p.exists() else {}; print("true" if d.get("parameters", {}).get("virtual", False) else "false")' "$(PHASE7)" "$$VARIANT_NORM")"; \
-		echo "[INFO] Execution mode: $$([ "$$VIRTUALIZED" = "true" ] && echo virtual || echo physical)"; \
-		$(PYTHON) -m $(SCRIPT7_PREP) --variant $$VARIANT_NORM $$([ "$$VIRTUALIZED" = "true" ] && printf -- "--virtual") || { $(UPDATE_VARIANT_STATE) $(PHASE7) $$VARIANT_NORM $(LIFECYCLE_STATE_EXECUTION_FAILED) >/dev/null 2>&1 || true; echo "==> Regenerating lineage dashboard"; $(MAKE) --no-print-directory generate_lineage || true; exit 1; }; \
-		if [ "$$VIRTUALIZED" = "true" ]; then \
-			$(MAKE) --no-print-directory esp32-socat-start || { $(UPDATE_VARIANT_STATE) $(PHASE7) $$VARIANT_NORM $(LIFECYCLE_STATE_EXECUTION_FAILED) >/dev/null 2>&1 || true; $(MAKE) --no-print-directory generate_lineage || true; exit 1; }; \
-			test -e $(VIRTUAL_PORT) || { echo "[ERROR] No existe $(VIRTUAL_PORT). Revisa /tmp/esp32-virt/socat.log"; $(UPDATE_VARIANT_STATE) $(PHASE7) $$VARIANT_NORM $(LIFECYCLE_STATE_EXECUTION_FAILED) >/dev/null 2>&1 || true; $(MAKE) --no-print-directory generate_lineage || true; exit 1; }; \
-			$(MAKE) --no-print-directory script7-build-only VARIANT=$(VARIANT) || { $(UPDATE_VARIANT_STATE) $(PHASE7) $$VARIANT_NORM $(LIFECYCLE_STATE_EXECUTION_FAILED) >/dev/null 2>&1 || true; $(MAKE) --no-print-directory generate_lineage || true; $(MAKE) -C $(ESP32_VIRT_DIR) stop || true; exit 1; }; \
-			$(MAKE) --no-print-directory esp32-qemu-start PHASE=$(PHASE7) VARIANT=$(VARIANT) || { $(UPDATE_VARIANT_STATE) $(PHASE7) $$VARIANT_NORM $(LIFECYCLE_STATE_EXECUTION_FAILED) >/dev/null 2>&1 || true; $(MAKE) --no-print-directory generate_lineage || true; $(MAKE) -C $(ESP32_VIRT_DIR) stop || true; exit 1; }; \
-			set +e; \
-			$(MAKE) --no-print-directory esp32-flash-run-virtual PHASE=$(PHASE7) FLASH_MODULE=$(SCRIPT7_RUN) VARIANT=$(VARIANT) \
-				$(if $(BAUD),BAUD=$(BAUD),) \
-				$(if $(DRAIN_SECONDS),DRAIN_SECONDS=$(DRAIN_SECONDS),); \
-			rc=$$?; set -e; \
-			[ $$rc -ne 0 ] && echo "[INFO] flash-run returned $$rc -> continuing with post" || true; \
-			$(PYTHON) -m $(SCRIPT7_POST) --variant $$VARIANT_NORM || { $(UPDATE_VARIANT_STATE) $(PHASE7) $$VARIANT_NORM $(LIFECYCLE_STATE_EXECUTION_FAILED) >/dev/null 2>&1 || true; $(MAKE) --no-print-directory generate_lineage || true; $(MAKE) -C $(ESP32_VIRT_DIR) stop || true; exit 1; }; \
-			$(MAKE) -C $(ESP32_VIRT_DIR) stop || true; \
-			if [ $$rc -ne 0 ]; then \
-				$(UPDATE_VARIANT_STATE) $(PHASE7) $$VARIANT_NORM $(LIFECYCLE_STATE_EXECUTION_FAILED) >/dev/null 2>&1 || true; \
-				$(MAKE) --no-print-directory generate_lineage || true; \
-				exit $$rc; \
-			fi; \
-		else \
-			set +e; \
-			$(PYTHON) -m $(SCRIPT7_RUN) --variant $$VARIANT_NORM \
-				$(if $(PORT),--port $(PORT),) \
-				$(if $(MODE),--mode $(MODE),) \
-				$(if $(BAUD),--baud $(BAUD),) \
-				$(if $(DRAIN_SECONDS),--drain-seconds $(DRAIN_SECONDS),); \
-			rc=$$?; \
-			[ $$rc -ne 0 ] && echo "[INFO] flash-run returned $$rc -> continuing with post" || true; \
-			$(PYTHON) -m $(SCRIPT7_POST) --variant $$VARIANT_NORM || { $(UPDATE_VARIANT_STATE) $(PHASE7) $$VARIANT_NORM $(LIFECYCLE_STATE_EXECUTION_FAILED) >/dev/null 2>&1 || true; echo "==> Regenerating lineage dashboard"; $(MAKE) --no-print-directory generate_lineage || true; exit 1; }; \
-			if [ $$rc -ne 0 ]; then \
-				$(UPDATE_VARIANT_STATE) $(PHASE7) $$VARIANT_NORM $(LIFECYCLE_STATE_EXECUTION_FAILED) >/dev/null 2>&1 || true; \
-				$(MAKE) --no-print-directory generate_lineage || true; \
-				exit $$rc; \
-			fi; \
-		fi; \
-		$(UPDATE_VARIANT_STATE) $(PHASE7) $$VARIANT_NORM $(LIFECYCLE_STATE_EXECUTION_COMPLETED) >/dev/null 2>&1 || true; \
-		echo "==> Regenerating lineage dashboard"; \
-		$(MAKE) --no-print-directory generate_lineage || true; \
+		EXTRA_MAKE_ARGS=""; \
+		if [ -n "$(PORT)" ]; then EXTRA_MAKE_ARGS="$$EXTRA_MAKE_ARGS PORT=$(PORT)"; fi; \
+		if [ -n "$(BAUD)" ]; then EXTRA_MAKE_ARGS="$$EXTRA_MAKE_ARGS BAUD=$(BAUD)"; fi; \
+		if [ -n "$(DRAIN_SECONDS)" ]; then EXTRA_MAKE_ARGS="$$EXTRA_MAKE_ARGS DRAIN_SECONDS=$(DRAIN_SECONDS)"; fi; \
+		$(MAKE) --no-print-directory script7-native-run VARIANT=$$VARIANT_NORM $$EXTRA_MAKE_ARGS; \
 	fi
+
+script7-mark-state:
+	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE7) $(VARIANT))"; \
+	$(UPDATE_VARIANT_STATE) $(PHASE7) $$VARIANT_NORM $(STATE) >/dev/null 2>&1 || true
+
+script7-mark-verified:
+	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE7) $(VARIANT))"; \
+	$(UPDATE_VARIANT_VERIFIED) $(PHASE7) $$VARIANT_NORM $(VERIFIED) >/dev/null 2>&1 || true
+
+script7-native-post-only:
+	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE7) $(VARIANT))"; \
+	$(PYTHON) -m $(SCRIPT7_POST) --variant $$VARIANT_NORM; rc=$$?; \
+	if [ $$rc -ne 0 ]; then \
+		$(MAKE) --no-print-directory script7-mark-state VARIANT=$$VARIANT_NORM STATE=$(LIFECYCLE_STATE_EXECUTION_FAILED); \
+	else \
+		$(MAKE) --no-print-directory script7-mark-state VARIANT=$$VARIANT_NORM STATE=$(LIFECYCLE_STATE_EXECUTION_COMPLETED); \
+	fi; \
+	echo "==> Regenerating lineage dashboard"; \
+	$(MAKE) --no-print-directory generate_lineage || true; \
+	exit $$rc
+
+script7-native-run:
+	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE7) $(VARIANT))"; \
+	VIRTUALIZED="$$($(PYTHON) -c 'import sys, yaml; from pathlib import Path; phase, variant = sys.argv[1:3]; p=Path("executions")/phase/variant/"params.yaml"; d=(yaml.safe_load(p.read_text()) or {}) if p.exists() else {}; print("true" if d.get("parameters", {}).get("virtual", False) else "false")' "$(PHASE7)" "$$VARIANT_NORM")"; \
+	if [ "$$VIRTUALIZED" = "true" ]; then \
+		echo "[INFO] Execution mode: virtual"; \
+		$(MAKE) --no-print-directory script7-virtualESP32 VARIANT=$$VARIANT_NORM; \
+		exit $$?; \
+	fi; \
+	echo "[INFO] Execution mode: physical"; \
+	$(PYTHON) -m $(SCRIPT7_PREP) --variant $$VARIANT_NORM || { $(MAKE) --no-print-directory script7-mark-state VARIANT=$$VARIANT_NORM STATE=$(LIFECYCLE_STATE_EXECUTION_FAILED); $(MAKE) --no-print-directory generate_lineage || true; exit 1; }; \
+	EXTRA_RUN_ARGS=""; \
+	if [ -n "$(PORT)" ]; then EXTRA_RUN_ARGS="$$EXTRA_RUN_ARGS --port $(PORT)"; fi; \
+	if [ -n "$(BAUD)" ]; then EXTRA_RUN_ARGS="$$EXTRA_RUN_ARGS --baud $(BAUD)"; fi; \
+	if [ -n "$(DRAIN_SECONDS)" ]; then EXTRA_RUN_ARGS="$$EXTRA_RUN_ARGS --drain-seconds $(DRAIN_SECONDS)"; fi; \
+	set +e; $(PYTHON) -m $(SCRIPT7_RUN) --variant $$VARIANT_NORM $$EXTRA_RUN_ARGS; run_rc=$$?; set -e; \
+	[ $$run_rc -ne 0 ] && echo "[INFO] flash-run returned $$run_rc -> continuing with post" || true; \
+	set +e; $(PYTHON) -m $(SCRIPT7_POST) --variant $$VARIANT_NORM; post_rc=$$?; set -e; \
+	if [ $$post_rc -ne 0 ]; then \
+		$(MAKE) --no-print-directory script7-mark-state VARIANT=$$VARIANT_NORM STATE=$(LIFECYCLE_STATE_EXECUTION_FAILED); \
+		$(MAKE) --no-print-directory generate_lineage || true; \
+		exit $$post_rc; \
+	fi; \
+	if [ $$run_rc -ne 0 ]; then \
+		$(MAKE) --no-print-directory script7-mark-state VARIANT=$$VARIANT_NORM STATE=$(LIFECYCLE_STATE_EXECUTION_FAILED); \
+		$(MAKE) --no-print-directory generate_lineage || true; \
+		exit $$run_rc; \
+	fi; \
+	$(MAKE) --no-print-directory script7-mark-state VARIANT=$$VARIANT_NORM STATE=$(LIFECYCLE_STATE_EXECUTION_COMPLETED); \
+	echo "==> Regenerating lineage dashboard"; \
+	$(MAKE) --no-print-directory generate_lineage || true
 
 ############################################
 # Full execution — Virtual ESP32 (socat + QEMU)
@@ -1584,9 +1672,25 @@ script7-virtualESP32:
 	VIRTUALIZED="$$($(PYTHON) -c 'import sys, yaml; from pathlib import Path; phase, variant = sys.argv[1:3]; p=Path("executions")/phase/variant/"params.yaml"; d=(yaml.safe_load(p.read_text()) or {}) if p.exists() else {}; print("true" if d.get("parameters", {}).get("virtual", False) else "false")' "$(PHASE7)" "$$VARIANT_NORM")"; \
 	[ "$$VIRTUALIZED" = "true" ] || { echo "[ERROR] $(PHASE7):$$VARIANT_NORM has virtual=false. Create it with VIRTUAL=true."; exit 1; }
 	@$(MAKE) --no-print-directory esp32-virt-verify
-	@$(MAKE) --no-print-directory script7 VARIANT=$(VARIANT) \
-		$(if $(BAUD),BAUD=$(BAUD),) \
-		$(if $(DRAIN_SECONDS),DRAIN_SECONDS=$(DRAIN_SECONDS),)
+	@VARIANT_NORM="$$($(NORMALIZE_VARIANT_FOR_PHASE) $(PHASE7) $(VARIANT))"; \
+	EXTRA_MAKE_ARGS=""; \
+	if [ -n "$(BAUD)" ]; then EXTRA_MAKE_ARGS="$$EXTRA_MAKE_ARGS BAUD=$(BAUD)"; fi; \
+	if [ -n "$(DRAIN_SECONDS)" ]; then EXTRA_MAKE_ARGS="$$EXTRA_MAKE_ARGS DRAIN_SECONDS=$(DRAIN_SECONDS)"; fi; \
+	$(MAKE) --no-print-directory script7-prepare-build VARIANT=$$VARIANT_NORM || exit 1; \
+	$(MAKE) --no-print-directory esp32-socat-start || exit 1; \
+	test -e $(VIRTUAL_PORT) || { echo "[ERROR] No existe $(VIRTUAL_PORT). Revisa /tmp/esp32-virt/socat.log"; $(MAKE) -C $(ESP32_VIRT_DIR) stop || true; exit 1; }; \
+	set +e; $(MAKE) --no-print-directory script7-build-only VARIANT=$$VARIANT_NORM; build_rc=$$?; set -e; \
+	if [ $$build_rc -ne 0 ]; then \
+		$(MAKE) --no-print-directory script7-post VARIANT=$$VARIANT_NORM || true; \
+		$(MAKE) -C $(ESP32_VIRT_DIR) stop || true; \
+		exit $$build_rc; \
+	fi; \
+	$(MAKE) --no-print-directory esp32-qemu-start PHASE=$(PHASE7) VARIANT=$$VARIANT_NORM || { $(MAKE) -C $(ESP32_VIRT_DIR) stop || true; exit 1; }; \
+	set +e; $(MAKE) --no-print-directory esp32-flash-run-virtual PHASE=$(PHASE7) FLASH_MODULE=$(SCRIPT7_RUN) VARIANT=$$VARIANT_NORM $$EXTRA_MAKE_ARGS; rc=$$?; set -e; \
+	[ $$rc -ne 0 ] && echo "[INFO] flash-run returned $$rc -> continuing with post" || true; \
+	$(MAKE) --no-print-directory script7-post VARIANT=$$VARIANT_NORM || { $(MAKE) -C $(ESP32_VIRT_DIR) stop || true; exit 1; }; \
+	$(MAKE) -C $(ESP32_VIRT_DIR) stop || true; \
+	exit $$rc
 
 ############################################
 # Check
@@ -1657,6 +1761,7 @@ help7:
 	@echo "     TIME_SCALE=<float>   (default: 0.01)"
 	@echo "     ITMAX=<integer>      (default: MTI_MS)"
 	@echo "     MAX_ROWS=<integer>   (default: full dataset in 07_input_dataset.csv)"
+	@echo "     MAX_LINES=<integer>  (default: send all lines from 07_input_dataset.csv)"
 	@echo "     VIRTUAL=true|false   (default: false; stored in params.yaml)"
 	@echo ""
 	@echo " Execution (step-by-step):"
@@ -1669,9 +1774,11 @@ help7:
 	@echo ""
 	@echo " Full execution (virtual ESP32 — socat+QEMU, sin hardware):"
 	@echo "   Create the variant with VIRTUAL=true, then run:"
+	@echo "   make script7 VARIANT=v701                     # preferred: runs virtual ESP32 inside Docker"
+	@echo "   make esp32-virt-docker-build                  # optional: prebuilds the Docker runner image"
+	@echo "   Legacy/native helper commands:"
 	@echo "   make esp32-virt-verify                        # comprueba que el entorno está listo"
 	@echo "   make esp32-virt-install                       # instala socat+QEMU si faltan"
-	@echo "   make script7 VARIANT=v701                     # arranca socat+QEMU automáticamente"
 	@echo "   make script7-virtualESP32 VARIANT=v701        # alias que exige virtual=true"
 	@echo "   make esp32-virt-stop                          # para socat+QEMU"
 	@echo ""
@@ -2007,9 +2114,10 @@ help: help-setup help1 help2 help3 help4 help5 help6 help7 help8
 	nb-run-generic script-run-generic \
 	variant-generic check-variant-format \
 	register-generic remove-generic check-results-generic export-generic \
-	script1 script2 script3 script4 script5 script6 script7 script7-virtualESP32 script8 \
+	script1 script2 script3 script4 script5 script6 script7 script7-native script7-virtualESP32 script8 \
 	script7-prepare-build script7-build-only script7-flash-run script7-post \
 	esp32-virt-verify esp32-virt-install esp32-virt-stop \
+	esp32-virt-docker-build esp32-virt-docker-ensure esp32-virt-docker-run \
 	esp32-socat-start esp32-qemu-start esp32-flash-run-virtual \
 	script8-virtualESP32 \
 	variant1 variant2 variant3 variant4 variant5 variant6 variant7 variant8 \

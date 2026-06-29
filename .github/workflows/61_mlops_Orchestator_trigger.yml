@@ -30,7 +30,6 @@ jobs:
       catalog_variant: ${{ steps.validar.outputs.catalog_variant }}
       params_json:    ${{ steps.validar.outputs.params_json }}
       runner:         ${{ steps.validar.outputs.runner }}
-      runner_name:    ${{ steps.validar.outputs.runner_name }}
 
       checkout_branch: ${{ steps.read-config.outputs.checkout_branch }}
     steps:
@@ -252,7 +251,6 @@ jobs:
               "catalog_variant": catalog_variant,
               "params_json":     json.dumps(params),
               "runner":          runner_json,
-              "runner_name":     payload.get("runner_name", ""),
           }
               
 
@@ -274,7 +272,6 @@ jobs:
       params_json:     ${{ needs.validar-payload.outputs.params_json }}
       checkout_branch: ${{ needs.validar-payload.outputs.checkout_branch }}
       runner:          ${{ needs.validar-payload.outputs.runner }}
-      runner_name:    ${{ needs.validar-payload.outputs.runner_name }}
     secrets: inherit
 
   trigger-fase2:
@@ -287,7 +284,6 @@ jobs:
       params_json:     ${{ needs.validar-payload.outputs.params_json }}
       checkout_branch: ${{ needs.validar-payload.outputs.checkout_branch }}
       runner:          ${{ needs.validar-payload.outputs.runner }}
-      runner_name:    ${{ needs.validar-payload.outputs.runner_name }}
     secrets: inherit
 
   trigger-fase3:
@@ -300,7 +296,6 @@ jobs:
       params_json:     ${{ needs.validar-payload.outputs.params_json }}
       checkout_branch: ${{ needs.validar-payload.outputs.checkout_branch }}
       runner:          ${{ needs.validar-payload.outputs.runner }}
-      runner_name:    ${{ needs.validar-payload.outputs.runner_name }}
     secrets: inherit
 
   trigger-fase4:
@@ -314,7 +309,6 @@ jobs:
       params_json:     ${{ needs.validar-payload.outputs.params_json }}
       checkout_branch: ${{ needs.validar-payload.outputs.checkout_branch }}
       runner:          ${{ needs.validar-payload.outputs.runner }}
-      runner_name:    ${{ needs.validar-payload.outputs.runner_name }}
     secrets: inherit
 
   trigger-fase5:
@@ -327,7 +321,6 @@ jobs:
       params_json:     ${{ needs.validar-payload.outputs.params_json }}
       checkout_branch: ${{ needs.validar-payload.outputs.checkout_branch }}
       runner:          ${{ needs.validar-payload.outputs.runner }}
-      runner_name:    ${{ needs.validar-payload.outputs.runner_name }}
     secrets: inherit
 
   trigger-fase6:
@@ -340,7 +333,6 @@ jobs:
       params_json:     ${{ needs.validar-payload.outputs.params_json }}
       checkout_branch: ${{ needs.validar-payload.outputs.checkout_branch }}
       runner:          ${{ needs.validar-payload.outputs.runner }}
-      runner_name:    ${{ needs.validar-payload.outputs.runner_name }}
     secrets: inherit
 
   trigger-fase7:
@@ -353,7 +345,6 @@ jobs:
       params_json:     ${{ needs.validar-payload.outputs.params_json }}
       checkout_branch: ${{ needs.validar-payload.outputs.checkout_branch }}
       runner:          ${{ needs.validar-payload.outputs.runner }}
-      runner_name:    ${{ needs.validar-payload.outputs.runner_name }}
     secrets: inherit
 
   trigger-fase8:
@@ -366,5 +357,4 @@ jobs:
       params_json:     ${{ needs.validar-payload.outputs.params_json }}
       checkout_branch: ${{ needs.validar-payload.outputs.checkout_branch }}
       runner:          ${{ needs.validar-payload.outputs.runner }}
-      runner_name:    ${{ needs.validar-payload.outputs.runner_name }}
     secrets: inherit

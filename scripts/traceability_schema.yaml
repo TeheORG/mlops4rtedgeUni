@@ -469,7 +469,7 @@ phases:
 
         dataset:
           type: file
-          required: false
+          required: true
           extension: parquet
 
         report:
@@ -528,59 +528,15 @@ phases:
           type: integer
           required: true
 
-        n_positive:
-          type: integer
-          required: false
-
-        n_negative:
-          type: integer
-          required: false
-
-        target_compatible:
-          type: boolean
-          required: true
-
-        incompatibility_reason:
-          type: string
-          required: false
-          nullable: true
-
-        target_candidate_checks:
-          type: list
-          required: false
-          items:
-            type: dict
-
       metrics:
 
         execution_time:
           type: float
           required: true
 
-        n_windows:
-          type: integer
-          required: false
-
-        n_positive:
-          type: integer
-          required: false
-
-        n_negative:
-          type: integer
-          required: false
-
         positive_ratio:
           type: float
           required: true
-
-        target_compatible:
-          type: boolean
-          required: false
-
-        incompatibility_reason:
-          type: string
-          required: false
-          nullable: true
 
   # ------------------------------------------------------------
   # F05 — MODELING
@@ -752,7 +708,7 @@ phases:
 
         labeled_dataset:
           type: file
-          required: false
+          required: true
           extension: parquet
 
         report:
@@ -975,7 +931,7 @@ phases:
 
         calibration_dataset:
           type: file
-          required: false
+          required: true
           extension: parquet
 
         model_float:
@@ -1132,7 +1088,7 @@ phases:
       time_scale_factor:
         type: float
         required: false
-        default: 1.0
+        default: 0.01
         check: ">0"
 
       Tu:
@@ -1186,6 +1142,18 @@ phases:
         required: false
         inherited: false
         check: ">=1"
+
+      serial_max_lines:
+        type: integer
+        required: false
+        inherited: false
+        check: ">=1"
+
+      esp_flash_size_mb:
+        type: integer
+        required: false
+        inherited: false
+        check: ">=2"
         
       # -------------------------------------------------
       # Plataforma edge obligatoria (carpeta bajo edge/)
@@ -1195,6 +1163,12 @@ phases:
         type: string
         required: true
         inherited: false
+
+      virtual:
+        type: boolean
+        required: false
+        inherited: false
+        default: false
 
     outputs:
 
