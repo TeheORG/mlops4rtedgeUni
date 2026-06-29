@@ -1266,7 +1266,7 @@ phases:
       time_scale_factor:
         type: float
         required: false
-        default: 1.0
+        default: 0.01
         check: ">0"
 
       Tu:
@@ -1320,6 +1320,18 @@ phases:
         required: false
         inherited: false
         check: ">=1"
+
+      serial_max_lines:
+        type: integer
+        required: false
+        inherited: false
+        check: ">=1"
+
+      esp_flash_size_mb:
+        type: integer
+        required: false
+        inherited: false
+        check: ">=2"
         
       # -------------------------------------------------
       # Plataforma edge obligatoria (carpeta bajo edge/)
@@ -1329,6 +1341,12 @@ phases:
         type: string
         required: true
         inherited: false
+
+      virtual:
+        type: boolean
+        required: false
+        inherited: false
+        default: false
 
     outputs:
 

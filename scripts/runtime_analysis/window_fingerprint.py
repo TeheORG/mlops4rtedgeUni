@@ -33,14 +33,28 @@ def normalize_events_for_fingerprint(window) -> List[int]:
     return [int(v) for v in values]
 
 
-def fnv1a_32(events: List[int]) -> int:
+def _fingerprint_bytes_for_dtype(event_dtype: str | None) -> int:
+    dtype = str(event_dtype or "uint8").strip().lower()
+    return 2 if dtype == "int16" else 1
+
+
+def fnv1a_32(events: List[int], event_dtype: str | None = "uint8") -> int:
     """
     FNV-1a 32-bit compatible con events_mgr_fingerprint (firmware).
     """
+    nbytes = _fingerprint_bytes_for_dtype(event_dtype)
     h = FNV_OFFSET_BASIS
     for e in events:
-        h ^= int(e) & 0xFF
-        h = (h * FNV_PRIME) & 0xFFFFFFFF
+        value = int(e)
+        if nbytes == 1:
+            h ^= value & 0xFF
+            h = (h * FNV_PRIME) & 0xFFFFFFFF
+        else:
+            value &= 0xFFFF
+            h ^= value & 0xFF
+            h = (h * FNV_PRIME) & 0xFFFFFFFF
+            h ^= (value >> 8) & 0xFF
+            h = (h * FNV_PRIME) & 0xFFFFFFFF
     return h
 
 
